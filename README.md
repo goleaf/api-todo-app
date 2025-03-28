@@ -151,6 +151,7 @@ npx cap open android
 The Todo App includes comprehensive documentation:
 
 - [Features](features.md) - Detailed list of all application features
+- [User Manual](manual.md) - Complete guide for using the application
 - [Changelog](changelog.md) - Record of all notable changes to the application
 - [Testing Documentation](#todo-app-testing-documentation) - Information about the testing setup
 
