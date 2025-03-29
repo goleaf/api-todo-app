@@ -1,9 +1,9 @@
 {
-  "appId": "com.example.todoapp",
-  "appName": "Todo App",
-  "webDir": "public",
+  "appId": "com.yourcompany.appname",
+  "appName": "YourAppName",
+  "webDir": "dist",
   "bundledWebRuntime": false,
   "server": {
     "androidScheme": "https"
   }
-} 
+}

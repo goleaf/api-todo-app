@@ -2,9 +2,12 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\StatsController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\UserController;
+use App\Services\OneSignalNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,36 +23,47 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Public routes
-Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
 
-// Protected routes
+// Routes that require authentication
 Route::middleware('auth:sanctum')->group(function () {
-    // User routes
-    Route::get('/user', [UserController::class, 'show']);
-    Route::put('/user/profile', [UserController::class, 'updateProfile']);
-    Route::put('/user/password', [UserController::class, 'updatePassword']);
-    Route::post('/user/photo', [UserController::class, 'uploadPhoto']);
-    Route::delete('/user/photo', [UserController::class, 'deletePhoto']);
-    Route::get('/user/statistics', [UserController::class, 'statistics']);
-    
     // Auth routes
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/refresh', [AuthController::class, 'refresh']);
+    Route::post('/refresh-token', [AuthController::class, 'refresh']);
+    Route::get('/user', [AuthController::class, 'me']);
+    
+    // Dashboard routes
+    Route::get('/dashboard', [DashboardController::class, 'index']);
+    
+    // User routes
+    Route::apiResource('users', UserController::class);
     
     // Tasks routes
-    Route::get('/tasks/search', [TaskController::class, 'search']);
-    Route::post('/tasks/{task}/toggle-complete', [TaskController::class, 'toggleComplete']);
     Route::apiResource('tasks', TaskController::class);
+    Route::patch('/tasks/{task}/toggle', [TaskController::class, 'toggleComplete']);
     
-    // Categories routes
+    // Category routes
     Route::apiResource('categories', CategoryController::class);
     
     // Stats routes
-    Route::get('/stats/overview', [StatsController::class, 'overview']);
-    Route::get('/stats/completion-rate', [StatsController::class, 'completionRate']);
-    Route::get('/stats/by-category', [StatsController::class, 'byCategory']);
-    Route::get('/stats/by-priority', [StatsController::class, 'byPriority']);
-    Route::get('/stats/by-date', [StatsController::class, 'byDate']);
-    Route::get('/stats/completion-time', [StatsController::class, 'completionTime']);
+    Route::get('/stats', [StatsController::class, 'index']);
+    Route::get('/stats/summary', [StatsController::class, 'summary']);
+    Route::get('/stats/daily', [StatsController::class, 'daily']);
+    Route::get('/stats/weekly', [StatsController::class, 'weekly']);
+    Route::get('/stats/monthly', [StatsController::class, 'monthly']);
+    
+    // Device token for push notifications
+    Route::post('/device-token', [DeviceTokenController::class, 'store']);
+    
+    // Test push notification
+    Route::post('/test-notification', function (Request $request) {
+        $notificationService = new OneSignalNotificationService();
+        return $notificationService->sendToUser(
+            auth()->id(),
+            'Test Notification',
+            'This is a test notification from the Todo App',
+            ['type' => 'test']
+        );
+    });
 });

@@ -1,128 +1,607 @@
-@import 'tailwindcss';
+/* Import fonts */
+/* Font files are now imported directly in main.js */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
-
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
-}
-
+/* Font variables for easy switching */
 :root {
-    --primary: #8b5cf6;  /* Purple 500 */
-    --primary-dark: #7c3aed; /* Purple 600 */
-    --secondary: #f97316; /* Orange 500 */
-    --secondary-dark: #ea580c; /* Orange 600 */
-    --background: #f9fafb; /* Gray 50 */
-    --background-dark: #111827; /* Gray 900 */
+  --font-family: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-family-serif: Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-family-mono: Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
 
-@layer components {
-    .btn-primary {
-        @apply bg-[var(--primary)] text-white rounded-full py-2 px-4 hover:bg-opacity-90 transition-colors duration-200;
-    }
-
-    .task-card {
-        @apply bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-
-    .task-card:hover {
-        @apply border-gray-300 dark:border-gray-600 shadow-md;
-    }
-
-    .nav-item {
-        @apply flex flex-col items-center text-gray-500 dark:text-gray-400 transition-colors duration-200;
-    }
-    
-    .nav-item.active {
-        @apply text-[var(--primary)] dark:text-[var(--primary)];
-    }
-}
-
-/* Custom checkbox styling */
-input[type="checkbox"] {
-    @apply rounded-full focus:ring-purple-500 text-purple-600 border-purple-400;
-}
-
-/* Focus styles for inputs and buttons */
-input:focus, select:focus, textarea:focus {
-    @apply outline-none ring-2 ring-purple-500;
-}
-
-button.btn-primary {
-    @apply px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500;
-}
-
-button.btn-secondary {
-    @apply px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors;
-}
-
-/* Style for accent text like due dates */
-.text-accent {
-    @apply text-orange-500 dark:text-orange-400;
-}
-
-/* Custom progress bar styling */
-.progress-bar {
-    @apply w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden;
-}
-
-.progress-bar-fill {
-    @apply h-full bg-purple-500 rounded-full transition-all duration-500;
-}
-
-/* Priority badge styling */
-.priority-high {
-    @apply bg-red-100 text-red-800 dark:bg-red-900 dark:bg-opacity-30 dark:text-red-300;
-}
-
-.priority-medium {
-    @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:bg-opacity-30 dark:text-yellow-300;
-}
-
-.priority-low {
-    @apply bg-green-100 text-green-800 dark:bg-green-900 dark:bg-opacity-30 dark:text-green-300;
-}
-
-/* Badge base style */
-.badge {
-    @apply text-xs font-medium rounded-full px-2 py-0.5;
-}
-
-/* Dark mode toggle styling */
-.dark-mode-toggle {
-    @apply relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500;
-}
-
-/* Make sure the body uses our background colors */
 body {
-    @apply bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100;
+  font-family: var(--font-family);
 }
 
-/* Style for the page container */
-.page-container {
-    @apply container mx-auto px-4 py-6 pb-24 max-w-4xl;
+/* Base Variables */
+@layer base {
+  :root {
+    --primary: theme('colors.primary.DEFAULT');
+    --primary-dark: theme('colors.primary.dark');
+    --secondary: theme('colors.secondary.DEFAULT');
+    --secondary-dark: theme('colors.secondary.dark');
+    --background: theme('colors.gray.50');
+    --background-dark: theme('colors.gray.900');
+  }
+
+  /* Base Element Styling */
+  html {
+    @apply h-full bg-gray-50;
+    @apply dark:bg-gray-900;
+  }
+  
+  body {
+    @apply h-full antialiased text-gray-900 min-h-screen;
+    @apply dark:text-white dark:bg-gray-900;
+  }
+
+  #app {
+    @apply min-h-screen;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+  }
+
+  h1 {
+    @apply text-3xl leading-tight mb-4;
+  }
+
+  h2 {
+    @apply text-2xl leading-tight mb-3;
+  }
+
+  h3 {
+    @apply text-xl leading-tight mb-2;
+  }
+
+  h4 {
+    @apply text-lg leading-tight mb-2;
+  }
+  
+  a {
+    @apply text-primary hover:text-primary-dark transition-colors;
+  }
 }
 
-/* Special scrollbar styling */
-::-webkit-scrollbar {
-    width: 8px;
+/* Component Styles */
+@layer components {
+  /* Button Styles - Enhanced */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent 
+           text-sm font-medium rounded-md shadow-sm transition-all duration-200
+           focus:outline-none focus:ring-2 focus:ring-offset-2 relative overflow-hidden
+           transform active:scale-95;
+  }
+  
+  .btn::after {
+    @apply absolute inset-0 rounded-md opacity-0 transition-opacity duration-200;
+    content: '';
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .btn:hover::after {
+    @apply opacity-100;
+  }
+
+  .btn-primary {
+    @apply btn text-white bg-primary hover:bg-primary-dark focus:ring-primary border border-transparent;
+    color: white !important; /* Force text color to be white */
+  }
+
+  .btn-secondary {
+    @apply btn text-white bg-secondary hover:bg-secondary-dark focus:ring-secondary border border-transparent;
+    color: white !important; /* Force text color to be white */
+  }
+
+  .btn-success {
+    @apply btn text-white bg-green-600 hover:bg-green-700 focus:ring-green-500 border border-transparent;
+    color: white !important; /* Force text color to be white */
+  }
+
+  .btn-danger {
+    @apply btn text-white bg-red-600 hover:bg-red-700 focus:ring-red-500 border border-transparent;
+    color: white !important; /* Force text color to be white */
+  }
+
+  .btn-light {
+    @apply btn text-gray-800 bg-white hover:bg-gray-50 border-gray-200 focus:ring-gray-200;
+    @apply dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 dark:focus:ring-gray-700;
+    color: currentColor !important; /* Use the current text color */
+  }
+
+  .btn-dark {
+    @apply btn text-white bg-gray-800 hover:bg-gray-900 focus:ring-gray-700 border border-transparent;
+    color: white !important; /* Force text color to be white */
+  }
+  
+  .btn-icon {
+    @apply p-2 rounded-full;
+  }
+  
+  .btn-sm {
+    @apply text-xs px-3 py-1.5;
+  }
+  
+  .btn-lg {
+    @apply text-base px-5 py-2.5;
+  }
+  
+  .btn-outline-primary {
+    @apply btn bg-transparent text-primary border-primary hover:bg-primary hover:text-white focus:ring-primary;
+  }
+  
+  .btn-outline-secondary {
+    @apply btn bg-transparent text-secondary border-secondary hover:bg-secondary hover:text-white focus:ring-secondary;
+  }
+  
+  .btn-disabled {
+    @apply opacity-60 cursor-not-allowed transform-none;
+  }
+  
+  /* Active button states */
+  .btn:active {
+    @apply transform scale-95 shadow-inner;
+  }
+  
+  .btn-primary:active {
+    @apply bg-primary-dark;
+  }
+  
+  .btn-secondary:active {
+    @apply bg-secondary-dark;
+  }
+  
+  .btn-light:active {
+    @apply bg-gray-100 dark:bg-gray-700;
+  }
+  
+  .btn-success:active {
+    @apply bg-green-700;
+  }
+  
+  .btn-danger:active {
+    @apply bg-red-700;
+  }
+  
+  .btn-dark:active {
+    @apply bg-gray-900;
+  }
+
+  /* Enhanced Form Controls */
+  .form-group {
+    @apply mb-4;
+  }
+  
+  .form-label {
+    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+  }
+  
+  .form-text {
+    @apply mt-1 text-xs text-gray-500 dark:text-gray-400;
+  }
+
+  .form-input {
+    @apply block w-full rounded-md shadow-sm transition-colors duration-200
+           border-gray-300 focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50
+           dark:bg-gray-800 dark:border-gray-700 dark:text-white;
+  }
+  
+  .form-input:hover {
+    @apply border-gray-400 dark:border-gray-600;
+  }
+  
+  .form-input:focus {
+    @apply ring-2 ring-primary ring-opacity-50 border-primary;
+  }
+  
+  .form-input:disabled {
+    @apply bg-gray-100 text-gray-500 cursor-not-allowed dark:bg-gray-900 dark:text-gray-500;
+  }
+
+  .input-error {
+    @apply border-red-300 text-red-900 placeholder-red-300 pr-10
+           focus:border-red-500 focus:ring-red-500
+           dark:border-red-700 dark:text-red-400;
+  }
+  
+  .error-message {
+    @apply mt-1 text-sm text-red-600 dark:text-red-400;
+  }
+  
+  .form-select {
+    @apply form-input pr-10 appearance-none bg-no-repeat;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-size: 1.5em 1.5em;
+  }
+  
+  .form-select:focus {
+    @apply ring-2 ring-primary ring-opacity-50 border-primary;
+  }
+  
+  .form-checkbox {
+    @apply rounded border-gray-300 text-primary focus:ring-primary transition-colors duration-200;
+    @apply dark:border-gray-700 dark:bg-gray-900;
+  }
+  
+  .form-checkbox:checked {
+    @apply bg-primary border-primary;
+  }
+  
+  .form-textarea {
+    @apply form-input min-h-[100px] resize-y;
+  }
+  
+  .form-textarea:focus {
+    @apply ring-2 ring-primary ring-opacity-50 border-primary;
+  }
+
+  /* Enhanced Card Styles */
+  .card {
+    @apply bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg border border-gray-100 dark:border-gray-700
+           transition-all duration-200 hover:shadow-md;
+  }
+  
+  .card-header {
+    @apply px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800;
+  }
+  
+  .card-body {
+    @apply px-4 py-5 sm:p-6;
+  }
+  
+  .card-footer {
+    @apply px-4 py-3 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 sm:px-6;
+  }
+
+  .task-card {
+    @apply bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700;
+    @apply transition-all duration-150 ease-in-out hover:shadow-md;
+  }
+
+  .task-card:hover {
+    @apply border-gray-300 dark:border-gray-600 transform translate-y-[-2px];
+  }
+
+  /* Enhanced Navigation Styles */
+  .nav-item {
+    @apply flex flex-col items-center text-gray-500 dark:text-gray-400
+           transition-colors duration-200 px-4 py-2 rounded-md;
+  }
+  
+  .nav-item:hover {
+    @apply text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800;
+  }
+  
+  .nav-item.active {
+    @apply text-primary dark:text-primary bg-primary bg-opacity-10 dark:bg-opacity-10;
+  }
+  
+  .nav-link {
+    @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900
+           dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white
+           transition-colors duration-200;
+  }
+  
+  /* Active state indicators */
+  .active-indicator {
+    @apply absolute bottom-0 left-0 right-0 h-0.5 bg-primary transform scale-x-0 transition-transform origin-bottom;
+  }
+  
+  .nav-link:hover .active-indicator,
+  .nav-link.active .active-indicator {
+    @apply scale-x-100;
+  }
+  
+  /* Enhanced Task Styles */
+  .task {
+    @apply border-b border-gray-200 dark:border-gray-700
+           py-3 px-2 flex items-center hover:bg-gray-50 dark:hover:bg-gray-800
+           transition-colors duration-200;
+  }
+  
+  .task:last-child {
+    @apply border-b-0;
+  }
+
+  .task-completed {
+    @apply line-through text-gray-400;
+  }
+  
+  .task-checkbox {
+    @apply h-5 w-5 rounded-full border-2 border-gray-300 dark:border-gray-600
+           text-primary focus:ring-primary focus:ring-offset-0
+           transition-colors duration-200;
+  }
+  
+  .task-checkbox:checked {
+    @apply border-primary bg-primary;
+  }
+
+  /* Hover/Focus Effects */
+  .hover-translate {
+    @apply transition-transform duration-200;
+  }
+  
+  .hover-translate:hover {
+    @apply transform -translate-y-1;
+  }
+  
+  .hover-scale {
+    @apply transition-transform duration-200;
+  }
+  
+  .hover-scale:hover {
+    @apply transform scale-105;
+  }
+  
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary;
+  }
+  
+  /* Interaction animations */
+  .click-effect {
+    @apply relative overflow-hidden;
+  }
+  
+  .click-effect::after {
+    @apply absolute inset-0 rounded-md opacity-0 transition-opacity duration-150;
+    content: '';
+    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+    transform: scale(0);
+  }
+  
+  .click-effect:active::after {
+    @apply opacity-30;
+    transform: scale(2);
+    transition: transform 0.4s ease-out, opacity 0.3s ease-out;
+  }
+
+  /* Enhanced Interactive Elements */
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent 
+      text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2
+      transition-all duration-200 ease-in-out;
+  }
+  
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary-600 focus:ring-primary
+      active:bg-primary-700 active:transform active:scale-[0.98] hover:shadow-md;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-white hover:bg-secondary-600 focus:ring-secondary
+      active:bg-secondary-700 active:transform active:scale-[0.98] hover:shadow-md;
+  }
+  
+  .btn-danger {
+    @apply bg-danger text-white hover:bg-danger-600 focus:ring-danger
+      active:bg-danger-700 active:transform active:scale-[0.98] hover:shadow-md;
+  }
+  
+  .btn-success {
+    @apply bg-success text-white hover:bg-success-600 focus:ring-success
+      active:bg-success-700 active:transform active:scale-[0.98] hover:shadow-md;
+  }
+  
+  .btn-warning {
+    @apply bg-warning text-white hover:bg-warning-600 focus:ring-warning
+      active:bg-warning-700 active:transform active:scale-[0.98] hover:shadow-md;
+  }
+  
+  .btn-info {
+    @apply bg-info text-white hover:bg-info-600 focus:ring-info
+      active:bg-info-700 active:transform active:scale-[0.98] hover:shadow-md;
+  }
+  
+  .btn-outlined {
+    @apply bg-transparent border-2 hover:shadow-md;
+  }
+  
+  .btn-outlined-primary {
+    @apply border-primary text-primary hover:bg-primary hover:text-white
+      active:bg-primary-700 active:border-primary-700;
+  }
+  
+  /* Form Elements */
+  /* Inputs */
+  .form-input {
+    @apply block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
+      rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 dark:bg-gray-700 dark:text-white
+      focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary 
+      hover:border-gray-400 dark:hover:border-gray-500
+      disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-gray-800
+      transition-all duration-200 ease-in-out;
+  }
+  
+  /* Textareas */
+  .form-textarea {
+    @apply block w-full px-3 py-2 border border-gray-300 dark:border-gray-600
+      rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 dark:bg-gray-700 dark:text-white
+      focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary 
+      hover:border-gray-400 dark:hover:border-gray-500
+      disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-gray-800
+      transition-all duration-200 ease-in-out;
+  }
+  
+  /* Select Boxes */
+  .form-select {
+    @apply block w-full px-3 py-2 border border-gray-300 dark:border-gray-600
+      rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 dark:bg-gray-700 dark:text-white
+      focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary 
+      hover:border-gray-400 dark:hover:border-gray-500
+      disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100 dark:disabled:bg-gray-800
+      transition-all duration-200 ease-in-out;
+  }
+  
+  /* Checkboxes and Radios */
+  .form-checkbox {
+    @apply h-4 w-4 text-primary border-gray-300 dark:border-gray-600 dark:bg-gray-700
+      focus:ring-primary rounded hover:border-primary dark:hover:border-primary
+      transition-all duration-200 ease-in-out;
+  }
+  
+  .form-radio {
+    @apply h-4 w-4 text-primary border-gray-300 dark:border-gray-600 dark:bg-gray-700
+      focus:ring-primary rounded-full hover:border-primary dark:hover:border-primary
+      transition-all duration-200 ease-in-out;
+  }
+  
+  /* Cards */
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg p-6
+      border border-gray-200 dark:border-gray-700
+      transition-all duration-200 ease-in-out;
+  }
+  
+  /* Links */
+  .link {
+    @apply text-primary hover:text-primary-600 hover:underline focus:outline-none
+      focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-sm
+      transition-all duration-200 ease-in-out;
+  }
+  
+  /* Icons */
+  .icon-btn {
+    @apply p-2 text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary
+      hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full
+      focus:outline-none focus:ring-2 focus:ring-primary
+      transition-all duration-200 ease-in-out;
+  }
 }
 
-::-webkit-scrollbar-track {
+/* Custom Input Styling */
+@layer utilities {
+  /* Custom Checkbox Styling */
+  input[type="checkbox"] {
+    @apply rounded-full text-primary focus:ring-primary border-gray-300 transition-colors duration-150;
+    @apply dark:border-gray-600 dark:bg-gray-800;
+  }
+
+  /* Focus Styles */
+  input:focus, select:focus, textarea:focus {
+    @apply outline-none ring-2 ring-primary;
+  }
+
+  /* Custom Progress Bar */
+  .progress-bar {
+    @apply w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden;
+  }
+
+  .progress-bar-fill {
+    @apply h-full bg-primary rounded-full transition-all duration-500;
+  }
+
+  /* Accent Text */
+  .text-accent {
+    @apply text-secondary dark:text-secondary;
+  }
+
+  /* Scrollbar Styling */
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
     @apply bg-gray-100 dark:bg-gray-800;
-}
+  }
 
-::-webkit-scrollbar-thumb {
+  ::-webkit-scrollbar-thumb {
     @apply bg-gray-300 dark:bg-gray-600 rounded-full;
-}
+  }
 
-::-webkit-scrollbar-thumb:hover {
+  ::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-400 dark:bg-gray-500;
+  }
+
+  /* Transition Utilities */
+  .transition-fast {
+    @apply transition-all duration-150 ease-in-out;
+  }
+
+  .transition-medium {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  .transition-slow {
+    @apply transition-all duration-500 ease-in-out;
+  }
+
+  /* Dark Mode Toggle */
+  .dark-mode-toggle {
+    @apply relative inline-flex items-center h-6 rounded-full w-11;
+    @apply transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary;
+  }
+  
+  .dark-mode-toggle-handle {
+    @apply pointer-events-none absolute left-0.5 top-0.5 inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition-transform duration-200 ease-in-out;
+  }
+
+  /* Page Container */
+  .page-container {
+    @apply container mx-auto px-4 py-6 pb-24 max-w-4xl;
+  }
+  
+  /* Icon Colors */
+  .icon-primary {
+    @apply text-primary;
+  }
+  
+  .icon-secondary {
+    @apply text-secondary;
+  }
+  
+  .icon-success {
+    @apply text-green-500;
+  }
+  
+  .icon-danger {
+    @apply text-red-500;
+  }
+  
+  .icon-warning {
+    @apply text-yellow-500;
+  }
+  
+  .icon-info {
+    @apply text-blue-500;
+  }
+  
+  /* Shimmer Loading Effect */
+  .shimmer {
+    @apply animate-pulse bg-gray-200 dark:bg-gray-700 rounded;
+  }
+  
+  /* Tooltip */
+  .tooltip {
+    @apply invisible absolute opacity-0 bg-gray-900 text-white text-sm px-2 py-1 rounded shadow-sm 
+           transition-opacity duration-200 z-50;
+  }
+  
+  .has-tooltip:hover .tooltip {
+    @apply visible opacity-100;
+  }
+  
+  /* Focus Ring Addition */
+  .ring-focus {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-gray-900;
+  }
+  
+  .ring-focus-inset {
+    @apply focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary;
+  }
+  
+  /* Responsive Visibility */
+  .mobile-only {
+    @apply sm:hidden;
+  }
+  
+  .desktop-only {
+    @apply hidden sm:block;
+  }
 }

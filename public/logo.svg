@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" width="240" height="80">
+  <!-- Background -->
+  <rect x="0" y="0" width="240" height="80" fill="none" />
+  
+  <!-- Todo text -->
+  <text x="44" y="50" font-family="Roboto, Arial, sans-serif" font-weight="700" font-size="42" fill="#8b5cf6">
+    Todo
+  </text>
+  
+  <!-- Checkmark element with animation -->
+  <g transform="translate(160, 40) scale(0.04, 0.04)">
+    <circle cx="256" cy="256" r="256" fill="#f97316">
+      <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" repeatCount="indefinite" />
+    </circle>
+    <path fill="#ffffff" d="M400 150l-40-40c-10-10-30-10-40 0l-120 120-50-50c-10-10-30-10-40 0l-40 40c-10 10
+-10 30 0 40l110 110c10 10 30 10 40 0l180-180c10-10 10-30 0-40z">
+      <animate attributeName="opacity" values="0.9;1;0.9" dur="2s" repeatCount="indefinite" />
+    </path>
+  </g>
+  
+  <!-- Underline with gradient and animation -->
+  <rect x="40" y="60" width="130" height="4" rx="2" ry="2" fill="url(#gradient)">
+    <animate attributeName="width" values="130;140;130" dur="4s" repeatCount="indefinite" />
+  </rect>
+  
+  <!-- Subtle decoration elements -->
+  <circle cx="30" cy="40" r="3" fill="#8b5cf6" opacity="0.5" />
+  <circle cx="200" cy="30" r="2" fill="#f97316" opacity="0.5" />
+  <circle cx="210" cy="50" r="2" fill="#f97316" opacity="0.5" />
+  
+  <!-- Gradient definition -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#f97316" />
+      <animate attributeName="x1" values="0%;10%;0%" dur="10s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="100%;90%;100%" dur="10s" repeatCount="indefinite" />
+    </linearGradient>
+  </defs>
+</svg> 

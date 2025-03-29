@@ -52,23 +52,21 @@
           My Profile
         </router-link>
         
-        <router-link to="/" class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+        <router-link to="/todos" class="flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
           </svg>
-          Dashboard
+          Tasks
         </router-link>
         
         <div class="border-t border-gray-200 dark:border-gray-700"></div>
         
-        <form method="POST" action="/logout" @submit="logout">
-          <button type="submit" class="flex items-center w-full text-left px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 dark:hover:bg-opacity-30 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Sign Out
-          </button>
-        </form>
+        <button @click="logout" class="flex items-center w-full text-left px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 dark:hover:bg-opacity-30 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          Sign Out
+        </button>
       </div>
     </div>
   </div>
@@ -77,11 +75,13 @@
 <script>
 import { computed, ref, onMounted, watchEffect } from 'vue';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 import axios from 'axios';
 
 export default {
   setup() {
     const store = useStore();
+    const router = useRouter();
     const user = ref({
       name: '',
       email: '',
@@ -132,11 +132,11 @@ export default {
       }
     };
     
-    const logout = async (event) => {
-      event.preventDefault();
+    const logout = async () => {
       try {
+        closeDropdown();
         await store.dispatch('logout');
-        window.location.href = '/login';
+        router.push('/');
       } catch (error) {
         console.error('Error logging out:', error);
       }
@@ -147,9 +147,7 @@ export default {
     };
     
     const closeDropdown = (event) => {
-      if (dropdown.value && !dropdown.value.contains(event.target)) {
-        isDropdownOpen.value = false;
-      }
+      isDropdownOpen.value = false;
     };
     
     // Listen for changes in the todos state

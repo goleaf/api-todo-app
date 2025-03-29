@@ -12,7 +12,7 @@
       
       <!-- App name and tagline -->
       <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Welcome to Taskify</h1>
-      <p class="text-gray-600 dark:text-gray-300 text-lg mb-8">The smarter way to manage your tasks</p>
+      <p class="text-gray-600 dark:text-gray-300 text-lg mb-8">Your simple yet powerful task management solution. Stay organized, boost productivity, and never miss a deadline again.</p>
       
       <!-- Features -->
       <div class="space-y-4 mb-10 text-left bg-white dark:bg-gray-800 rounded-lg p-6 shadow">
@@ -23,20 +23,20 @@
             </svg>
           </div>
           <div class="ml-3">
-            <h2 class="text-lg font-medium text-gray-900 dark:text-white">Organize with Categories</h2>
-            <p class="text-gray-500 dark:text-gray-400">Group your tasks by category to stay organized</p>
+            <h2 class="text-lg font-medium text-gray-900 dark:text-white">Track all your tasks</h2>
+            <p class="text-gray-500 dark:text-gray-400">Stay on top of your projects and daily activities</p>
           </div>
         </div>
         
         <div class="flex items-start">
           <div class="flex-shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
             </svg>
           </div>
           <div class="ml-3">
-            <h2 class="text-lg font-medium text-gray-900 dark:text-white">Calendar Integration</h2>
-            <p class="text-gray-500 dark:text-gray-400">Visualize your tasks with our calendar view</p>
+            <h2 class="text-lg font-medium text-gray-900 dark:text-white">Set priorities</h2>
+            <p class="text-gray-500 dark:text-gray-400">Focus on what matters most to you</p>
           </div>
         </div>
         
@@ -47,27 +47,29 @@
             </svg>
           </div>
           <div class="ml-3">
-            <h2 class="text-lg font-medium text-gray-900 dark:text-white">Track Your Progress</h2>
-            <p class="text-gray-500 dark:text-gray-400">Monitor completion with progress indicators and stats</p>
+            <h2 class="text-lg font-medium text-gray-900 dark:text-white">Track progress</h2>
+            <p class="text-gray-500 dark:text-gray-400">Monitor your achievements and success</p>
           </div>
         </div>
       </div>
       
-      <!-- Buttons -->
+      <!-- Auth links -->
       <div class="space-y-3">
         <router-link to="/login" class="w-full block py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg text-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
           Get Started
         </router-link>
         <div class="text-sm text-gray-600 dark:text-gray-400">
           Already have an account? 
-          <router-link to="/login" class="text-purple-600 hover:text-purple-500 font-medium">Sign In</router-link>
+          <router-link to="/login" class="text-purple-600 hover:text-purple-500 font-medium">Log in</router-link> 
+          or 
+          <router-link to="/register" class="text-purple-600 hover:text-purple-500 font-medium">Register</router-link>
         </div>
       </div>
     </div>
     
-    <!-- App version -->
+    <!-- Footer -->
     <div class="mt-8 text-sm text-gray-500 dark:text-gray-400">
-      Version 1.0.0
+      © 2025 Laravel. All rights reserved.
     </div>
   </div>
 </template>

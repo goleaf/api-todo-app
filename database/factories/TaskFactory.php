@@ -26,23 +26,18 @@ class TaskFactory extends Factory
      */
     public function definition(): array
     {
-        $completed = $this->faker->boolean(30); // 30% chance of being completed
-        $created_at = $this->faker->dateTimeBetween('-30 days', '-1 day');
-        $completed_at = $completed ? $this->faker->dateTimeBetween($created_at, 'now') : null;
-        $due_date = $this->faker->dateTimeBetween('now', '+30 days');
-
         return [
-            'title' => $this->faker->sentence(4),
-            'description' => $this->faker->paragraph(),
-            'completed' => $completed,
-            'completed_at' => $completed_at,
-            'priority' => $this->faker->randomElement([1, 2, 3]), // Low, Medium, High
-            'progress' => $completed ? 100 : $this->faker->numberBetween(0, 90),
-            'due_date' => $due_date,
+            'title' => $this->faker->sentence(rand(4, 8)),
+            'description' => $this->faker->paragraphs(rand(1, 3), true),
             'user_id' => User::factory(),
             'category_id' => Category::factory(),
-            'created_at' => $created_at,
-            'updated_at' => $completed_at ?? $created_at,
+            'due_date' => $this->faker->dateTimeBetween('now', '+30 days'),
+            'priority' => $this->faker->randomElement(['low', 'medium', 'high']),
+            'status' => $this->faker->randomElement(['todo', 'in_progress', 'done']),
+            'completed' => $this->faker->boolean(30),
+            'completed_at' => function (array $attributes) {
+                return $attributes['completed'] ? $this->faker->dateTimeBetween('-30 days', 'now') : null;
+            },
         ];
     }
 

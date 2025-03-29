@@ -1,163 +1,136 @@
-# Taskify - Task Management Application
+# Todo Application
 
-Taskify is a modern, feature-rich task management application built with Laravel 12, Vue.js, and Livewire. It helps users organize, track, and manage their tasks efficiently with an intuitive and responsive interface.
+A modern task management application built with Laravel and Vue.js.
 
 ## Features
 
-### User Experience
-- **User Greeting and Profile**: Personalized welcome with user name and avatar
-- **Task List with Cards**: Interactive task cards with complete information
-- **Task Categorization**: Organize tasks by custom categories
-- **Progress Indicators**: Track completion percentage of tasks
-- **Priority Badges**: Color-coded priority levels (Low, Medium, High)
-- **Due Dates**: Set and track task deadlines
-- **Task Completion Checkboxes**: Mark tasks as complete/incomplete
-- **Floating Action Button (FAB)**: Quick access to add new tasks
-- **Bottom Navigation**: Easy access to Home, Calendar, Stats, and Profile
-- **Calendar Integration**: Visual calendar view of tasks by due date
-- **Statistics Dashboard**: Track task completion metrics
-- **Task Filtering**: Filter by category, status, and search terms
-- **Minimalist Design**: Clean, modern interface with ample white space
+- User authentication (register, login, logout)
+- Task management (create, read, update, delete)
+- Task categorization with custom categories
+- Task prioritization (low, medium, high)
+- Due date tracking with overdue indicators
+- Task completion tracking
+- Dark/light mode toggle
+- Responsive design for all devices
 
-### Technical Features
-- **Real-time Updates**: Changes sync across devices via Pusher
-- **Dark Mode Support**: Toggle between light and dark themes
-- **Responsive Design**: Works on desktop, tablet, and mobile
-- **Authentication**: Secure user accounts and data
-- **API Integration**: RESTful API for data access
-- **Offline Support**: Progressive Web App capabilities
-- **Performance Optimized**: Fast loading and responsive interactions
-- **Test Helpers**: Standardized utilities for consistent testing
+## Tech Stack
+
+### Backend
+- Laravel 10
+- MySQL/SQLite database
+- Laravel Sanctum for API authentication
+- Repository pattern for data access
+
+### Frontend
+- Vue.js 3 with Composition API
+- Vue Router for navigation
+- Pinia for state management
+- Tailwind CSS for styling
+- Axios for API requests
+- date-fns for date manipulation
 
 ## Installation
 
 ### Prerequisites
-- PHP 8.1+
+- PHP 8.1 or higher
 - Composer
 - Node.js and NPM
-- SQLite (for development)
+- MySQL or SQLite
 
-### Setup Instructions
+### Setup Steps
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/taskify.git
-   cd taskify
-   ```
+```bash
+git clone https://github.com/yourusername/todo-app.git
+cd todo-app
+```
 
 2. Install PHP dependencies:
-   ```bash
-   composer install
-   ```
+```bash
+composer install
+```
 
-3. Install JavaScript dependencies:
-   ```bash
-   npm install
-   ```
+3. Copy the environment file and configure it:
+```bash
+cp .env.example .env
+```
 
-4. Copy environment file and generate app key:
-   ```bash
-   cp .env.example .env
-   php artisan key:generate
-   ```
+4. Generate application key:
+```bash
+php artisan key:generate
+```
 
 5. Set up the database:
-   ```bash
-   php artisan migrate --seed
-   ```
-
-6. Build frontend assets:
-   ```bash
-   npm run build
-   ```
-
-7. Start the development server:
-   ```bash
-   php artisan serve
-   ```
-
-8. Visit `http://localhost:8000` in your browser
-
-## Development
-
-### Front-end Development
-The front-end is built with Vue.js 3 and Tailwind CSS:
-
-- Run watch mode during development:
-  ```bash
-  npm run dev
-  ```
-
-- Build for production:
-  ```bash
-  npm run build
-  ```
-
-### Testing
-Run tests with:
 ```bash
-php artisan test
+php artisan migrate
 ```
 
-For JavaScript tests:
+6. (Optional) Seed the database with test data:
 ```bash
-npm run test
+php artisan db:seed
 ```
 
-#### Test Helpers
-
-The application includes dedicated test helper utilities to simplify testing and ensure consistency:
-
-##### JavaScript Test Utilities
-Located at `resources/js/tests/utils/testUtils.js`, these helpers simplify Vue component testing:
-
-```js
-// Setup component with all dependencies mocked in one line
-const { wrapper, store, router } = setupComponentTest(MyComponent, {
-  storeOptions: { isAuthenticated: true }
-});
-
-// Fill form inputs with a single function call
-await fillForm(wrapper, {
-  'input[type="email"]': 'test@example.com',
-  'input[type="password"]': 'password123'
-});
+7. Install frontend dependencies:
+```bash
+npm install
 ```
 
-##### PHP Test Helpers
-Located at `tests/TestHelpers.php`, these utilities provide consistent test data creation:
-
-```php
-// Create a test environment with one line
-[$user, $todos] = TestHelpers::createTestEnvironment(3);
-
-// Create a user with a guaranteed unique email
-$user = TestHelpers::createUserWithUniqueEmail([
-  'name' => 'Test User'
-]);
+8. Build the frontend assets:
+```bash
+npm run build
 ```
 
-Detailed documentation is available in `docs/test-helpers-guide.md`.
+9. Start the development server:
+```bash
+php artisan serve
+```
 
-## Technologies Used
+## Usage
 
-- **Backend**: Laravel 12, PHP 8.1+
-- **Frontend**: Vue.js 3, Tailwind CSS
-- **Database**: SQLite (development), MySQL/PostgreSQL (production)
-- **Testing**: PHPUnit, Vitest
-- **Realtime**: Pusher
-- **Authentication**: Laravel Sanctum
+After installation, you can access the application at `http://localhost:8000`.
+
+### User Registration and Login
+1. Create a new account using the registration form
+2. Login with your credentials
+3. You will be redirected to the dashboard
+
+### Task Management
+1. View all your tasks on the Tasks page
+2. Create new tasks using the "Add Task" button
+3. Edit tasks by clicking on them in the list
+4. Mark tasks as complete using the checkbox
+5. Filter tasks by status, category, or due date
+6. Sort tasks by different criteria
+
+## API Documentation
+
+The application exposes a RESTful API for easy integration with other systems.
+
+### Authentication Endpoints
+- `POST /api/register` - Register a new user
+- `POST /api/login` - Login a user
+- `POST /api/logout` - Logout the current user (requires authentication)
+
+### Task Endpoints
+- `GET /api/tasks` - Get all tasks (requires authentication)
+- `POST /api/tasks` - Create a new task (requires authentication)
+- `GET /api/tasks/{id}` - Get a specific task (requires authentication)
+- `PUT /api/tasks/{id}` - Update a task (requires authentication)
+- `DELETE /api/tasks/{id}` - Delete a task (requires authentication)
+- `POST /api/tasks/{id}/toggle-completion` - Toggle task completion status (requires authentication)
+
+### Category Endpoints
+- `GET /api/categories` - Get all categories (requires authentication)
+- `POST /api/categories` - Create a new category (requires authentication)
+- `GET /api/categories/{id}` - Get a specific category (requires authentication)
+- `PUT /api/categories/{id}` - Update a category (requires authentication)
+- `DELETE /api/categories/{id}` - Delete a category (requires authentication)
 
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Contributing
+## Credits
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request 
+- Design inspiration from various Tailwind UI components
+- Icons from Heroicons 

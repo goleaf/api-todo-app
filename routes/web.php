@@ -1,53 +1,58 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\TodoController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
-// Welcome page route
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "web" middleware group. Make something great!
+|
+*/
+
+// Main dashboard route
 Route::get('/', function () {
-    return view('welcome');
-})->name('welcome');
+    return Inertia::render('Dashboard');
+})->name('dashboard');
 
-// Authentication routes
+// Auth routes
 Route::get('/login', function () {
-    return view('app');
+    return Inertia::render('Auth/Login');
 })->name('login');
 
 Route::get('/register', function () {
-    return view('app');
+    return Inertia::render('Auth/Register');
 })->name('register');
 
-// Dashboard and authenticated routes
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+// Task routes
+Route::get('/tasks', function () {
+    return Inertia::render('Tasks/Index');
+})->middleware(['auth'])->name('tasks.index');
 
-    Route::get('/tasks', function () {
-        return view('tasks.index');
-    })->name('tasks.index');
+Route::get('/tasks/{id}', function ($id) {
+    return Inertia::render('Tasks/Show', ['id' => $id]);
+})->middleware(['auth'])->name('tasks.show');
 
-    // Profile routes
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+// Profile route
+Route::get('/profile', function () {
+    return Inertia::render('Profile');
+})->middleware(['auth'])->name('profile');
 
-    // Task routes
-    Route::resource('tasks', App\Http\Controllers\TaskController::class);
+// Stats route
+Route::get('/stats', function () {
+    return Inertia::render('Stats');
+})->middleware(['auth'])->name('stats');
 
-    // Todo routes
-    Route::get('/todos', [TodoController::class, 'index'])->name('todos.index');
-    Route::post('/todos', [TodoController::class, 'store'])->name('todos.store');
-    Route::put('/todos/{todo}', [TodoController::class, 'update'])->name('todos.update');
-    Route::delete('/todos/{todo}', [TodoController::class, 'destroy'])->name('todos.destroy');
-});
+// Calendar route
+Route::get('/calendar', function () {
+    return Inertia::render('Calendar');
+})->middleware(['auth'])->name('calendar');
 
-// Catch-all route for SPA (should be last)
+// Fallback route for SPA
 Route::get('/{any}', function () {
-    if (auth()->check()) {
-        return view('dashboard');
-    }
-
-    return view('app');
-})->where('any', '^(?!api).*$')->name('spa');
+    return Inertia::render('Dashboard');
+})->where('any', '.*')->name('fallback');

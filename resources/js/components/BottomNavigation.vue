@@ -5,24 +5,24 @@
   >
     <div class="max-w-screen-xl mx-auto px-4">
       <div class="flex justify-around items-center h-16">
-        <!-- Home -->
+        <!-- Home/Todos -->
         <router-link 
-          to="/" 
+          to="/todos" 
           class="flex flex-col items-center justify-center relative nav-item"
           data-testid="home-nav"
         >
           <div 
-            :class="[$route.path === '/' ? 'text-purple-600' : 'text-gray-500 dark:text-gray-400']"
+            :class="[isActiveTodosRoute ? 'text-purple-600' : 'text-gray-500 dark:text-gray-400']"
             class="transition-colors"
             data-testid="home-nav-item"
-            :aria-current="$route.path === '/' ? 'page' : undefined"
+            :aria-current="isActiveTodosRoute ? 'page' : undefined"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
           </div>
-          <span class="text-xs mt-1" :class="[$route.path === '/' ? 'text-purple-600' : 'text-gray-500 dark:text-gray-400']">Home</span>
-          <div v-if="$route.path === '/'" class="absolute -top-1 w-1.5 h-1.5 rounded-full bg-purple-600"></div>
+          <span class="text-xs mt-1" :class="[isActiveTodosRoute ? 'text-purple-600' : 'text-gray-500 dark:text-gray-400']">Tasks</span>
+          <div v-if="isActiveTodosRoute" class="absolute -top-1 w-1.5 h-1.5 rounded-full bg-purple-600"></div>
         </router-link>
         
         <!-- Calendar -->
@@ -101,8 +101,22 @@
 </template>
 
 <script>
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+
 export default {
-  name: 'BottomNavigation'
+  name: 'BottomNavigation',
+  setup() {
+    const route = useRoute();
+    
+    const isActiveTodosRoute = computed(() => {
+      return route.path === '/todos' || route.path.startsWith('/todos/');
+    });
+    
+    return {
+      isActiveTodosRoute
+    };
+  }
 }
 </script>
 

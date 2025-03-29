@@ -1,23 +1,94 @@
-import './bootstrap';
-import { createApp } from 'vue';
-import { createStore } from 'vuex';
-import { createRouter, createWebHistory } from 'vue-router';
+import { createApp, h } from 'vue';
+import { createPinia } from 'pinia';
+import { createInertiaApp } from '@inertiajs/inertia-vue3';
+import { InertiaProgress } from '@inertiajs/progress';
 import axios from 'axios';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
+import { Capacitor } from '@capacitor/core';
+import { initPushNotifications } from './services/pushNotifications';
+import { initFonts } from './utils/fonts';
 
-// Import components
-import App from './components/App.vue';
-import TodoList from './components/TodoList.vue';
-import Todo from './components/Todo.vue';
-import Login from './components/Login.vue';
-import Register from './components/Register.vue';
-import Tasks from './pages/Tasks.vue';
-import TodoDetail from './components/TodoDetail.vue';
-import CalendarView from './components/CalendarView.vue';
-import StatsView from './components/StatsView.vue';
-import ProfileView from './components/ProfileView.vue';
-import WelcomeView from './components/WelcomeView.vue';
+// Import base components
+import BaseCard from './components/base/BaseCard.vue';
+import BaseButton from './components/base/BaseButton.vue';
+import BaseInput from './components/base/BaseInput.vue';
+import BaseModal from './components/base/BaseModal.vue';
+
+// Import FontAwesome
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { 
+    faUser, faLock, faEnvelope, faExclamationCircle, 
+    faCheckCircle, faUserPlus, faSignInAlt, faTasks, 
+    faCalendar, faChartBar, faUserCircle, faHome,
+    faPlus, faTrash, faEdit, faCheck, faTimes,
+    faBars, faSignOutAlt, faMoon, faSun, faSearch,
+    faFilter, faSort, faEye, faEyeSlash, faClipboardList,
+    faListAlt, faStar, faExclamationTriangle, faCaretUp,
+    faCaretDown, faClock, faCalendarCheck, faCalendarTimes,
+    faFlag, faPaperclip, faTag, faFolder,
+    faSave, faUpload, faDownload, faTrashAlt, faPencilAlt,
+    faMinus, faAngleRight, faAngleLeft, faAngleDown,
+    faAngleUp, faEllipsisV, faEllipsisH, faInfoCircle,
+    faQuestionCircle, faThumbsUp, faThumbsDown, faArrowRight,
+    faArrowLeft, faArrowUp, faArrowDown, faCalendarDay
+} from '@fortawesome/free-solid-svg-icons';
+
+import {
+    faCircle, faSquare, faCheckCircle as farCheckCircle,
+    faClock as farClock, faHeart, faStar as farStar,
+    faUser as farUser, faEnvelope as farEnvelope, faBell as farBell,
+    faFile, faFolder as farFolder, faEye as farEye,
+    faEyeSlash as farEyeSlash, faTrashAlt as farTrashAlt,
+    faEdit as farEdit, faClipboard as farClipboard,
+    faSave as farSave, faCheckSquare, faSquare as farSquare,
+    faBellSlash, faCalendarAlt as farCalendarAlt
+} from '@fortawesome/free-regular-svg-icons';
+
+import {
+    faGithub, faGoogle, faTwitter, faFacebook, faLinkedin,
+    faInstagram, faYoutube, faApple, faMicrosoft
+} from '@fortawesome/free-brands-svg-icons';
+
+// Import main CSS
+import '../css/app.css';
+
+// Initialize fonts
+initFonts();
+
+// Add icons to the library
+library.add(
+    // Solid icons
+    faUser, faLock, faEnvelope, faExclamationCircle, faCheckCircle,
+    faUserPlus, faSignInAlt, faTasks, faCalendar, faChartBar,
+    faUserCircle, faHome, faPlus, faTrash, faEdit, faCheck, faTimes,
+    faBars, faSignOutAlt, faMoon, faSun, faSearch, faFilter, faSort,
+    faEye, faEyeSlash, faClipboardList, faListAlt, faStar,
+    faExclamationTriangle, faCaretUp, faCaretDown, faClock,
+    faCalendarCheck, faCalendarTimes, faFlag, faPaperclip, faTag,
+    faFolder, faSave, faUpload, faDownload, faTrashAlt,
+    faPencilAlt, faPlus, faMinus, faAngleRight, faAngleLeft,
+    faAngleDown, faAngleUp, faEllipsisV, faEllipsisH, faInfoCircle,
+    faQuestionCircle, faThumbsUp, faThumbsDown, faArrowRight,
+    faArrowLeft, faArrowUp, faArrowDown, faCalendarDay,
+    
+    // Regular icons
+    faCircle, faSquare, farCheckCircle, farCalendarAlt, farClock,
+    faHeart, farStar, farUser, farEnvelope, farBell, faFile, farFolder,
+    farEye, farEyeSlash, farTrashAlt, farEdit, farClipboard, farSave,
+    faCheckSquare, farSquare, faBellSlash,
+    
+    // Brand icons
+    faGithub, faGoogle, faTwitter, faFacebook, faLinkedin,
+    faInstagram, faYoutube, faApple, faMicrosoft
+);
+
+// Configure Inertia.js progress indicator
+InertiaProgress.init({
+  color: '#8b5cf6',
+  showSpinner: true,
+});
 
 // Axios setup
 axios.defaults.baseURL = '/api';
@@ -25,10 +96,16 @@ axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.headers.common['Accept'] = 'application/json';
 axios.defaults.withCredentials = true;
 
-// Get token from local storage and set as default authorization header
-const token = localStorage.getItem('auth_token');
+// Get CSRF token from meta tag
+const token = document.head.querySelector('meta[name="csrf-token"]');
 if (token) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
+}
+
+// Get token from local storage and set as default authorization header
+const localToken = localStorage.getItem('auth_token');
+if (localToken) {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${localToken}`;
 }
 
 // Pusher setup
@@ -40,408 +117,45 @@ window.Echo = new Echo({
     forceTLS: true
 });
 
-// Define routes
-const routes = [
-    { 
-        path: '/', 
-        component: TodoList, 
-        meta: { requiresAuth: true } 
+// Create Inertia App
+createInertiaApp({
+    resolve: name => {
+        const pages = import.meta.glob('./pages/**/*.vue', { eager: true });
+        return pages[`./pages/${name}.vue`];
     },
-    { 
-        path: '/calendar', 
-        component: CalendarView, 
-        meta: { requiresAuth: true } 
-    },
-    { 
-        path: '/stats', 
-        component: StatsView, 
-        meta: { requiresAuth: true } 
-    },
-    { 
-        path: '/profile', 
-        component: ProfileView, 
-        meta: { requiresAuth: true } 
-    },
-    { 
-        path: '/todos/:id', 
-        component: TodoDetail, 
-        meta: { requiresAuth: true },
-        props: true
-    },
-    {
-        path: '/todos/new',
-        component: TodoDetail,
-        meta: { requiresAuth: true },
-        props: { isNew: true }
-    },
-    { 
-        path: '/login', 
-        component: Login, 
-        meta: { guest: true } 
-    },
-    { 
-        path: '/register', 
-        component: Register, 
-        meta: { guest: true } 
-    },
-    { 
-        path: '/welcome', 
-        component: WelcomeView, 
-        meta: { guest: true } 
-    }
-];
-
-// Create router
-const router = createRouter({
-    history: createWebHistory(),
-    routes
-});
-
-// Navigation guards
-router.beforeEach((to, from, next) => {
-    const isLoggedIn = !!localStorage.getItem('auth_token');
-    
-    if (to.matched.some(record => record.meta.requiresAuth)) {
-        if (!isLoggedIn) {
-            next('/login');
-            return;
+    setup({ el, App, props, plugin }) {
+        const app = createApp({ render: () => h(App, props) });
+        
+        // Create Pinia store
+        const pinia = createPinia();
+        
+        // Register plugins
+        app.use(plugin);
+        app.use(pinia);
+        
+        // Register global components
+        app.component('BaseCard', BaseCard);
+        app.component('BaseButton', BaseButton);
+        app.component('BaseInput', BaseInput);
+        app.component('BaseModal', BaseModal);
+        app.component('FontAwesomeIcon', FontAwesomeIcon);
+        
+        // Initialize dark mode
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.documentElement.classList.add('dark');
         }
-    }
-    
-    if (to.matched.some(record => record.meta.guest)) {
-        if (isLoggedIn) {
-            next('/');
-            return;
-        }
-    }
-    
-    next();
-});
-
-// Vuex Store
-const store = createStore({
-    state: {
-        user: JSON.parse(localStorage.getItem('user')) || null,
-        todos: [],
-        categories: [],
-        loading: false,
-        error: null,
-        darkMode: localStorage.getItem('darkMode') === 'true'
+        
+        // Initialize app
+        initApp();
+        
+        app.mount(el);
     },
-    getters: {
-        isAuthenticated: state => !!state.user,
-        getUser: state => state.user,
-        getTodos: state => state.todos,
-        getCategories: state => state.categories,
-        isLoading: state => state.loading,
-        getError: state => state.error,
-        isDarkMode: state => state.darkMode
-    },
-    mutations: {
-        setUser(state, user) {
-            state.user = user;
-            localStorage.setItem('user', JSON.stringify(user));
-        },
-        clearUser(state) {
-            state.user = null;
-            localStorage.removeItem('user');
-            localStorage.removeItem('auth_token');
-        },
-        setTodos(state, todos) {
-            state.todos = todos;
-        },
-        addTodo(state, todo) {
-            state.todos.unshift(todo);
-        },
-        updateTodo(state, updatedTodo) {
-            const index = state.todos.findIndex(t => t.id === updatedTodo.id);
-            if (index !== -1) {
-                state.todos.splice(index, 1, updatedTodo);
-            }
-        },
-        removeTodo(state, id) {
-            state.todos = state.todos.filter(t => t.id !== id);
-        },
-        setCategories(state, categories) {
-            state.categories = categories;
-        },
-        addCategory(state, category) {
-            state.categories.push(category);
-        },
-        removeCategory(state, id) {
-            state.categories = state.categories.filter(c => c.id !== id);
-        },
-        setLoading(state, status) {
-            state.loading = status;
-        },
-        setError(state, error) {
-            state.error = error;
-        },
-        toggleDarkMode(state) {
-            state.darkMode = !state.darkMode;
-            localStorage.setItem('darkMode', state.darkMode);
-        }
-    },
-    actions: {
-        // Auth actions
-        async login({ commit }, credentials) {
-            commit('setLoading', true);
-            commit('setError', null);
-            try {
-                const response = await axios.post('/login', credentials);
-                const token = response.data.token;
-                const user = response.data.user;
-                
-                localStorage.setItem('auth_token', token);
-                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-                
-                commit('setUser', user);
-                
-                if (user) {
-                    // Set up Echo private channel
-                    this.dispatch('setupEcho');
-                }
-                
-                return user;
-            } catch (error) {
-                commit('setError', error.response?.data?.message || 'Login failed');
-                throw error;
-            } finally {
-                commit('setLoading', false);
-            }
-        },
-        
-        async register({ commit }, userData) {
-            commit('setLoading', true);
-            commit('setError', null);
-            try {
-                const response = await axios.post('/register', userData);
-                const token = response.data.token;
-                const user = response.data.user;
-                
-                localStorage.setItem('auth_token', token);
-                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-                
-                commit('setUser', user);
-                
-                if (user) {
-                    // Set up Echo private channel
-                    this.dispatch('setupEcho');
-                }
-                
-                return user;
-            } catch (error) {
-                commit('setError', error.response?.data?.message || 'Registration failed');
-                throw error;
-            } finally {
-                commit('setLoading', false);
-            }
-        },
-        
-        logout({ commit }) {
-            commit('clearUser');
-            axios.defaults.headers.common['Authorization'] = '';
-            
-            // Unsubscribe from Echo channels
-            if (window.Echo) {
-                window.Echo.leave(`user.${this.state.user.id}`);
-            }
-        },
-        
-        // Echo setup
-        setupEcho({ commit, state }) {
-            if (state.user && window.Echo) {
-                window.Echo.private(`user.${state.user.id}`)
-                    .listen('TodoCreated', (e) => {
-                        commit('addTodo', e.todo);
-                    })
-                    .listen('TodoUpdated', (e) => {
-                        commit('updateTodo', e.todo);
-                    })
-                    .listen('TodoDeleted', (e) => {
-                        commit('removeTodo', e.todo.id);
-                    });
-            }
-        },
-        
-        // Todo actions
-        async fetchTodos({ commit }, params = {}) {
-            commit('setLoading', true);
-            try {
-                // Build query string based on params
-                let queryParams = [];
-                
-                if (params.category) {
-                    queryParams.push(`category=${params.category}`);
-                }
-                
-                if (params.status) {
-                    queryParams.push(`status=${params.status}`);
-                }
-                
-                if (params.search) {
-                    queryParams.push(`search=${encodeURIComponent(params.search)}`);
-                }
-                
-                // Construct URL with query parameters
-                const url = '/todos' + (queryParams.length > 0 ? `?${queryParams.join('&')}` : '');
-                
-                const response = await axios.get(url);
-                commit('setTodos', response.data);
-                return response.data;
-            } catch (error) {
-                console.error('Fetch todos error:', error);
-                commit('setError', 'Failed to fetch todos');
-                throw error;
-            } finally {
-                commit('setLoading', false);
-            }
-        },
-        
-        async createTodo({ commit }, todo) {
-            commit('setLoading', true);
-            try {
-                const response = await axios.post('/todos', todo);
-                commit('addTodo', response.data);
-                return response.data;
-            } catch (error) {
-                console.error('Create todo error:', error);
-                commit('setError', 'Failed to create todo');
-                throw error;
-            } finally {
-                commit('setLoading', false);
-            }
-        },
-        
-        async updateTodo({ commit }, todo) {
-            commit('setLoading', true);
-            try {
-                const response = await axios.put(`/todos/${todo.id}`, todo);
-                commit('updateTodo', response.data);
-                return response.data;
-            } catch (error) {
-                console.error('Update todo error:', error);
-                commit('setError', 'Failed to update todo');
-                throw error;
-            } finally {
-                commit('setLoading', false);
-            }
-        },
-        
-        async deleteTodo({ commit }, id) {
-            commit('setLoading', true);
-            try {
-                await axios.delete(`/todos/${id}`);
-                commit('removeTodo', id);
-            } catch (error) {
-                console.error('Delete todo error:', error);
-                commit('setError', 'Failed to delete todo');
-                throw error;
-            } finally {
-                commit('setLoading', false);
-            }
-        },
-        
-        // Category actions
-        async fetchCategories({ commit }) {
-            commit('setLoading', true);
-            try {
-                const response = await axios.get('/categories');
-                commit('setCategories', response.data);
-                return response.data;
-            } catch (error) {
-                console.error('Fetch categories error:', error);
-                commit('setError', 'Failed to fetch categories');
-                throw error;
-            } finally {
-                commit('setLoading', false);
-            }
-        },
-        
-        async createCategory({ commit }, category) {
-            commit('setLoading', true);
-            try {
-                const response = await axios.post('/categories', category);
-                commit('addCategory', response.data);
-                return response.data;
-            } catch (error) {
-                console.error('Create category error:', error);
-                commit('setError', 'Failed to create category');
-                throw error;
-            } finally {
-                commit('setLoading', false);
-            }
-        },
-        
-        async deleteCategory({ commit }, id) {
-            commit('setLoading', true);
-            try {
-                await axios.delete(`/categories/${id}`);
-                commit('removeCategory', id);
-            } catch (error) {
-                console.error('Delete category error:', error);
-                commit('setError', 'Failed to delete category');
-                throw error;
-            } finally {
-                commit('setLoading', false);
-            }
-        },
-        
-        // Toggle dark mode
-        toggleDarkMode({ commit }) {
-            commit('toggleDarkMode');
-            document.documentElement.classList.toggle('dark');
-        }
-    }
 });
 
-// Initialize dark mode
-if (store.state.darkMode) {
-    document.documentElement.classList.add('dark');
-}
-
-// Create and mount the Vue application
-const app = createApp(App);
-app.use(store);
-app.use(router);
-
-// Initialize app when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize Echo if user exists
-    if (store.state.user) {
-        store.dispatch('setupEcho');
-    }
-    
-    app.mount('#app');
-});
-
-// Handle authentication state
-document.addEventListener('DOMContentLoaded', function() {
-    // If we're not on the welcome page specifically, check auth status
-    if (window.location.pathname !== '/') {
-        checkAuthState();
-    }
-});
-
-// Function to check authentication state and redirect if needed
-function checkAuthState() {
-    const token = localStorage.getItem('auth_token');
-    const publicRoutes = ['/', '/login', '/register', '/forgot-password', '/reset-password'];
-    
-    // If no token and not on a public route, redirect to welcome page
-    if (!token && !publicRoutes.includes(window.location.pathname)) {
-        window.location.href = '/';
-    }
-    
-    // If token exists, validate it
-    if (token) {
-        axios.get('/api/user')
-            .catch(() => {
-                // If token is invalid, remove it and redirect to welcome
-                localStorage.removeItem('auth_token');
-                if (!publicRoutes.includes(window.location.pathname)) {
-                    window.location.href = '/';
-                }
-            });
+// Define main app initialization function to handle async operations
+async function initApp() {
+    // Initialize push notifications if we're on a native mobile platform
+    if (Capacitor.isNativePlatform()) {
+        await initPushNotifications();
     }
 }

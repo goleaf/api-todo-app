@@ -3,180 +3,155 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Tasks\StoreTaskRequest;
+use App\Http\Requests\Tasks\UpdateTaskRequest;
 use App\Models\Task;
+use App\Traits\ApiResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
+    use ApiResponse;
+
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
-        $query = Task::forUser(Auth::id())
-            ->with('category');
-        
-        // Filter by category
-        if ($request->has('category')) {
-            $query->inCategory($request->input('category'));
-        }
-        
+        $query = Task::with(['category'])
+            ->where('user_id', Auth::id());
+            
         // Filter by status
         if ($request->has('status')) {
-            if ($request->input('status') === 'completed') {
-                $query->completed();
-            } elseif ($request->input('status') === 'incomplete') {
-                $query->incomplete();
+            $status = $request->status;
+            if ($status === 'completed') {
+                $query->where('completed', true);
+            } elseif ($status === 'pending') {
+                $query->where('completed', false);
+            } elseif ($status === 'overdue') {
+                $query->where('completed', false)
+                    ->whereDate('due_date', '<', now());
             }
         }
         
-        // Filter by priority
-        if ($request->has('priority')) {
-            $query->withPriority($request->input('priority'));
+        // Filter by category
+        if ($request->has('category_id') && $request->category_id) {
+            $query->where('category_id', $request->category_id);
         }
         
-        // Sort by due date
-        if ($request->has('sort') && $request->input('sort') === 'due_date') {
-            $query->orderBy('due_date', 'asc');
-        } else {
-            $query->latest();
+        // Filter by due date
+        if ($request->has('due') && $request->due) {
+            $due = $request->due;
+            if ($due === 'today') {
+                $query->whereDate('due_date', now());
+            } elseif ($due === 'tomorrow') {
+                $query->whereDate('due_date', now()->addDay());
+            } elseif ($due === 'week') {
+                $query->whereBetween('due_date', [now(), now()->addDays(7)]);
+            }
         }
         
-        $tasks = $query->get();
+        // Order by
+        $orderBy = $request->order_by ?? 'created_at';
+        $orderDir = $request->order_dir ?? 'desc';
         
-        return response()->json(['data' => $tasks]);
-    }
-
-    /**
-     * Search tasks by term.
-     */
-    public function search(Request $request)
-    {
-        $request->validate([
-            'q' => 'required|string|min:2'
-        ]);
+        $tasks = $query->orderBy($orderBy, $orderDir)->get();
         
-        $term = $request->input('q');
-        
-        $tasks = Task::forUser(Auth::id())
-            ->search($term)
-            ->with('category')
-            ->get();
-        
-        return response()->json(['data' => $tasks]);
+        return $this->successResponse(
+            data: $tasks
+        );
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreTaskRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'due_date' => 'nullable|date',
-            'priority' => 'nullable|integer|between:1,3',
-            'category_id' => 'required|exists:categories,id',
-            'progress' => 'nullable|integer|between:0,100',
+        $validated = $request->validated();
+        
+        $task = Task::create([
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'due_date' => $validated['due_date'] ?? null,
+            'category_id' => $validated['category_id'] ?? null,
+            'priority' => $validated['priority'] ?? 'medium',
+            'completed' => false,
+            'user_id' => Auth::id()
         ]);
         
-        // Ensure the category belongs to the authenticated user
-        $category = \App\Models\Category::findOrFail($validated['category_id']);
-        if ($category->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Category not found'], 404);
-        }
-        
-        $task = new Task($validated);
-        $task->user_id = Auth::id();
-        $task->save();
-        
-        return response()->json(['data' => $task], 201);
+        return $this->successResponse(
+            data: $task->load('category'),
+            message: 'Task created successfully',
+            code: 201
+        );
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Task $task)
+    public function show(Task $task): JsonResponse
     {
         if ($task->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return $this->unauthorizedResponse('You are not authorized to view this task');
         }
         
-        $task->load('category');
-        
-        return response()->json(['data' => $task]);
+        return $this->successResponse(
+            data: $task->load('category')
+        );
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Task $task)
+    public function update(UpdateTaskRequest $request, Task $task): JsonResponse
     {
         if ($task->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return $this->unauthorizedResponse('You are not authorized to update this task');
         }
         
-        $validated = $request->validate([
-            'title' => 'sometimes|required|string|max:255',
-            'description' => 'nullable|string',
-            'due_date' => 'nullable|date',
-            'priority' => 'nullable|integer|between:1,3',
-            'category_id' => 'sometimes|exists:categories,id',
-            'completed' => 'sometimes|boolean',
-            'progress' => 'nullable|integer|between:0,100',
-        ]);
-        
-        // If category_id is provided, ensure it belongs to the authenticated user
-        if (isset($validated['category_id'])) {
-            $category = \App\Models\Category::findOrFail($validated['category_id']);
-            if ($category->user_id !== Auth::id()) {
-                return response()->json(['message' => 'Category not found'], 404);
-            }
-        }
-        
-        // Handle completed status
-        if (isset($validated['completed']) && $validated['completed'] && !$task->completed) {
-            $task->completed_at = now();
-            $validated['progress'] = 100;
-        } elseif (isset($validated['completed']) && !$validated['completed'] && $task->completed) {
-            $task->completed_at = null;
-        }
+        $validated = $request->validated();
         
         $task->update($validated);
         
-        return response()->json(['data' => $task]);
+        return $this->successResponse(
+            data: $task->refresh()->load('category'),
+            message: 'Task updated successfully'
+        );
+    }
+
+    /**
+     * Toggle the completed status of a task.
+     */
+    public function toggleComplete(Task $task): JsonResponse
+    {
+        if ($task->user_id !== Auth::id()) {
+            return $this->unauthorizedResponse('You are not authorized to update this task');
+        }
+        
+        $task->completed = !$task->completed;
+        $task->save();
+        
+        return $this->successResponse(
+            data: $task->refresh()->load('category'),
+            message: $task->completed ? 'Task marked as completed' : 'Task marked as pending'
+        );
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Task $task)
+    public function destroy(Task $task): JsonResponse
     {
         if ($task->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+            return $this->unauthorizedResponse('You are not authorized to delete this task');
         }
         
         $task->delete();
         
-        return response()->json(null, 204);
-    }
-
-    /**
-     * Mark a task as complete or incomplete.
-     */
-    public function toggleComplete(Task $task)
-    {
-        if ($task->user_id !== Auth::id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-        
-        if ($task->completed) {
-            $task->markAsIncomplete();
-        } else {
-            $task->markAsComplete();
-        }
-        
-        return response()->json(['data' => $task]);
+        return $this->successResponse(
+            message: 'Task deleted successfully'
+        );
     }
 } 
