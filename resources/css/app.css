@@ -1,0 +1,128 @@
+@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+:root {
+    --primary: #8b5cf6;  /* Purple 500 */
+    --primary-dark: #7c3aed; /* Purple 600 */
+    --secondary: #f97316; /* Orange 500 */
+    --secondary-dark: #ea580c; /* Orange 600 */
+    --background: #f9fafb; /* Gray 50 */
+    --background-dark: #111827; /* Gray 900 */
+}
+
+@layer components {
+    .btn-primary {
+        @apply bg-[var(--primary)] text-white rounded-full py-2 px-4 hover:bg-opacity-90 transition-colors duration-200;
+    }
+
+    .task-card {
+        @apply bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .task-card:hover {
+        @apply border-gray-300 dark:border-gray-600 shadow-md;
+    }
+
+    .nav-item {
+        @apply flex flex-col items-center text-gray-500 dark:text-gray-400 transition-colors duration-200;
+    }
+    
+    .nav-item.active {
+        @apply text-[var(--primary)] dark:text-[var(--primary)];
+    }
+}
+
+/* Custom checkbox styling */
+input[type="checkbox"] {
+    @apply rounded-full focus:ring-purple-500 text-purple-600 border-purple-400;
+}
+
+/* Focus styles for inputs and buttons */
+input:focus, select:focus, textarea:focus {
+    @apply outline-none ring-2 ring-purple-500;
+}
+
+button.btn-primary {
+    @apply px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500;
+}
+
+button.btn-secondary {
+    @apply px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors;
+}
+
+/* Style for accent text like due dates */
+.text-accent {
+    @apply text-orange-500 dark:text-orange-400;
+}
+
+/* Custom progress bar styling */
+.progress-bar {
+    @apply w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden;
+}
+
+.progress-bar-fill {
+    @apply h-full bg-purple-500 rounded-full transition-all duration-500;
+}
+
+/* Priority badge styling */
+.priority-high {
+    @apply bg-red-100 text-red-800 dark:bg-red-900 dark:bg-opacity-30 dark:text-red-300;
+}
+
+.priority-medium {
+    @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:bg-opacity-30 dark:text-yellow-300;
+}
+
+.priority-low {
+    @apply bg-green-100 text-green-800 dark:bg-green-900 dark:bg-opacity-30 dark:text-green-300;
+}
+
+/* Badge base style */
+.badge {
+    @apply text-xs font-medium rounded-full px-2 py-0.5;
+}
+
+/* Dark mode toggle styling */
+.dark-mode-toggle {
+    @apply relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500;
+}
+
+/* Make sure the body uses our background colors */
+body {
+    @apply bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100;
+}
+
+/* Style for the page container */
+.page-container {
+    @apply container mx-auto px-4 py-6 pb-24 max-w-4xl;
+}
+
+/* Special scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    @apply bg-gray-100 dark:bg-gray-800;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-500;
+}

@@ -1,281 +1,163 @@
-# Todo App
+# Taskify - Task Management Application
 
-A secure, real-time todo application built with Laravel and Vue.js with mobile app capabilities via Capacitor.
+Taskify is a modern, feature-rich task management application built with Laravel 12, Vue.js, and Livewire. It helps users organize, track, and manage their tasks efficiently with an intuitive and responsive interface.
 
 ## Features
 
-The Todo App includes a comprehensive set of features:
+### User Experience
+- **User Greeting and Profile**: Personalized welcome with user name and avatar
+- **Task List with Cards**: Interactive task cards with complete information
+- **Task Categorization**: Organize tasks by custom categories
+- **Progress Indicators**: Track completion percentage of tasks
+- **Priority Badges**: Color-coded priority levels (Low, Medium, High)
+- **Due Dates**: Set and track task deadlines
+- **Task Completion Checkboxes**: Mark tasks as complete/incomplete
+- **Floating Action Button (FAB)**: Quick access to add new tasks
+- **Bottom Navigation**: Easy access to Home, Calendar, Stats, and Profile
+- **Calendar Integration**: Visual calendar view of tasks by due date
+- **Statistics Dashboard**: Track task completion metrics
+- **Task Filtering**: Filter by category, status, and search terms
+- **Minimalist Design**: Clean, modern interface with ample white space
 
-- **User Management**: Secure registration, authentication, and profile management
-- **Task Management**: Complete CRUD operations with detailed task information
-- **Categories**: Organize tasks with customizable categories and color coding
-- **Priority Levels**: Assign Low, Medium, or High priority to tasks
-- **Due Dates & Reminders**: Set and track due dates with reminder notifications
-- **Progress Tracking**: Monitor completion percentage with visual progress bars
-- **Dark Mode**: Toggle between light and dark themes with persistent preferences
-- **Filters & Search**: Filter by status, category, and search by text
-- **Mobile Optimized**: Responsive design that works on all devices
-- **Accessibility**: WCAG 2.1 AA compliant with keyboard navigation and screen reader support
+### Technical Features
+- **Real-time Updates**: Changes sync across devices via Pusher
+- **Dark Mode Support**: Toggle between light and dark themes
+- **Responsive Design**: Works on desktop, tablet, and mobile
+- **Authentication**: Secure user accounts and data
+- **API Integration**: RESTful API for data access
+- **Offline Support**: Progressive Web App capabilities
+- **Performance Optimized**: Fast loading and responsive interactions
+- **Test Helpers**: Standardized utilities for consistent testing
 
-For a complete list of features, please see the [features.md](features.md) documentation.
-
-## Technology Stack
-
-- **Backend**: Laravel 12
-- **Frontend**: Vue.js
-- **Authentication**: Laravel Sanctum
-- **Real-time**: Laravel Broadcasting with Pusher
-- **Mobile**: Capacitor
-- **Styling**: Tailwind CSS
-- **Testing**: PHPUnit, Laravel Dusk, Vitest
-
-## Setup and Installation
+## Installation
 
 ### Prerequisites
-
-- PHP 8.2+
+- PHP 8.1+
 - Composer
 - Node.js and NPM
-- MySQL or SQLite
+- SQLite (for development)
 
-### Installation
+### Setup Instructions
 
-1. Clone the repository
-```bash
-git clone <repository-url>
-cd todoapp
-```
-
-2. Install PHP dependencies
-```bash
-composer install
-```
-
-3. Copy the .env.example file
-```bash
-cp .env.example .env
-```
-
-4. Generate application key
-```bash
-php artisan key:generate
-```
-
-5. Configure your database in the .env file
-
-6. Run migrations and seeders
-```bash
-php artisan migrate --seed
-```
-
-This will create:
-- 10 users (admin@example.com, test@example.com, and 8 random users)
-- Multiple todos for each user
-- Multiple tasks for each user
-
-You can refresh just the seed data without migrating using:
-```bash
-php artisan db:refresh-seeds
-```
-
-7. Install JavaScript dependencies
-```bash
-npm install
-```
-
-8. Build assets
-```bash
-npm run build
-```
-
-9. Set up Pusher (for real-time features)
-   - Create an account on [Pusher](https://pusher.com/)
-   - Update the .env file with your Pusher credentials:
-   ```
-   BROADCAST_DRIVER=pusher
-   PUSHER_APP_ID=your_app_id
-   PUSHER_APP_KEY=your_app_key
-   PUSHER_APP_SECRET=your_app_secret
-   PUSHER_APP_CLUSTER=your_app_cluster
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/taskify.git
+   cd taskify
    ```
 
-### Running the Application
+2. Install PHP dependencies:
+   ```bash
+   composer install
+   ```
 
-1. Start the Laravel server
+3. Install JavaScript dependencies:
+   ```bash
+   npm install
+   ```
+
+4. Copy environment file and generate app key:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+5. Set up the database:
+   ```bash
+   php artisan migrate --seed
+   ```
+
+6. Build frontend assets:
+   ```bash
+   npm run build
+   ```
+
+7. Start the development server:
+   ```bash
+   php artisan serve
+   ```
+
+8. Visit `http://localhost:8000` in your browser
+
+## Development
+
+### Front-end Development
+The front-end is built with Vue.js 3 and Tailwind CSS:
+
+- Run watch mode during development:
+  ```bash
+  npm run dev
+  ```
+
+- Build for production:
+  ```bash
+  npm run build
+  ```
+
+### Testing
+Run tests with:
 ```bash
-php artisan serve
+php artisan test
 ```
 
-2. In a separate terminal, run the development server for assets
-```bash
-npm run dev
-```
-
-3. Access the application at http://localhost:8000
-
-4. Login using one of the seeded accounts:
-   - Email: admin@example.com
-   - Password: password
-   
-   or
-   
-   - Email: test@example.com
-   - Password: password
-
-## Creating an Android App
-
-1. Build the production assets
-```bash
-npm run build
-```
-
-2. Add the Android platform to Capacitor
-```bash
-npx cap add android
-```
-
-3. Sync the web assets to the Android project
-```bash
-npx cap sync
-```
-
-4. Open the Android project in Android Studio
-```bash
-npx cap open android
-```
-
-5. Build and run the Android app from Android Studio
-
-## Documentation
-
-The Todo App includes comprehensive documentation:
-
-- [Features](features.md) - Detailed list of all application features
-- [User Manual](manual.md) - Complete guide for using the application
-- [Changelog](changelog.md) - Record of all notable changes to the application
-- [Testing Documentation](#todo-app-testing-documentation) - Information about the testing setup
-
-## Security Features
-
-- Token-based authentication with Laravel Sanctum
-- HTTPS enforcement
-- CSRF protection
-- Validation rules for user input
-- Proper authorization checks on all routes
-- Data access controls with policy-based permissions
-
-## Performance Optimizations
-
-- Optimized database queries
-- Cached responses where appropriate
-- Efficient frontend asset loading
-- Lazy-loaded components
-- Pagination for large datasets
-
-## License
-
-[MIT License](LICENSE)
-
-# Todo App Testing Documentation
-
-This document outlines the testing setup for the Todo application.
-
-## Testing Overview
-
-The Todo App uses a comprehensive testing approach with:
-
-- **Unit Tests**: Testing individual components and models
-- **Feature Tests**: Testing application features and APIs
-- **Browser Tests**: Testing UI interactions with Laravel Dusk
-- **Component Tests**: Testing Vue components with Vitest
-
-## Laravel Dusk Browser Tests
-
-We've set up Laravel Dusk for browser testing in the application. The following Dusk test files have been created:
-
-1. `tests/Browser/LoginTest.php` - Tests for user authentication functionality
-2. `tests/Browser/TodoTest.php` - Tests for todo list viewing, creation, completion, and filtering
-3. `tests/Browser/TodoDetailTest.php` - Tests for viewing and managing individual todo items
-
-### Running Dusk Tests
-
-To run the Dusk tests, use the following command:
-
-```bash
-php artisan dusk
-```
-
-Note: Dusk tests require Chrome to be installed on the system.
-
-## PHPUnit Tests
-
-PHPUnit tests are organized into:
-
-1. `tests/Unit/` - Unit tests for models and relationships
-2. `tests/Feature/` - Feature tests for controllers and APIs
-
-To run PHPUnit tests:
-
-```bash
-vendor/bin/phpunit
-```
-
-## Vue Component Tests
-
-Vue components are tested using Vitest:
-
+For JavaScript tests:
 ```bash
 npm run test
 ```
 
-## Code Quality Tools
+#### Test Helpers
 
-### PHP_CodeSniffer
+The application includes dedicated test helper utilities to simplify testing and ensure consistency:
 
-We've configured PHP_CodeSniffer to check the code against PSR-2 coding standards.
+##### JavaScript Test Utilities
+Located at `resources/js/tests/utils/testUtils.js`, these helpers simplify Vue component testing:
 
-Configuration file: `phpcs.xml`
+```js
+// Setup component with all dependencies mocked in one line
+const { wrapper, store, router } = setupComponentTest(MyComponent, {
+  storeOptions: { isAuthenticated: true }
+});
 
-To run PHP_CodeSniffer:
-
-```bash
-./vendor/bin/phpcs --standard=phpcs.xml [path]
+// Fill form inputs with a single function call
+await fillForm(wrapper, {
+  'input[type="email"]': 'test@example.com',
+  'input[type="password"]': 'password123'
+});
 ```
 
-### PHP-CS-Fixer
+##### PHP Test Helpers
+Located at `tests/TestHelpers.php`, these utilities provide consistent test data creation:
 
-We've set up PHP-CS-Fixer for fixing code style issues automatically.
+```php
+// Create a test environment with one line
+[$user, $todos] = TestHelpers::createTestEnvironment(3);
 
-Configuration file: `.php-cs-fixer.php`
-
-To run PHP-CS-Fixer:
-
-```bash
-./vendor/bin/php-cs-fixer fix [path] --diff --verbose
+// Create a user with a guaranteed unique email
+$user = TestHelpers::createUserWithUniqueEmail([
+  'name' => 'Test User'
+]);
 ```
 
-## CI/CD Integration
+Detailed documentation is available in `docs/test-helpers-guide.md`.
 
-For continuous integration, the following workflow is recommended:
+## Technologies Used
 
-1. Run PHP_CodeSniffer to check code style
-2. Run PHP-CS-Fixer to fix code style issues
-3. Run PHPUnit tests to verify functionality
-4. Run Laravel Dusk tests to verify browser behavior
-5. Run Vue component tests with Vitest
+- **Backend**: Laravel 12, PHP 8.1+
+- **Frontend**: Vue.js 3, Tailwind CSS
+- **Database**: SQLite (development), MySQL/PostgreSQL (production)
+- **Testing**: PHPUnit, Vitest
+- **Realtime**: Pusher
+- **Authentication**: Laravel Sanctum
 
-## Known Issues
+## License
 
-There appears to be a compatibility issue with the current versions of PHP dependencies. The following error occurs when running some commands:
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-```
-Uncaught Error: Interface "PHPUnit\Event\Application\StartedSubscriber" not found
-```
+## Contributing
 
-This can be addressed by downgrading PHPUnit to version 9.6 in composer.json.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## Next Steps
-
-- Expand test coverage for additional features
-- Set up a CI/CD pipeline to run tests automatically
-- Implement the upcoming features listed in the [features.md](features.md) document 
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request 

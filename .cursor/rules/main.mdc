@@ -1,0 +1,1785 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+You are a senior Laravel developer specializing in Laravel 12 and Livewire 3. Optimize your development workflow with Cursor AI.
+
+## Essential Development Workflow
+- After changing CSS and JS files, always run `npm run build`
+- Never put PHP code in blade files using `@php` and `@endphp` - use controllers, models, and components
+- Never include inline CSS styles in blade files
+- For blade-specific JavaScript, use `@push` to send scripts to the main parent blade file
+- After refactoring, remove unused files - don't leave redundant files in the codebase
+- After modifying migrations or seeders, run `php artisan migrate:fresh --seed`
+- Maintain documentation: update `/readme.md`, `/todo.md`, `/manual.md`, `/features.md`, and `/changelog.md`
+- Commit changes with detailed descriptions
+- Never change `DB_CONNECTION=sqlite` in `.env` file
+- After changing migrations, always run fresh migrations with seedse
+- Always create for models and controllers tests using laravel pint and run test untill will be 100% success
+
+## Test Helper Utilities
+- The application has standardized test helpers to improve test consistency and reduce duplicate code
+- JavaScript test utilities are located at `resources/js/tests/utils/testUtils.js`
+- PHP test helpers are located at `tests/TestHelpers.php`
+- Detailed documentation is available at `docs/test-helpers-guide.md`
+
+### JavaScript Test Helpers
+```js
+// Setup component with all dependencies mocked in one line
+const { wrapper, store, router, routerPush } = setupComponentTest(LoginComponent, {
+  useFakeTimers: true,
+  storeOptions: { 
+    isAuthenticated: true,
+    user: { id: 1 }
+  }
+});
+
+// Fill form inputs with a single function call
+await fillForm(wrapper, {
+  'input[type="email"]': 'test@example.com',
+  'input[type="password"]': 'password123'
+});
+
+// Submit form and handle async operations
+await submitForm(wrapper);
+
+// Check for error messages
+if (hasErrorMessage(wrapper, 'Invalid credentials')) {
+  // Handle error case
+}
+```
+
+### PHP Test Helpers
+```php
+// Create a user with a guaranteed unique email
+$user = TestHelpers::createUserWithUniqueEmail([
+  'name' => 'Test User',
+  'is_admin' => true
+]);
+
+// Create test todos for a user
+[$user, $todos] = TestHelpers::createTodosForUser(3);
+
+// Setup complete test environment with one line
+[$user, $todos] = TestHelpers::createTestEnvironment();
+
+// Get API authentication headers
+$headers = TestHelpers::getApiAuthHeaders($user);
+```
+
+## Route Testing Strategies
+- Test routes using a combination of PHP and JavaScript tests
+- For PHP tests:
+  - Focus on API response structures and authentication requirements
+  - Use the `Route::getRoutes()` method to ensure routes exist
+  - Test protected routes to ensure they require authentication
+  - Don't test route content extensively in PHP tests, focus on response codes
+- For JavaScript tests:
+  - Test frontend API calls with mock responses using Vitest
+  - Test all HTTP methods (GET, POST, PUT, DELETE) for comprehensive coverage
+  - Verify error handling for frontend API requests
+  - Focus on testing the frontend's interaction with the API
+- Common testing pitfalls to avoid:
+  - Don't rely on specific view files existing in PHP tests
+  - Avoid tight coupling to implementation details in tests
+  - Use factories to create test data instead of relying on seeded data
+  - Focus on API contracts rather than implementations
+
+## Authentication Testing Strategies
+- Test authentication functionality at multiple levels:
+  - **Unit tests**: Test validation rules, form behavior, and component rendering
+  - **Feature tests**: Test API endpoints for login/register functionality
+  - **Browser tests**: Test the complete user flows (registration, login, logout)
+
+- For login functionality testing:
+  - Test form submissions with valid and invalid credentials
+  - Verify proper redirects after login/logout
+  - Test token generation and persistence
+  - Verify protected routes redirect unauthenticated users
+
+- For registration functionality testing:
+  - Test form submissions with valid and invalid data
+  - Verify validation rules (email format, password confirmation, etc.)
+  - Test unique email constraint
+  - Verify user creation in the database
+  - Test proper redirects after registration
+
+- Use both API testing and browser testing:
+  - API tests verify proper response status codes and data structures
+  - Browser tests verify the complete user experience
+  - Test Vue component behavior independently with Vitest
+
+- Common auth testing pitfalls to avoid:
+  - Not testing cross-component interactions (e.g., logout button in header)
+  - Not testing error states sufficiently
+  - Not verifying token persistence and expiry
+  - Not testing redirects for protected routes
+
+## Cursor-Specific Optimizations
+- Use Cursor's AI code completion for generating boilerplate code
+- Utilize Cursor's "Find Symbol" feature (Cmd+T) for quick navigation in large Laravel projects
+- Leverage Cursor's context-aware code suggestions for Laravel-specific patterns
+- Use Cursor's AI to generate DocBlocks and method comments
+- Take advantage of Cursor's built-in terminal for running Laravel commands
+- Use Cursor's split-screen view to compare migrations and model files side by side
+
+---
+
+### **1. Database & Migrations**
+1. **Migrations**
+   - Always create new migration for schema changes (`php artisan make:migration`)
+   - Use `->comment()` for column descriptions
+   - Add indexes for frequently searched columns:
+     ```php
+     $table->index('email');
+     $table->unique('username');
+     ```
+   - Use foreign keys with proper constraints:
+     ```php
+     $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+     ```
+   - Never use raw SQL in migrations unless absolutely necessary
+   - Rollback test: Always verify `migrate:rollback` works
+   - Add soft deletes on critical tables: `$table->softDeletes();`
+
+2. **Seeders & Factories**
+   - Use `fakerphp/faker` for realistic test data
+   - Create separate seeders for different environments (e.g., `AdminUserSeeder`)
+   - Use model factories with relationships:
+     ```php
+     User::factory()
+         ->has(Post::factory()->count(3))
+         ->count(10)
+         ->create();
+     ```
+
+---
+
+### **2. Models**
+1. **General**
+   - Keep to Active Record pattern
+   - Use `protected $guarded = []` cautiously; prefer `protected $fillable`
+   - Define all relationships explicitly with return types:
+     ```php
+     public function posts(): HasMany {
+         return $this->hasMany(Post::class);
+     }
+     ```
+   - Use strict return types for all methods
+
+2. **Advanced**
+   - Use accessors/mutators for data transformation:
+     ```php
+     public function getFullNameAttribute(): string {
+         return "{$this->first_name} {$this->last_name}";
+     }
+     ```
+   - Implement query scopes for reusable filters:
+     ```php
+     public function scopeActive(Builder $query): void {
+         $query->where('is_active', true);
+     }
+     ```
+   - Use `$casts` for JSON/array fields:
+     ```php
+     protected $casts = [
+         'meta' => 'array',
+         'is_admin' => 'boolean',
+         'created_at' => 'immutable_datetime',
+     ];
+     ```
+   - Use Enum classes for status fields (PHP 8.1+):
+     ```php
+     enum OrderStatus: string {
+         case Pending = 'pending';
+         case Processing = 'processing';
+         case Completed = 'completed';
+         case Cancelled = 'cancelled';
+     }
+     
+     // In model
+     protected $casts = [
+         'status' => OrderStatus::class
+     ];
+     ```
+
+---
+
+### **3. Controllers**
+1. **Structure**
+   - Keep controllers thin (max 5-7 methods)
+   - Use Resource Controllers (`php artisan make:controller --resource`)
+   - Dependency inject services:
+     ```php
+     public function __construct(
+         private readonly PaymentService $paymentService
+     ) {}
+     ```
+   - Use constructor property promotion (PHP 8.0+)
+   - Add return types to all methods
+
+2. **Validation**
+   - **Never** validate in controllers directly
+   - Use Form Request Validation:
+     ```bash
+     php artisan make:request StorePostRequest
+     ```
+     ```php
+     class StorePostRequest extends FormRequest {
+         public function authorize(): bool {
+             return $this->user()->can('create', Post::class);
+         }
+         
+         public function rules(): array {
+             return [
+                 'title' => ['required', 'string', 'max:255'],
+                 'body' => ['required', 'string']
+             ];
+         }
+     }
+     ```
+   - In controller:
+     ```php
+     public function store(StorePostRequest $request): RedirectResponse {
+         $validated = $request->validated();
+         // ...
+         return redirect()->route('posts.show', $post)
+             ->with('success', 'Post created successfully');
+     }
+     ```
+
+---
+
+### **4. Blade Templates**
+1. **Organization**
+   - Use template inheritance with `@extends('layouts.app')`
+   - Split reusable components:
+     ```blade
+     {{-- resources/views/components/alert.blade.php --}}
+     <div class="alert alert-{{ $type }} alert-dismissible fade show">
+         {{ $slot }}
+         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+     </div>
+     ```
+     Usage:
+     ```blade
+     <x-alert type="success">Operation completed!</x-alert>
+     ```
+   - Use Livewire components for interactive elements:
+     ```php
+     // app/Livewire/SearchPosts.php
+     class SearchPosts extends Component {
+         public string $search = '';
+         
+         public function render(): View {
+             return view('livewire.search-posts', [
+                 'posts' => Post::where('title', 'like', "%{$this->search}%")->get()
+             ]);
+         }
+     }
+     ```
+     
+2. **Best Practices**
+   - Avoid PHP logic in Blade; use custom directives:
+     ```php
+     Blade::directive('money', function ($amount) {
+         return "<?php echo number_format($amount, 2) . ' $'; ?>";
+     });
+     ```
+     Usage: `@money(1500)`
+   - Use `@auth`, `@guest`, and `@can` directives for permissions
+   - Escape output with `{{ }}` (auto-escaped), use `{!! !!}` only when safe
+   - Implement Blade::if custom directives for complex conditions:
+     ```php
+     Blade::if('environment', function ($env) {
+         return app()->environment($env);
+     });
+     ```
+     Usage: `@environment('production') Production specific content @endenvironment`
+
+---
+
+### **5. Routing**
+1. **Structure**
+   - Use RESTful routes:
+     ```php
+     Route::resource('posts', PostController::class);
+     ```
+   - Name all routes:
+     ```php
+     Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+     ```
+   - Group related routes:
+     ```php
+     Route::prefix('admin')
+          ->middleware(['auth', 'admin'])
+          ->name('admin.')
+          ->group(function () {
+              Route::resource('users', Admin\UserController::class);
+          });
+     ```
+   - Use route model binding with custom keys:
+     ```php
+     Route::get('/posts/{post:slug}', [PostController::class, 'show']);
+     ```
+     
+2. **Security**
+   - Apply middleware globally/web/api groups
+   - Rate limiting for critical endpoints:
+     ```php
+     Route::middleware(['throttle:api'])->group(function () {
+         // API routes
+     });
+     ```
+   - Use signed URLs for time-sensitive links:
+     ```php
+     URL::temporarySignedRoute(
+         'unsubscribe', now()->addDays(7), ['user' => $user->id]
+     );
+     ```
+
+---
+
+### **6. Validation & Requests**
+1. **Custom Rules**
+   - Create custom validation rules:
+     ```bash
+     php artisan make:rule ValidPhoneNumber
+     ```
+     ```php
+     class ValidPhoneNumber implements Rule {
+         public function passes($attribute, $value): bool {
+             return preg_match('/^([0-9\s\-\+\(\)]*)$/', $value);
+         }
+         
+         public function message(): string {
+             return 'The :attribute must be a valid phone number.';
+         }
+     }
+     ```
+     
+2. **API Responses**
+   - Always return consistent JSON responses:
+     ```php
+     return response()->json([
+         'data' => $resource,
+         'message' => 'Success'
+     ], 201);
+     ```
+   - Use API Resources for consistent formatting:
+     ```php
+     class UserResource extends JsonResource {
+         public function toArray($request): array {
+             return [
+                 'id' => $this->id,
+                 'name' => $this->name,
+                 'email' => $this->when($request->user()->isAdmin(), $this->email)
+             ];
+         }
+     }
+     ```
+
+---
+
+### **7. Testing**
+1. **Unit Tests**
+   - Test model relationships:
+     ```php
+     public function test_user_has_posts(): void {
+         $user = User::factory()->hasPosts(3)->create();
+         $this->assertCount(3, $user->posts);
+     }
+     ```
+   - Use database transactions to speed up tests:
+     ```php
+     use RefreshDatabase;
+     // or
+     use DatabaseTransactions;
+     ```
+     
+2. **Feature Tests**
+   - Test full request cycle:
+     ```php
+     public function test_create_post(): void {
+         $user = User::factory()->create();
+         $response = $this->actingAs($user)
+             ->post('/posts', ['title' => 'Test', 'body' => 'Content']);
+         $response->assertRedirect('/posts');
+         $this->assertDatabaseHas('posts', ['title' => 'Test']);
+     }
+     ```
+   - Test API endpoints:
+     ```php
+     public function test_api_returns_posts(): void {
+         Post::factory()->count(3)->create();
+         $response = $this->getJson('/api/posts');
+         $response->assertStatus(200)
+                  ->assertJsonCount(3, 'data');
+     }
+     ```
+   - Mock external services:
+     ```php
+     $this->mock(PaymentGateway::class, function ($mock) {
+         $mock->shouldReceive('charge')
+              ->once()
+              ->andReturn(true);
+     });
+     ```
+
+---
+
+### **8. Security**
+1. **Essential Practices**
+   - Use `bcrypt()` or `Hash::make()` for passwords
+   - Sanitize output with Blade's auto-escaping
+   - Use `@csrf` in all forms
+   - Prevent mass assignment via `$fillable`
+   - Use `php artisan down` during maintenance
+   - Implement proper authorization using Gates and Policies:
+     ```php
+     // In AuthServiceProvider
+     Gate::define('update-post', function (User $user, Post $post) {
+         return $user->id === $post->user_id;
+     });
+     
+     // In controller
+     $this->authorize('update-post', $post);
+     ```
+
+2. **Advanced**
+   - Rate limiting for sensitive endpoints
+   - Regular dependency audits: `composer audit`
+   - Use Content Security Policy (CSP) headers
+   - Implement two-factor authentication:
+     ```bash
+     composer require laravel/fortify
+     ```
+   - Set up secure cookies:
+     ```php
+     'cookie' => [
+         'secure' => env('SESSION_SECURE_COOKIE', true),
+         'same_site' => env('SESSION_SAME_SITE', 'lax'),
+     ],
+     ```
+
+---
+
+### **9. Performance**
+1. **Database**
+   - Eager loading for relationships:
+     ```php
+     User::with('posts.comments')->get();
+     ```
+   - Use chunking for large datasets:
+     ```php
+     User::chunk(200, function ($users) {
+         foreach ($users as $user) {
+             // Process user
+         }
+     });
+     ```
+   - Use query builders efficiently:
+     ```php
+     // Instead of
+     $activeUsers = User::where('active', true)->get();
+     $activeUsersCount = User::where('active', true)->count();
+     
+     // Do this
+     $activeUsers = User::where('active', true)->withCount('posts')->get();
+     $activeUsersCount = $activeUsers->count();
+     ```
+   - Use database indexes strategically:
+     ```php
+     $table->index(['status', 'created_at']);
+     ```
+
+2. **Caching**
+   - Cache heavy queries:
+     ```php
+     $users = Cache::remember('active_users', 3600, function () {
+         return User::active()->with('roles')->get();
+     });
+     ```
+   - Use tags for cache invalidation:
+     ```php
+     Cache::tags(['users', 'roles'])->put('permissions', $permissions, 3600);
+     // Later
+     Cache::tags(['users'])->flush();
+     ```
+   - Implement model observers to flush cache:
+     ```php
+     class UserObserver {
+         public function saved(User $user): void {
+             Cache::forget('users:all');
+         }
+     }
+     ```
+
+---
+
+### **10. Deployment**
+1. **Preparation**
+   - Run `composer install --optimize-autoloader --no-dev`
+   - Generate optimized config: `php artisan config:cache`
+   - Route caching: `php artisan route:cache`
+   - View caching: `php artisan view:cache`
+   - Optimize event loading: `php artisan event:cache`
+   - Precompile frequently used classes: `php artisan optimize`
+
+2. **Environment**
+   - Use environment-specific configs:
+     ```php
+     if (app()->environment('production')) {
+         // Production-specific code
+     }
+     ```
+   - Setup proper logging:
+     ```php
+     'channels' => [
+         'stack' => [
+             'driver' => 'stack',
+             'channels' => ['daily', 'slack'],
+         ],
+         'slack' => [
+             'driver' => 'slack',
+             'url' => env('LOG_SLACK_WEBHOOK_URL'),
+             'username' => 'Laravel Log',
+             'emoji' => ':boom:',
+             'level' => 'critical',
+         ],
+     ],
+     ```
+
+---
+
+### **11. Livewire 3 Best Practices**
+1. **Component Structure**
+   - Use single-responsibility components
+   - Validate with rules property:
+     ```php
+     protected $rules = [
+         'title' => 'required|min:6',
+         'content' => 'required|min:50',
+     ];
+     
+     public function save(): void {
+         $this->validate();
+         // Save data
+     }
+     ```
+
+2. **Performance**
+   - Use wire:model.defer for forms:
+     ```html
+     <input wire:model.defer="title" type="text">
+     ```
+   - Lazy load components:
+     ```html
+     <livewire:show-posts lazy />
+     ```
+   - Use polling judiciously:
+     ```html
+     <div wire:poll.60s>
+         Current time: {{ now() }}
+     </div>
+     ```
+
+3. **Testing**
+   - Unit test Livewire components:
+     ```php
+     public function test_can_create_post(): void {
+         Livewire::test(CreatePost::class)
+             ->set('title', 'New Post')
+             ->set('content', 'Post content')
+             ->call('save')
+             ->assertHasNoErrors()
+             ->assertRedirect('/posts');
+     }
+     ```
+
+---
+
+### **12. Cursor-Specific Tips**
+1. **IDE Efficiency**
+   - Use Cursor's AI code completion to generate:
+     - Migrations
+     - Form requests
+     - Controllers
+     - Factory definitions
+   - Leverage Cursor's contextual search for Laravel-specific patterns
+   - Use Cursor's built-in terminal for running Laravel commands
+   - Configure Cursor for Laravel-specific recommendations
+   - Use Cursor's AI to generate documentation for complex methods
+   - Apply patterns across multiple files with Cursor's multi-file editing
+
+2. **Project Organization**
+   - Use Cursor's workspace features for context switching between frontend/backend
+   - Set up Cursor snippets for common Laravel patterns
+   - Configure Cursor's AI to understand Laravel's folder structure
+   - Use Cursor's AI to suggest refactoring opportunities
+
+---
+
+### **13. Git Best Practices**
+1. **Commit Strategy**
+   - Commit after each logical change
+   - Use prefixes in commit messages:
+     ```
+     feat: Add user registration
+     fix: Resolve pagination issue
+     refactor: Improve query efficiency
+     ```
+   - Write detailed commit messages with reasoning
+
+2. **Branch Management**
+   - Use feature branches
+   - Keep main/master branch deployable at all times
+   - Use meaningful branch names: `feature/user-authentication`
+   - Rebase feature branches before merging
+
+---
+
+### **14. API Development**
+1. **Structure**
+   - Version your APIs:
+     ```php
+     Route::prefix('v1')->group(function () {
+         // API routes
+     });
+     ```
+   - Use API Resources for response formatting:
+     ```php
+     return new PostCollection(Post::paginate());
+     ```
+   - Implement proper status codes
+
+2. **Authentication**
+   - Use Laravel Sanctum for API tokens:
+     ```bash
+     composer require laravel/sanctum
+     ```
+     ```php
+     public function login(Request $request): JsonResponse {
+         $credentials = $request->validate([
+             'email' => 'required|email',
+             'password' => 'required',
+         ]);
+         
+         if (!Auth::attempt($credentials)) {
+             return response()->json(['message' => 'Unauthorized'], 401);
+         }
+         
+         $token = $request->user()->createToken('api-token');
+         return response()->json(['token' => $token->plainTextToken]);
+     }
+     ```
+
+---
+
+### **15. Debugging Techniques**
+1. **Effective Debugging**
+   - Use `dd()`, `dump()`, and `ray()` strategically:
+     ```php
+     ray($variable)->color('green');
+     ```
+   - Log important information:
+     ```php
+     Log::info('Payment processed', ['user' => $user->id, 'amount' => $amount]);
+     ```
+   - Use Laravel Telescope in development
+
+2. **Performance Profiling**
+   - Use Laravel Debugbar:
+     ```bash
+     composer require barryvdh/laravel-debugbar --dev
+     ```
+   - Profile queries:
+     ```php
+     DB::enableQueryLog();
+     // Run operations
+     dd(DB::getQueryLog());
+     ```
+
+---
+
+### **16. CI/CD**
+1. **Git Hooks**
+   - Pre-commit: Run PHPStan, PHPCS
+   - Pre-push: Run test suite
+
+2. **Automation**
+   - GitHub Actions example:
+     ```yaml
+     jobs:
+       tests:
+         runs-on: ubuntu-latest
+         steps:
+           - uses: actions/checkout@v4
+           - run: composer install
+           - run: php artisan test
+     ```
+
+---
+
+### **Tools to Integrate**
+1. **Static Analysis**
+   - PHPStan (`phpstan/phpstan`)
+   - Laravel Pint (`laravel/pint`)
+
+2. **Debugging**
+   - Laravel Telescope (`laravel/telescope`)
+   - Clockwork (`itsgoingd/clockwork`)
+
+
+(Due to technical issues, the search service is temporarily unavailable.)
+
+Let's continue with even more detailed best practices, covering additional critical aspects of Laravel/PHP development:
+
+---
+
+### **17. API Development (REST/JSON)**
+1. **Resource Design**
+   - Use API Resources for consistent responses:
+     ```bash
+     php artisan make:resource UserResource
+     ```
+     ```php
+     class UserResource extends JsonResource {
+         public function toArray($request): array {
+             return [
+                 'id' => $this->id,
+                 'name' => $this->name,
+                 'email' => $this->when($request->user()->isAdmin(), $this->email)
+             ];
+         }
+     }
+     ```
+   - Version APIs from start:
+     ```php
+     Route::prefix('v1')->group(function () {
+         Route::apiResource('posts', PostController::class);
+     });
+     ```
+
+2. **Authentication**
+   - Use Sanctum for SPA/token-based auth:
+     ```bash
+     composer require laravel/sanctum
+     php artisan sanctum:install
+     ```
+   - Implement refresh tokens:
+     ```php
+     return response()->json([
+         'access_token' => $token,
+         'refresh_token' => RefreshToken::generateFor($user),
+         'expires_in' => config('sanctum.expiration') * 60
+     ]);
+     ```
+
+3. **Rate Limiting**
+   - Customize throttle settings:
+     ```php
+     RateLimiter::for('api', function (Request $request) {
+         return Limit::perMinute(100)->by($request->user()?->id ?: $request->ip());
+     });
+     ```
+
+---
+
+### **18. Dependency Management**
+1. **Service Container**
+   - Use interface binding:
+     ```php
+     $this->app->bind(
+         PaymentGatewayInterface::class,
+         StripePaymentGateway::class
+     );
+     ```
+   - Contextual injection:
+     ```php
+     $this->app->when(OrderProcessor::class)
+               ->needs(PaymentGateway::class)
+               ->give(StripePaymentGateway::class);
+     ```
+
+2. **Facades**
+   - Prefer dependency injection over facades:
+     ```php
+     // Instead of
+     use Illuminate\Support\Facades\Cache;
+     
+     // Do
+     public function __construct(private CacheManager $cache) {}
+     ```
+
+---
+
+### **19. Error Handling & Logging**
+1. **Custom Exceptions**
+   - Create domain-specific exceptions:
+     ```php
+     class PaymentFailedException extends \Exception {
+         public function __construct(string $message = 'Payment processing failed') {
+             parent::__construct($message, 422);
+         }
+     }
+     ```
+   - Global handling:
+     ```php
+     public function register(): void {
+         $this->renderable(function (PaymentFailedException $e) {
+             return response()->json(['error' => $e->getMessage()], 422);
+         });
+     }
+     ```
+
+2. **Structured Logging**
+   - Use Monolog channels:
+     ```php
+     'channels' => [
+         'payments' => [
+             'driver' => 'daily',
+             'path' => storage_path('logs/payments.log'),
+             'level' => 'debug',
+         ],
+     ];
+     ```
+   - Context-rich logging:
+     ```php
+     Log::channel('payments')->warning('Charge declined', [
+         'user' => $user->id,
+         'amount' => $amount,
+         'gateway' => 'stripe'
+     ]);
+     ```
+
+---
+
+### **20. Queue System**
+1. **Job Design**
+   - Make jobs small and focused
+   - Handle failures gracefully:
+     ```php
+     public function failed(Throwable $exception): void {
+         $this->order->update(['status' => 'failed']);
+     }
+     ```
+2. **Configuration**
+   - Use database driver for development:
+     ```php
+     QUEUE_CONNECTION=database
+     ```
+   - Implement priority queues:
+     ```php
+     dispatch((new ProcessPodcast($podcast))->onQueue('high'));
+     ```
+
+3. **Monitoring**
+   - Implement horizon for Redis queues:
+     ```bash
+     composer require laravel/horizon
+     php artisan horizon:install
+     ```
+
+---
+
+### **21. Task Scheduling**
+1. **Cron Setup**
+   - Server-level configuration:
+     ```bash
+     * * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
+     ```
+2. **Job Chaining**
+   - Sequence tasks with dependencies:
+     ```php
+     $schedule->job(new SyncInventory)
+              ->daily()
+              ->then(function () {
+                  dispatch(new GenerateStockReport);
+              });
+     ```
+
+3. **Prevention Overlaps**
+   - Use atomic locks:
+     ```php
+     $schedule->command('emails:send')
+              ->withoutOverlapping()
+              ->onOneServer();
+     ```
+
+---
+
+### **22. Frontend Integration**
+1. **Asset Management**
+   - Use Vite for modern assets:
+     ```blade
+     @vite(['resources/css/app.css', 'resources/js/app.js'])
+     ```
+   - Version assets for cache busting:
+     ```php
+     mix.version();
+     ```
+
+2. **Blade Components**
+   - Create dynamic components:
+     ```blade
+     {{-- resources/views/components/dynamic-table.blade.php --}}
+     <table {{ $attributes->merge(['class' => 'table']) }}>
+         <thead>{{ $header }}</thead>
+         <tbody>{{ $slot }}</tbody>
+     </table>
+     ```
+     Usage:
+     ```blade
+     <x-dynamic-table class="striped">
+         <x-slot:header>
+             <th>Name</th>
+         </x-slot>
+         <tr>...</tr>
+     </x-dynamic-table>
+     ```
+
+---
+
+### **23. Internationalization (i18n)**
+1. **Translation Files**
+   - Structure language files:
+     ```php
+     // resources/lang/en/auth.php
+     return [
+         'failed' => 'These credentials do not match our records.',
+     ];
+     ```
+   - Use JSON translations for large projects:
+     ```json
+     // resources/lang/en.json
+     {
+         "Welcome back, :name!": "Welcome back, :name!"
+     }
+     ```
+
+2. **Locale Handling**
+   - Middleware for language switching:
+     ```php
+     class SetLocale {
+         public function handle($request, Closure $next) {
+             app()->setLocale($request->getPreferredLanguage(config('app.available_locales')));
+             return $next($request);
+         }
+     }
+     ```
+
+---
+
+### **24. Security Deep Dive**
+1. **XSS Protection**
+   - Sanitize user input:
+     ```php
+     use voku\helper\AntiXSS;
+     
+     $antiXss = new AntiXSS();
+     $cleanHtml = $antiXss->xss_clean($dirtyInput);
+     ```
+
+2. **SQL Injection**
+   - Use Eloquent ORM/Query Builder
+   - Raw expressions safely:
+     ```php
+     DB::table('users')->whereRaw('price > IF(state = "TX", ?, 100)', [200]);
+     ```
+
+3. **CORS Management**
+   - Configure properly:
+     ```php
+     // config/cors.php
+     'paths' => ['api/*'],
+     'allowed_origins' => ['https://your-domain.com'],
+     'allowed_headers' => ['Content-Type', 'X-Requested-With']
+     ```
+
+---
+
+### **25. Performance Optimization**
+1. **Caching Strategies**
+   - Model caching:
+     ```php
+     $users = Cache::remember('active_users', 3600, function () {
+         return User::where('active', true)
+             ->with('posts')
+             ->get();
+     });
+     ```
+
+2. **Database Optimization**
+   - Use compound indexes:
+     ```php
+     $table->index(['last_name', 'first_name']);
+     ```
+   - Explain queries:
+     ```php
+     DB::enableQueryLog();
+     // Run query
+     dd(DB::getQueryLog());
+     ```
+
+3. **OPcache Configuration**
+   - Production php.ini settings:
+     ```ini
+     opcache.enable=1
+     opcache.memory_consumption=256
+     opcache.max_accelerated_files=20000
+     ```
+
+---
+
+### **26. Third-Party Integrations**
+1. **API Clients**
+   - Use Guzzle with middleware:
+     ```php
+     $client = new \GuzzleHttp\Client([
+         'base_uri' => 'https://api.example.com',
+         'timeout'  => 5.0,
+     ]);
+     
+     $response = $client->get('/data', [
+         'query' => ['page' => 2],
+         'headers' => ['Authorization' => 'Bearer ' . config('services.api.key')]
+     ]);
+     ```
+
+2. **Webhooks**
+   - Verify signatures:
+     ```php
+     $computedSignature = hash_hmac('sha256', $request->getContent(), config('services.webhook.secret'));
+     
+     if (!hash_equals($computedSignature, $request->header('X-Signature'))) {
+         abort(403);
+     }
+     ```
+
+---
+
+### **27. Monitoring & Analytics**
+1. **Application Health**
+   - Implement health checks:
+     ```php
+     Route::get('/health', function () {
+         return response()->json([
+             'status' => 'ok',
+             'database' => DB::connection()->getPdo() ? 'connected' : 'disconnected',
+             'cache' => Cache::get('healthcheck') === 'ok' ? 'working' : 'failed'
+         ]);
+     });
+     ```
+
+2. **Error Tracking**
+   - Integrate Sentry:
+     ```php
+     Sentry\init([
+         'dsn' => config('services.sentry.dsn'),
+         'traces_sample_rate' => 0.5,
+     ]);
+     ```
+
+---
+
+### **28. Documentation**
+1. **API Docs**
+   - Use OpenAPI/Swagger:
+     ```php
+     /**
+      * @OA\Get(
+      *     path="/api/users",
+      *     @OA\Response(response="200", description="List users")
+      * )
+      */
+     public function index() { /* ... */ }
+     ```
+
+2. **Internal Documentation**
+   - PHPDoc standards:
+     ```php
+     /**
+      * Registers a new user
+      *
+      * @param StoreUserRequest $request Validated user data
+      * @return UserResource
+      * @throws RegistrationException
+      */
+     public function register(StoreUserRequest $request): UserResource { /* ... */ }
+     ```
+
+---
+
+### **29. Legacy Code Management**
+1. **Strangler Pattern**
+   - Gradually replace legacy code:
+     ```php
+     Route::prefix('new')->group(function () {
+         // New implementation
+     });
+     
+     Route::any('{any}', function () {
+         // Legacy fallback
+     })->where('any', '.*');
+     ```
+
+2. **Adapters**
+   - Create compatibility layers:
+     ```php
+     class LegacySystemAdapter implements PaymentGatewayInterface {
+         public function charge(float $amount): bool {
+             // Wrap legacy code
+             return LegacyPayment::process($amount);
+         }
+     }
+     ```
+
+---
+
+### **30. Advanced Eloquent Techniques**
+1. **Polymorphic Relationships**
+   ```php
+   // Model setup
+   class Image extends Model {
+       public function imageable(): MorphTo {
+           return $this->morphTo();
+       }
+   }
+
+   class Post extends Model {
+       public function images(): MorphMany {
+           return $this->morphMany(Image::class, 'imageable');
+       }
+   }
+
+   // Usage
+   $post->images()->create(['url' => 'image.jpg']);
+   ```
+
+2. **Eager Loading Optimization**
+   ```php
+   // Avoid N+1 with nested relations
+   $users = User::with(['posts' => function ($query) {
+       $query->select('id', 'user_id', 'title')->withCount('comments');
+   }])->get();
+   ```
+
+3. **Chunking for Large Datasets**
+   ```php
+   User::where('active', true)->chunkById(200, function ($users) {
+       foreach ($users as $user) {
+           // Process without memory leaks
+       }
+   });
+   ```
+
+---
+
+### **31. Advanced Testing Strategies**
+1. **Database Transactions**
+   ```php
+   use Illuminate\Foundation\Testing\DatabaseTransactions;
+
+   class ExampleTest extends TestCase {
+       use DatabaseTransactions; // Rolls back after test
+
+       public function test_database_interaction() {
+           // Test code
+       }
+   }
+   ```
+
+2. **Mocking External Services**
+   ```php
+   public function test_payment_processing() {
+       $mock = $this->mock(PaymentGateway::class, function ($mock) {
+           $mock->shouldReceive('charge')->once()->andReturn(true);
+       });
+
+       $response = $this->post('/pay', ['amount' => 100]);
+       $response->assertOk();
+   }
+   ```
+
+---
+
+### **32. Event-Driven Architecture**
+1. **Custom Events & Listeners**
+   ```php
+   // Event
+   class OrderShipped {
+       use Dispatchable;
+       public function __construct(public Order $order) {}
+   }
+
+   // Listener
+   class SendShippingNotification {
+       public function handle(OrderShipped $event): void {
+           Mail::to($event->order->user)->send(new OrderShippedMail($event->order));
+       }
+   }
+
+   // Dispatch
+   OrderShipped::dispatch($order);
+   ```
+
+2. **Observers for Model Hooks**
+   ```php
+   class UserObserver {
+       public function created(User $user): void {
+           $user->sendWelcomeEmail();
+       }
+
+       public function deleting(User $user): void {
+           $user->posts()->delete();
+       }
+   }
+
+   // Register in EventServiceProvider
+   User::observe(UserObserver::class);
+   ```
+
+---
+
+### **33. Service Layer Pattern**
+1. **Dedicated Service Class**
+   ```php
+   class OrderService {
+       public function __construct(
+           private PaymentGateway $gateway,
+           private InventoryService $inventory
+       ) {}
+
+       public function processOrder(Order $order): void {
+           DB::transaction(function () use ($order) {
+               $this->gateway->charge($order->total);
+               $this->inventory->updateStock($order->items);
+               $order->update(['status' => 'processed']);
+           });
+       }
+   }
+
+   // Controller usage
+   public function store(OrderRequest $request, OrderService $service) {
+       $service->processOrder($request->validated());
+   }
+   ```
+
+---
+
+### **34. Repository Pattern Implementation**
+1. **Interface & Implementation**
+   ```php
+   interface PostRepositoryInterface {
+       public function getPaginated(int $perPage = 15): LengthAwarePaginator;
+       public function findBySlug(string $slug): ?Post;
+   }
+
+   class EloquentPostRepository implements PostRepositoryInterface {
+       public function getPaginated(int $perPage = 15): LengthAwarePaginator {
+           return Post::with('author')->paginate($perPage);
+       }
+
+       public function findBySlug(string $slug): ?Post {
+           return Post::where('slug', $slug)->firstOrFail();
+       }
+   }
+
+   // Binding in AppServiceProvider
+   $this->app->bind(PostRepositoryInterface::class, EloquentPostRepository::class);
+   ```
+
+---
+
+### **35. Advanced API Development**
+1. **JSON API Specification**
+   ```php
+   return new JsonResource([
+       'data' => [
+           'type' => 'articles',
+           'id' => $article->id,
+           'attributes' => [
+               'title' => $article->title,
+               'content' => $article->content
+           ],
+           'relationships' => [
+               'author' => [
+                   'links' => [
+                       'related' => route('users.show', $article->author)
+                   ]
+               ]
+           ]
+       ],
+       'links' => [
+           'self' => route('articles.show', $article)
+       ]
+   ]);
+   ```
+
+2. **HATEOAS Implementation**
+   ```php
+   class ArticleResource extends JsonResource {
+       public function toArray($request): array {
+           return [
+               'id' => $this->id,
+               '_links' => [
+                   'self' => route('articles.show', $this),
+                   'comments' => route('articles.comments.index', $this)
+               ]
+           ];
+       }
+   }
+   ```
+
+---
+
+### **36. Real-Time Features**
+1. **Laravel Echo & WebSockets**
+   ```javascript
+   // resources/js/bootstrap.js
+   window.Echo = new Echo({
+       broadcaster: 'pusher',
+       key: process.env.MIX_PUSHER_APP_KEY,
+       cluster: process.env.MIX_PUSHER_APP_CLUSTER,
+       encrypted: true
+   });
+
+   Echo.private(`orders.${orderId}`)
+       .listen('OrderStatusUpdated', (data) => {
+           console.log('Status changed:', data.status);
+       });
+   ```
+
+2. **Server-Side Events**
+   ```php
+   class SendServerSentEvent {
+       public function handle(): void {
+           $response = new StreamedResponse(function () {
+               while (true) {
+                   echo "data: " . json_encode(['time' => now()]) . "\n\n";
+                   ob_flush();
+                   flush();
+                   sleep(1);
+               }
+           });
+
+           $response->headers->set('Content-Type', 'text/event-stream');
+           $response->send();
+       }
+   }
+   ```
+
+---
+
+### **37. Artisan Command Best Practices**
+1. **Progress Bars**
+   ```php
+   public function handle() {
+       $users = User::whereNull('activated_at')->cursor();
+
+       $bar = $this->output->createProgressBar(count($users));
+       $bar->start();
+
+       foreach ($users as $user) {
+           $user->sendActivationReminder();
+           $bar->advance();
+       }
+
+       $bar->finish();
+   }
+   ```
+
+2. **Interactive Commands**
+   ```php
+   public function handle() {
+       $name = $this->ask('What is your name?');
+       $confirmed = $this->confirm('Proceed?');
+
+       if ($confirmed) {
+           $this->call('user:create', ['name' => $name]);
+       }
+   }
+   ```
+
+---
+
+### **38. Advanced Security Practices**
+1. **Role-Based Access Control**
+   ```php
+   // Using spatie/laravel-permission
+   $user->assignRole('admin');
+   $user->givePermissionTo('edit posts');
+
+   // Middleware
+   Route::group(['middleware' => ['role:admin']], function () {
+       Route::get('/admin', [AdminController::class, 'index']);
+   });
+   ```
+
+2. **JWT Authentication**
+   ```php
+   // Login controller
+   public function login(Request $request) {
+       $credentials = $request->only('email', 'password');
+
+       if (!$token = auth()->attempt($credentials)) {
+           return response()->json(['error' => 'Unauthorized'], 401);
+       }
+
+       return response()->json([
+           'access_token' => $token,
+           'token_type' => 'bearer',
+           'expires_in' => auth()->factory()->getTTL() * 60
+       ]);
+   }
+   ```
+
+---
+
+### **39. Database Advanced Techniques**
+1. **Query Expression Indexes**
+   ```php
+   Schema::create('users', function (Blueprint $table) {
+       $table->string('email')->index();
+       $table->rawIndex(
+           'lower(first_name || " " || last_name)', 
+           'users_full_name_index'
+       );
+   });
+   ```
+
+2. **Full-Text Search**
+   ```php
+   Post::whereFullText(['title', 'content'], 'search term')
+       ->orderBy('relevance', 'desc')
+       ->get();
+   ```
+
+---
+
+### **40. Multi-Tenancy Implementation**
+1. **Database Per Tenant**
+   ```php
+   // Middleware
+   public function handle($request, Closure $next) {
+       $tenant = Tenant::whereDomain($request->getHost())->firstOrFail();
+       Config::set('database.connections.tenant.database', $tenant->database);
+       DB::purge('tenant');
+       return $next($request);
+   }
+   ```
+
+2. **Tenant Aware Jobs**
+   ```php
+   class ProcessOrder implements ShouldQueue {
+       use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+       public function __construct(
+           public Tenant $tenant,
+           public Order $order
+       ) {}
+
+       public function handle() {
+           Tenant::set($this->tenant);
+           // Process order
+       }
+   }
+   ```
+
+---
+
+### **41. PHP 8+ Features**
+1. **Enums**
+   ```php
+   enum OrderStatus: string {
+       case PENDING = 'pending';
+       case PROCESSING = 'processing';
+       case COMPLETED = 'completed';
+   }
+
+   class Order extends Model {
+       protected $casts = [
+           'status' => OrderStatus::class
+       ];
+   }
+   ```
+
+2. **Match Expressions**
+   ```php
+   $action = match ($statusCode) {
+       200, 201 => 'success',
+       404 => 'not found',
+       500 => 'server error',
+       default => 'unknown',
+   };
+   ```
+
+---
+
+### **42. DevOps Practices**
+1. **Zero-Downtime Deployment**
+   ```bash
+   # Deployment script
+   php artisan down --render="errors::503"
+   git pull origin main
+   composer install --no-dev --prefer-dist --optimize-autoloader
+   npm ci && npm run build
+   php artisan migrate --force
+   php artisan config:cache
+   php artisan route:cache
+   php artisan view:cache
+   php artisan up
+   ```
+
+2. **Health Checks**
+   ```php
+   Route::get('/health', function () {
+       return response()->json([
+           'status' => 'OK',
+           'database' => DB::connection()->getPdo() ? 'Connected' : 'Disconnected',
+           'cache' => Cache::get('health') === 'ok' ? 'Working' : 'Failed',
+           'last_cron' => Cache::get('last_cron_run'),
+       ]);
+   });
+   ```
+
+---
+
+### **43. Code Quality Enforcement**
+1. **Git Hooks with Husky**
+   ```json
+   // package.json
+   "husky": {
+       "hooks": {
+           "pre-commit": "vendor/bin/pint --test && vendor/bin/phpstan analyse",
+           "pre-push": "php artisan test"
+       }
+   }
+   ```
+
+2. **Custom Pint Rules**
+   ```json
+   // pint.json
+   {
+       "preset": "laravel",
+       "rules": {
+           "strict_param": true,
+           "declare_strict_types": true
+       }
+   }
+   ```
+
+---
+
+### **44. Legacy System Integration**
+1. **Adapter Pattern**
+   ```php
+   interface LegacyOrderAdapterInterface {
+       public function createOrder(array $data): int;
+   }
+
+   class SAPOrderAdapter implements LegacyOrderAdapterInterface {
+       public function createOrder(array $data): int {
+           $sap = new SAP\OrderSystem();
+           return $sap->create_order(
+               $data['customer_id'],
+               $data['items'],
+               SAP\Currency::USD
+           );
+       }
+   }
+   ```
+
+# Todo Application Testing Report
+
+## Overview
+This report summarizes the testing efforts for the Todo application. The application has been tested using PHPUnit for unit testing. Initial tests were created for all models, and after resolving some configuration and implementation issues, the tests now run successfully.
+
+## Tests Created
+
+### Unit Tests
+1. **TodoModelTest** (`tests/Unit/TodoModelTest.php`)
+   - Tests for Todo-User relationship
+   - Tests for Todo-Category relationship
+   - Tests for model attributes and casts
+   - Tests for fillable attributes
+   - Tests for model creation with all attributes
+
+2. **CategoryModelTest** (`tests/Unit/CategoryModelTest.php`)
+   - Tests for Category-User relationship
+   - Tests for Category-Todo relationship
+   - Tests for fillable attributes
+   - Tests for model creation
+   - Tests for category deletion with todos
+
+3. **UserModelTest** (`tests/Unit/UserModelTest.php`)
+   - Tests for User-Todo relationship
+   - Tests for User-Category relationship
+   - Tests for password hashing
+   - Tests for hidden attributes
+   - Tests for fillable attributes
+   - Tests for user deletion with cascading effects
+
+## Issues Encountered and Resolved
+
+### PHPUnit Configuration
+We initially encountered the following error:
+```
+Subscriber "PHPUnit\Event\Application\StartedSubscriber" does not exist or is not an interface
+```
+
+This was resolved by downgrading PHPUnit from version 10.x to version 9.6 in the composer.json file, which is more compatible with the current PHP version (8.3.15).
+
+### Missing Model Configuration
+Several issues were encountered due to:
+- Missing fillable attributes in the Category model
+- Todo creation without required user_id values
+- Missing relationship methods in models
+
+These were all resolved by:
+1. Adding appropriate fillable properties to the Category model
+2. Implementing proper relationship methods on all models
+3. Using relationship methods like associate() to properly set foreign keys
+
+## Test Execution Results
+After resolving the issues:
+- UserModelTest: All 6 tests passing with 18 assertions
+- CategoryModelTest: All 5 tests passing with 16 assertions
+
+## Recommendations
+
+1. **Expand Test Coverage**
+   - Add feature tests for controllers and API endpoints
+   - Add browser tests using Laravel Dusk for UI testing
+   - Implement integration tests for complex workflows
+
+2. **Implement CI/CD Pipeline**
+   - Set up automated testing on each commit/push
+   - Include test coverage reporting
+
+3. **Update Configuration**
+   - Fix PHPUnit configuration XML warnings
+   - Consider adding a dedicated testing database
+
+## Next Steps
+
+1. Complete unit tests for all controllers
+2. Develop feature tests for the Todo CRUD operations
+3. Implement browser tests for the UI components
+4. Set up automated testing with GitHub Actions or similar CI/CD service
+
+## Conclusion
+The Todo application now has a solid foundation of unit tests covering the model layer relationships and functionality. The tests ensure that changes to the models don't break expected behavior. With the initial configuration issues resolved, the testing framework is now ready for expansion to include more comprehensive test coverage.
+
+## Testing Issues and Solutions
+
+### JavaScript Testing
+- When testing Vue components, ensure route components are properly mocked:
+  ```js
+  // Mock route components in tests
+  const Home = { template: '<div>Home Component</div>' };
+  const routes = [
+    { path: '/', name: 'home', component: Home },
+    // other routes with components
+  ]
+  ```
+- For Vuex store tests, create isolated store instances:
+  ```js
+  // Create a fresh store for each test
+  const createStore = () => new Vuex.Store({
+    state: { /* ... */ },
+    mutations: { /* ... */ },
+    actions: { /* ... */ }
+  });
+  ```
+- API tests should mock axios responses:
+  ```js
+  vi.mock('axios');
+  // Then in test
+  axios.post.mockResolvedValue({ data: { /* mock response */ } });
+  ```
+
+### PHP Testing
+- Database integrity issues:
+  - Ensure `RefreshDatabase` trait is used in tests that modify the database
+  - Reset the database after each test with `DatabaseTransactions`
+  - Use unique values for email fields to prevent constraint violations
+  - For browser tests, use Laravel Dusk properly by ensuring ChromeDriver is running
+
+- Common test failures:
+  - `NOT NULL constraint failed: todos.user_id`: Always associate todos with a user
+  - `View [profile.edit] not found`: Ensure all views exist before testing routes
+  - `UNIQUE constraint failed: users.email`: Use unique emails in user factories
+  
+- Authentication test issues:
+  - When testing invalid credentials, Laravel returns a 422 validation error, not a 401 unauthorized
+  - Update tests to match actual application behavior:
+    ```php
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['email'])
+        ->assertJson(['message' => 'The provided credentials are incorrect.']);
+    ```
+  - Ensure API routes are consistent in response status codes
+
+- Laravel Dusk issues:
+  - Browser tests require ChromeDriver to be running
+  - Start ChromeDriver before running tests:
+    ```bash
+    php artisan dusk:chrome-driver
+    ./vendor/laravel/dusk/bin/chromedriver-linux > /dev/null 2>&1 &
+    ```
+  - Ensure the tests are running in a controlled environment
+
+### General Testing Guidelines
+- Always run both JavaScript and PHP tests before submitting code
+- Fix database-related tests by making each test independent and not relying on existing data
+- For browser tests, ensure ChromeDriver is properly installed and running
+- When API response codes don't match expectations, check the controller response status codes
+
+### Test Helper Utilities
+
+For consistent and efficient testing, use the custom helper utilities:
+
+##### JavaScript Test Utilities
+Located at `resources/js/tests/utils/testUtils.js`, these utilities simplify Vue testing:
+
+```js
+// Setup a component with all dependencies mocked
+const { wrapper, store, router } = setupComponentTest(MyComponent, {
+  useFakeTimers: true,
+  storeOptions: {
+    // Custom store options
+  }
+});
+
+// Simplify form testing
+await fillForm(wrapper, {
+  'input[name="email"]': 'test@example.com',
+  'input[name="password"]': 'password123'
+});
+await submitForm(wrapper);
+
+// Check error messages
+expect(hasErrorMessage(wrapper, 'Invalid credentials')).toBe(true);
+```
+
+##### PHP Test Helpers
+Located at `tests/TestHelpers.php`, these utilities solve common database testing issues:
+
+```php
+// Create a user with a guaranteed unique email
+$user = TestHelpers::createUserWithUniqueEmail();
+
+// Create a todo properly associated with a user
+$todo = TestHelpers::createTodoWithUser(['title' => 'Test Todo'], $user);
+
+// Complete test setup in one line
+[$user, $todos] = TestHelpers::createTestEnvironment(3);
+```
+
+See example implementations in:
+- `resources/js/components/Login.example.test.js`
+- `tests/Feature/TodoApiTest.example.php`
+
