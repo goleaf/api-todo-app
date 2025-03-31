@@ -52,7 +52,7 @@ class UserCrudTest extends DuskTestCase
             $browser->loginAs($admin)
                     ->visit(route('admin.users.index'))
                     ->clickLink('Create New User')
-                    ->assertPathIs('/admin/users/create')
+                    ->assertRouteIs('admin.users.create')
                     ->assertSee('Create New User')
                     ->assertSee('Name')
                     ->assertSee('Email')
@@ -85,7 +85,7 @@ class UserCrudTest extends DuskTestCase
                     ->select('role', 'user')
                     ->check('active')
                     ->press('Save')
-                    ->waitForLocation('/admin/users')
+                    ->waitForRoute('admin.users.index')
                     ->assertSee('User created successfully')
                     ->assertSee('Test User')
                     ->assertSee($testUserEmail);
@@ -116,7 +116,7 @@ class UserCrudTest extends DuskTestCase
             $browser->loginAs($admin)
                     ->visit(route('admin.users.index'))
                     ->click('@edit-user-' . $user->id)
-                    ->assertPathIs('/admin/users/' . $user->id . '/edit')
+                    ->assertRouteIs('admin.users.edit', [$user->id])
                     ->assertSee('Edit User')
                     ->assertInputValue('name', $user->name)
                     ->assertInputValue('email', $user->email);
@@ -151,7 +151,7 @@ class UserCrudTest extends DuskTestCase
                     ->clear('name')
                     ->type('name', $newName)
                     ->press('Save')
-                    ->waitForLocation('/admin/users')
+                    ->waitForRoute('admin.users.index')
                     ->assertSee('User updated successfully')
                     ->assertSee($newName);
         });

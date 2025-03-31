@@ -1,27 +1,27 @@
 @extends('admin.layouts.app')
 
-@section('title', isset($task) ? 'Edit Task' : 'Create Task')
+@section('title', $isEdit ? 'Edit Task' : 'Create Task')
 
 @section('breadcrumbs')
     <li class="breadcrumb-item"><a href="{{ route('admin.tasks.index') }}">Tasks</a></li>
-    <li class="breadcrumb-item active">{{ isset($task) ? 'Edit' : 'Create' }}</li>
+    <li class="breadcrumb-item active">{{ $isEdit ? 'Edit' : 'Create' }}</li>
 @endsection
 
 @section('content')
 <div class="card">
     <div class="card-header">
-        <h5 class="mb-0">{{ isset($task) ? 'Edit Task' : 'Create New Task' }}</h5>
+        <h5 class="mb-0">{{ $isEdit ? 'Edit Task' : 'Create New Task' }}</h5>
     </div>
     <div class="card-body">
-        <form action="{{ isset($task) ? route('admin.tasks.update', $task) : route('admin.tasks.store') }}" method="POST">
+        <form action="{{ $isEdit ? route('admin.tasks.update', $task) : route('admin.tasks.store') }}" method="POST">
             @csrf
-            @if(isset($task))
+            @if($isEdit)
                 @method('PUT')
             @endif
             
             <div class="mb-3">
                 <label for="title" class="form-label">Title</label>
-                <input type="text" class="form-control @error('title') is-invalid @enderror" id="title" name="title" value="{{ old('title', $task->title ?? '') }}" required>
+                <input type="text" class="form-control @error('title') is-invalid @enderror" id="title" name="title" value="{{ old('title', $isEdit ? $task->title : '') }}" required>
                 @error('title')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -29,7 +29,7 @@
             
             <div class="mb-3">
                 <label for="description" class="form-label">Description</label>
-                <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="4">{{ old('description', $task->description ?? '') }}</textarea>
+                <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="4">{{ old('description', $isEdit ? $task->description : '') }}</textarea>
                 @error('description')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -41,7 +41,7 @@
                     <select class="form-select @error('user_id') is-invalid @enderror" id="user_id" name="user_id" required>
                         <option value="">Select User</option>
                         @foreach($users as $user)
-                            <option value="{{ $user->id }}" {{ old('user_id', $task->user_id ?? '') == $user->id ? 'selected' : '' }}>
+                            <option value="{{ $user->id }}" {{ old('user_id', $isEdit ? $task->user_id : '') == $user->id ? 'selected' : '' }}>
                                 {{ $user->name }} ({{ $user->email }})
                             </option>
                         @endforeach
@@ -56,7 +56,7 @@
                     <select class="form-select @error('category_id') is-invalid @enderror" id="category_id" name="category_id">
                         <option value="">No Category</option>
                         @foreach($categories as $category)
-                            <option value="{{ $category->id }}" {{ old('category_id', $task->category_id ?? '') == $category->id ? 'selected' : '' }}>
+                            <option value="{{ $category->id }}" {{ old('category_id', $isEdit ? $task->category_id : '') == $category->id ? 'selected' : '' }}>
                                 {{ $category->name }}
                             </option>
                         @endforeach
@@ -72,7 +72,7 @@
                     <label for="priority" class="form-label">Priority</label>
                     <select class="form-select @error('priority') is-invalid @enderror" id="priority" name="priority">
                         @foreach($priorities as $priority)
-                            <option value="{{ $priority->value }}" {{ old('priority', $task->priority->value ?? '') == $priority->value ? 'selected' : '' }}>
+                            <option value="{{ $priority->value }}" {{ old('priority', $isEdit && $task->priority ? $task->priority->value : '') == $priority->value ? 'selected' : '' }}>
                                 {{ $priority->label() }}
                             </option>
                         @endforeach
@@ -84,7 +84,7 @@
                 
                 <div class="col-md-4 mb-3">
                     <label for="due_date" class="form-label">Due Date</label>
-                    <input type="date" class="form-control @error('due_date') is-invalid @enderror" id="due_date" name="due_date" value="{{ old('due_date', isset($task) && $task->due_date ? $task->due_date->format('Y-m-d') : '') }}">
+                    <input type="date" class="form-control @error('due_date') is-invalid @enderror" id="due_date" name="due_date" value="{{ old('due_date', $isEdit && $task->due_date ? $task->due_date->format('Y-m-d') : '') }}">
                     @error('due_date')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -92,7 +92,7 @@
                 
                 <div class="col-md-4 mb-3">
                     <label for="progress" class="form-label">Progress (%)</label>
-                    <input type="number" class="form-control @error('progress') is-invalid @enderror" id="progress" name="progress" min="0" max="100" value="{{ old('progress', $task->progress ?? 0) }}">
+                    <input type="number" class="form-control @error('progress') is-invalid @enderror" id="progress" name="progress" min="0" max="100" value="{{ old('progress', $isEdit ? $task->progress : 0) }}">
                     @error('progress')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -101,7 +101,7 @@
             
             <div class="mb-3">
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="completed" name="completed" value="1" {{ old('completed', $task->completed ?? false) ? 'checked' : '' }}>
+                    <input class="form-check-input" type="checkbox" id="completed" name="completed" value="1" {{ old('completed', $isEdit ? $task->completed : false) ? 'checked' : '' }}>
                     <label class="form-check-label" for="completed">
                         Mark as completed
                     </label>
@@ -112,7 +112,7 @@
                 <label for="tags" class="form-label">Tags</label>
                 <select class="form-select @error('tags') is-invalid @enderror" id="tags" name="tags[]" multiple>
                     @foreach($tags as $tag)
-                        <option value="{{ $tag->id }}" {{ in_array($tag->id, old('tags', isset($task) && isset($task->tags) ? (is_object($task->tags) ? $task->tags->pluck('id')->toArray() : (is_array($task->tags) ? array_column($task->tags, 'id') : [])) : [])) ? 'selected' : '' }}>
+                        <option value="{{ $tag->id }}" {{ in_array($tag->id, old('tags', $isEdit && isset($task->tags) ? (is_object($task->tags) ? $task->tags->pluck('id')->toArray() : (is_array($task->tags) ? array_column($task->tags, 'id') : [])) : [])) ? 'selected' : '' }}>
                             {{ $tag->name }}
                         </option>
                     @endforeach
@@ -125,7 +125,7 @@
             
             <div class="d-flex justify-content-between">
                 <a href="{{ route('admin.tasks.index') }}" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">{{ isset($task) ? 'Update Task' : 'Create Task' }}</button>
+                <button type="submit" class="btn btn-primary">{{ $isEdit ? 'Update Task' : 'Create Task' }}</button>
             </div>
         </form>
     </div>
@@ -139,8 +139,8 @@
         const userSelect = document.getElementById('user_id');
         const categorySelect = document.getElementById('category_id');
         const tagSelect = document.getElementById('tags');
-        const currentCategoryId = {{ isset($task) && $task->category_id ? $task->category_id : 'null' }};
-        const currentTagIds = {{ isset($task) && isset($task->tags) ? (is_object($task->tags) ? json_encode($task->tags->pluck('id')) : (is_array($task->tags) ? json_encode(array_column($task->tags, 'id')) : '[]')) : '[]' }};
+        const currentCategoryId = {{ $isEdit && $task->category_id ? $task->category_id : 'null' }};
+        const currentTagIds = {{ $isEdit && isset($task->tags) ? (is_object($task->tags) ? json_encode($task->tags->pluck('id')) : (is_array($task->tags) ? json_encode(array_column($task->tags, 'id')) : '[]')) : '[]' }};
         
         userSelect.addEventListener('change', function() {
             const userId = this.value;

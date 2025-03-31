@@ -66,7 +66,9 @@ class TaskController extends AdminController
         // All tags (will be filtered by user with JS)
         $tags = [];
         
-        return view('admin.tasks.form', compact('users', 'categories', 'priorities', 'tags'));
+        $isEdit = false;
+        
+        return view('admin.tasks.form', compact('users', 'categories', 'priorities', 'tags', 'isEdit'));
     }
 
     /**
@@ -123,7 +125,9 @@ class TaskController extends AdminController
             $task->load('tags');
         }
         
-        return view('admin.tasks.form', compact('task', 'users', 'categories', 'priorities', 'tags'));
+        $isEdit = true;
+        
+        return view('admin.tasks.form', compact('task', 'users', 'categories', 'priorities', 'tags', 'isEdit'));
     }
 
     /**

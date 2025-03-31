@@ -39,8 +39,9 @@ class CategoryController extends AdminController
     {
         $users = User::all();
         $categoryTypes = CategoryType::cases();
+        $isEdit = false;
         
-        return view('admin.categories.form', compact('users', 'categoryTypes'));
+        return view('admin.categories.form', compact('users', 'categoryTypes', 'isEdit'));
     }
 
     /**
@@ -71,8 +72,9 @@ class CategoryController extends AdminController
     {
         $users = User::all();
         $categoryTypes = CategoryType::cases();
+        $isEdit = true;
         
-        return view('admin.categories.form', compact('category', 'users', 'categoryTypes'));
+        return view('admin.categories.form', compact('category', 'users', 'categoryTypes', 'isEdit'));
     }
 
     /**

@@ -39,84 +39,84 @@ Route::get('/documentation', function () {
                 'async' => ['/async/dashboard-stats', '/async/external-apis', '/async/process-tasks', '/async/batch-tag-operation'],
             ],
         ],
-    ]);
+    ])->name('api.documentation');
 });
 
 // Public routes
-Route::post('/register', [AuthApiController::class, 'register']);
-Route::post('/login', [AuthApiController::class, 'login']);
+Route::post('/register', [AuthApiController::class, 'register'])->name('api.auth.register');
+Route::post('/login', [AuthApiController::class, 'login'])->name('api.auth.login');
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     // Auth routes
-    Route::post('/logout', [AuthApiController::class, 'logout']);
-    Route::post('/refresh', [AuthApiController::class, 'refresh']);
-    Route::get('/me', [AuthApiController::class, 'me']);
+    Route::post('/logout', [AuthApiController::class, 'logout'])->name('api.auth.logout');
+    Route::post('/refresh', [AuthApiController::class, 'refresh'])->name('api.auth.refresh');
+    Route::get('/me', [AuthApiController::class, 'me'])->name('api.auth.me');
 
     // User routes - full CRUD
     Route::prefix('users')->group(function () {
-        Route::get('/', [UserApiController::class, 'index']);
-        Route::post('/', [UserApiController::class, 'store']);
-        Route::get('/statistics', [UserApiController::class, 'statistics']);
-        Route::get('/{id}', [UserApiController::class, 'show']);
-        Route::put('/{id}', [UserApiController::class, 'update']);
-        Route::delete('/{id}', [UserApiController::class, 'destroy']);
+        Route::get('/', [UserApiController::class, 'index'])->name('api.users.index');
+        Route::post('/', [UserApiController::class, 'store'])->name('api.users.store');
+        Route::get('/statistics', [UserApiController::class, 'statistics'])->name('api.users.statistics');
+        Route::get('/{id}', [UserApiController::class, 'show'])->name('api.users.show');
+        Route::put('/{id}', [UserApiController::class, 'update'])->name('api.users.update');
+        Route::delete('/{id}', [UserApiController::class, 'destroy'])->name('api.users.destroy');
     });
 
     // Profile routes
     Route::prefix('profile')->group(function () {
-        Route::get('/', [ProfileApiController::class, 'show']);
-        Route::put('/', [ProfileApiController::class, 'update']);
-        Route::put('/password', [ProfileApiController::class, 'updatePassword']);
-        Route::post('/photo', [ProfileApiController::class, 'uploadPhoto']);
-        Route::delete('/photo', [ProfileApiController::class, 'deletePhoto']);
+        Route::get('/', [ProfileApiController::class, 'show'])->name('api.profile.show');
+        Route::put('/', [ProfileApiController::class, 'update'])->name('api.profile.update');
+        Route::put('/password', [ProfileApiController::class, 'updatePassword'])->name('api.profile.update-password');
+        Route::post('/photo', [ProfileApiController::class, 'uploadPhoto'])->name('api.profile.upload-photo');
+        Route::delete('/photo', [ProfileApiController::class, 'deletePhoto'])->name('api.profile.delete-photo');
     });
 
     // Task routes
     Route::prefix('tasks')->group(function () {
-        Route::get('/', [TaskApiController::class, 'index']);
-        Route::post('/', [TaskApiController::class, 'store']);
-        Route::get('/statistics', [TaskApiController::class, 'statistics']);
-        Route::get('/due-today', [TaskApiController::class, 'dueToday']);
-        Route::get('/overdue', [TaskApiController::class, 'overdue']);
-        Route::get('/upcoming', [TaskApiController::class, 'upcoming']);
-        Route::get('/by-tag/{tagName}', [TaskApiController::class, 'findByTag']);
-        Route::get('/{id}', [TaskApiController::class, 'show']);
-        Route::put('/{id}', [TaskApiController::class, 'update']);
-        Route::delete('/{id}', [TaskApiController::class, 'destroy']);
-        Route::patch('/{id}/toggle', [TaskApiController::class, 'toggleCompletion']);
-        Route::get('/{id}/tags', [TaskApiController::class, 'tags']);
-        Route::put('/{id}/tags', [TaskApiController::class, 'updateTags']);
-        Route::post('/{id}/tags', [TaskApiController::class, 'bulkTagOperation']);
+        Route::get('/', [TaskApiController::class, 'index'])->name('api.tasks.index');
+        Route::post('/', [TaskApiController::class, 'store'])->name('api.tasks.store');
+        Route::get('/statistics', [TaskApiController::class, 'statistics'])->name('api.tasks.statistics');
+        Route::get('/due-today', [TaskApiController::class, 'dueToday'])->name('api.tasks.due-today');
+        Route::get('/overdue', [TaskApiController::class, 'overdue'])->name('api.tasks.overdue');
+        Route::get('/upcoming', [TaskApiController::class, 'upcoming'])->name('api.tasks.upcoming');
+        Route::get('/by-tag/{tagName}', [TaskApiController::class, 'findByTag'])->name('api.tasks.by-tag');
+        Route::get('/{id}', [TaskApiController::class, 'show'])->name('api.tasks.show');
+        Route::put('/{id}', [TaskApiController::class, 'update'])->name('api.tasks.update');
+        Route::delete('/{id}', [TaskApiController::class, 'destroy'])->name('api.tasks.destroy');
+        Route::patch('/{id}/toggle', [TaskApiController::class, 'toggleCompletion'])->name('api.tasks.toggle');
+        Route::get('/{id}/tags', [TaskApiController::class, 'tags'])->name('api.tasks.tags');
+        Route::put('/{id}/tags', [TaskApiController::class, 'updateTags'])->name('api.tasks.update-tags');
+        Route::post('/{id}/tags', [TaskApiController::class, 'bulkTagOperation'])->name('api.tasks.bulk-tag-operation');
     });
 
     // Category routes
     Route::prefix('categories')->group(function () {
-        Route::get('/', [CategoryApiController::class, 'index']);
-        Route::post('/', [CategoryApiController::class, 'store']);
-        Route::get('/task-counts', [CategoryApiController::class, 'taskCounts']);
-        Route::get('/{id}', [CategoryApiController::class, 'show']);
-        Route::put('/{id}', [CategoryApiController::class, 'update']);
-        Route::delete('/{id}', [CategoryApiController::class, 'destroy']);
+        Route::get('/', [CategoryApiController::class, 'index'])->name('api.categories.index');
+        Route::post('/', [CategoryApiController::class, 'store'])->name('api.categories.store');
+        Route::get('/task-counts', [CategoryApiController::class, 'taskCounts'])->name('api.categories.task-counts');
+        Route::get('/{id}', [CategoryApiController::class, 'show'])->name('api.categories.show');
+        Route::put('/{id}', [CategoryApiController::class, 'update'])->name('api.categories.update');
+        Route::delete('/{id}', [CategoryApiController::class, 'destroy'])->name('api.categories.destroy');
     });
 
     // Tag routes
     Route::prefix('tags')->group(function () {
-        Route::get('/', [TagApiController::class, 'index']);
-        Route::post('/', [TagApiController::class, 'store']);
-        Route::get('/popular', [TagApiController::class, 'popular']);
-        Route::get('/task-counts', [TagApiController::class, 'taskCounts']);
-        Route::post('/merge', [TagApiController::class, 'merge']);
-        Route::get('/suggestions', [TagApiController::class, 'suggestions']);
-        Route::post('/batch', [TagApiController::class, 'batchCreate']);
-        Route::get('/{id}', [TagApiController::class, 'show']);
-        Route::put('/{id}', [TagApiController::class, 'update']);
-        Route::delete('/{id}', [TagApiController::class, 'destroy']);
-        Route::get('/{id}/tasks', [TagApiController::class, 'tasks']);
+        Route::get('/', [TagApiController::class, 'index'])->name('api.tags.index');
+        Route::post('/', [TagApiController::class, 'store'])->name('api.tags.store');
+        Route::get('/popular', [TagApiController::class, 'popular'])->name('api.tags.popular');
+        Route::get('/task-counts', [TagApiController::class, 'taskCounts'])->name('api.tags.task-counts');
+        Route::post('/merge', [TagApiController::class, 'merge'])->name('api.tags.merge');
+        Route::get('/suggestions', [TagApiController::class, 'suggestions'])->name('api.tags.suggestions');
+        Route::post('/batch', [TagApiController::class, 'batchCreate'])->name('api.tags.batch-create');
+        Route::get('/{id}', [TagApiController::class, 'show'])->name('api.tags.show');
+        Route::put('/{id}', [TagApiController::class, 'update'])->name('api.tags.update');
+        Route::delete('/{id}', [TagApiController::class, 'destroy'])->name('api.tags.destroy');
+        Route::get('/{id}/tasks', [TagApiController::class, 'tasks'])->name('api.tags.tasks');
     });
 
     // Dashboard routes
-    Route::get('/dashboard', [DashboardApiController::class, 'index']);
+    Route::get('/dashboard', [DashboardApiController::class, 'index'])->name('api.dashboard.index');
 });
 
 // API fallback - 404 for invalid routes
@@ -140,10 +140,10 @@ Route::fallback(function () {
 */
 
 Route::middleware('auth:sanctum')->prefix('async')->group(function () {
-    Route::get('/dashboard-stats', [AsyncApiController::class, 'getDashboardStats']);
-    Route::get('/external-apis', [AsyncApiController::class, 'fetchExternalApis']);
-    Route::post('/process-tasks', [AsyncApiController::class, 'bulkProcessTasks']);
-    Route::post('/batch-tag-operation', [AsyncApiController::class, 'batchTagOperation']);
+    Route::get('/dashboard-stats', [AsyncApiController::class, 'getDashboardStats'])->name('api.async.dashboard-stats');
+    Route::get('/external-apis', [AsyncApiController::class, 'fetchExternalApis'])->name('api.async.external-apis');
+    Route::post('/process-tasks', [AsyncApiController::class, 'bulkProcessTasks'])->name('api.async.process-tasks');
+    Route::post('/batch-tag-operation', [AsyncApiController::class, 'batchTagOperation'])->name('api.async.batch-tag-operation');
 });
 
 /*

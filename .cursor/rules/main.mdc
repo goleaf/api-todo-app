@@ -712,3 +712,25 @@ GET /api/tasks
 Authorization: Bearer 1|laravel_sanctum_token...
 Accept: application/json
 ```
+
+# TodoList for Admin Panel Updates
+
+1. Merge edit.blade.php and create.blade.php into a single form.blade.php for all admin sections
+2. Remove web.php and move all routes to api.php or admin.php as appropriate
+3. Update controllers for admin side to work with the new unified form views
+4. Update tests to use route names instead of static URLs
+5. Run tests and fix all errors repeatedly until no errors remain
+6. Make commits with descriptive messages after tests pass
+
+## Progress Tracking
+
+- [x] Users section - form.blade.php (already exists)
+- [x] Categories section - form.blade.php (already exists)
+- [x] Tasks section - form.blade.php (already exists)
+- [x] Tags section - form.blade.php (already exists)
+- [x] Update all controllers to use unified form views
+- [x] Update form blades to use isEdit variable instead of checking isset($model)
+- [x] Add route names to all API routes
+- [x] Update tests to use route names instead of hardcoded paths
+- [ ] Run and fix tests
+- [ ] Commit changes

@@ -37,8 +37,9 @@ class TagController extends AdminController
     public function create()
     {
         $users = User::all();
+        $isEdit = false;
         
-        return view('admin.tags.form', compact('users'));
+        return view('admin.tags.form', compact('users', 'isEdit'));
     }
 
     /**
@@ -68,8 +69,9 @@ class TagController extends AdminController
     public function edit(Tag $tag)
     {
         $users = User::all();
+        $isEdit = true;
         
-        return view('admin.tags.form', compact('tag', 'users'));
+        return view('admin.tags.form', compact('tag', 'users', 'isEdit'));
     }
 
     /**

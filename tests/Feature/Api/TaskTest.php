@@ -36,7 +36,7 @@ class TaskTest extends TestCase
         ]);
 
         // Test index endpoint with no_pagination flag for testing
-        $response = $this->getJson('/api/tasks?no_pagination=1');
+        $response = $this->getJson(route('api.tasks.index') . '?no_pagination=1');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -78,7 +78,7 @@ class TaskTest extends TestCase
             'category_id' => $category->id,
         ];
 
-        $response = $this->postJson('/api/tasks', $taskData);
+        $response = $this->postJson(route('api.tasks.store'), $taskData);
 
         $response->assertStatus(201)
             ->assertJsonStructure([
@@ -121,7 +121,7 @@ class TaskTest extends TestCase
             'user_id' => $this->user->id,
         ]);
 
-        $response = $this->getJson("/api/tasks/{$task->id}");
+        $response = $this->getJson(route('api.tasks.show', $task->id));
 
         $response->assertStatus(200)
             ->assertJsonStructure([
