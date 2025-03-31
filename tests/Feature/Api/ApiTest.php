@@ -2,19 +2,17 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
-class ApiTestSuite extends TestCase
+class ApiTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithFaker;
 
     /**
-     * Tests that the API is functional by checking key endpoints.
-     *
-     * This test verifies that the core API endpoints return the expected
-     * status codes for both authenticated and unauthenticated requests.
-     * It serves as a quick health check of the API.
+     * Test API health check.
      */
     public function test_api_health_check(): void
     {
@@ -28,7 +26,7 @@ class ApiTestSuite extends TestCase
 
         // Test category-related endpoints (unauthenticated)
         $categoriesResponse = $this->getJson('/api/categories');
-        $categoriesResponse->assertStatus(401); // Should be unauthorized†
+        $categoriesResponse->assertStatus(401); // Should be unauthorized
 
         // Test auth-related endpoints
         $loginResponse = $this->postJson('/api/auth/login', [
@@ -44,7 +42,7 @@ class ApiTestSuite extends TestCase
     }
 
     /**
-     * Test that the API version information is correct.
+     * Test API version endpoint.
      */
     public function test_api_version_endpoint(): void
     {
@@ -68,7 +66,7 @@ class ApiTestSuite extends TestCase
     }
 
     /**
-     * Test the API fallback route for non-existent endpoints.
+     * Test API fallback route.
      */
     public function test_api_fallback_route(): void
     {
@@ -127,7 +125,7 @@ class ApiTestSuite extends TestCase
     }
 
     /**
-     * Test the API root route returns available endpoints.
+     * Test API root route returns available endpoints.
      */
     public function test_api_root_returns_available_endpoints(): void
     {
@@ -161,4 +159,31 @@ class ApiTestSuite extends TestCase
                 'message' => 'Welcome to the Todo API',
             ]);
     }
-}
+    
+    /**
+     * Test Swagger documentation is accessible.
+     */
+    public function test_swagger_documentation_is_accessible(): void
+    {
+        $response = $this->get('/api/docs');
+        
+        $response->assertStatus(200)
+            ->assertViewHas('documentation');
+    }
+
+    /**
+     * Test OpenAPI JSON is valid.
+     */
+    public function test_openapi_json_is_valid(): void
+    {
+        $response = $this->get('/api/docs/api-docs.json');
+        
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'openapi',
+                'info',
+                'paths',
+                'components',
+            ]);
+    }
+} 

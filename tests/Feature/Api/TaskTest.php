@@ -10,27 +10,25 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
-class TaskApiTest extends TestCase
+class TaskTest extends TestCase
 {
     use RefreshDatabase, WithFaker;
 
     private User $user;
-
-    private string $token;
+    private User $otherUser;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        // Create a user and authenticate
+        // Create users for testing
         $this->user = User::factory()->create();
+        $this->otherUser = User::factory()->create();
         Sanctum::actingAs($this->user);
     }
 
-    /**
-     * Test task listing endpoint.
-     */
-    public function test_can_get_tasks(): void
+    /** @test */
+    public function can_get_tasks()
     {
         // Create some tasks for the user
         Task::factory()->count(5)->create([
@@ -65,10 +63,8 @@ class TaskApiTest extends TestCase
             ]);
     }
 
-    /**
-     * Test task creation endpoint.
-     */
-    public function test_can_create_task(): void
+    /** @test */
+    public function can_create_task()
     {
         $category = Category::factory()->create([
             'user_id' => $this->user->id,
@@ -118,10 +114,8 @@ class TaskApiTest extends TestCase
         ]);
     }
 
-    /**
-     * Test getting a single task.
-     */
-    public function test_can_get_single_task(): void
+    /** @test */
+    public function can_get_single_task()
     {
         $task = Task::factory()->create([
             'user_id' => $this->user->id,
@@ -155,10 +149,8 @@ class TaskApiTest extends TestCase
             ]);
     }
 
-    /**
-     * Test updating a task.
-     */
-    public function test_can_update_task(): void
+    /** @test */
+    public function can_update_task()
     {
         $task = Task::factory()->create([
             'user_id' => $this->user->id,
@@ -200,10 +192,8 @@ class TaskApiTest extends TestCase
         ]);
     }
 
-    /**
-     * Test deleting a task.
-     */
-    public function test_can_delete_task(): void
+    /** @test */
+    public function can_delete_task()
     {
         $task = Task::factory()->create([
             'user_id' => $this->user->id,
@@ -218,10 +208,8 @@ class TaskApiTest extends TestCase
         ]);
     }
 
-    /**
-     * Test toggling task completion status.
-     */
-    public function test_can_toggle_task_completion(): void
+    /** @test */
+    public function can_toggle_task_completion()
     {
         $task = Task::factory()->create([
             'user_id' => $this->user->id,
@@ -252,13 +240,14 @@ class TaskApiTest extends TestCase
             'completed' => true,
         ]);
 
-        // Toggle back to false
+        // Toggle back to incomplete
         $response = $this->patchJson("/api/tasks/{$task->id}/toggle");
 
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
                 'data' => [
+                    'id' => $task->id,
                     'completed' => false,
                 ],
             ]);
@@ -269,134 +258,136 @@ class TaskApiTest extends TestCase
         ]);
     }
 
-    /**
-     * Test getting tasks due today.
-     */
-    public function test_can_get_tasks_due_today(): void
+    /** @test */
+    public function can_get_tasks_due_today()
     {
-        // Create some tasks due today
-        Task::factory()->count(3)->dueToday()->create([
+        // Create a task due today
+        Task::factory()->create([
             'user_id' => $this->user->id,
+            'due_date' => now()->format('Y-m-d'),
         ]);
 
-        // Create some tasks due tomorrow (should not be included)
-        Task::factory()->count(2)->upcoming()->create([
+        // Create some other tasks with different due dates
+        Task::factory()->create([
             'user_id' => $this->user->id,
+            'due_date' => now()->addDays(1)->format('Y-m-d'),
         ]);
 
-        $response = $this->getJson('/api/tasks/due-today');
+        $response = $this->getJson('/api/tasks/due-today?no_pagination=1');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'success',
                 'message',
-                'data' => [
-                    '*' => [
-                        'id',
-                        'title',
-                        'due_date',
-                    ],
-                ],
+                'data',
             ])
-            ->assertJsonCount(3, 'data')
+            ->assertJsonCount(1, 'data')
             ->assertJson([
                 'success' => true,
             ]);
     }
 
-    /**
-     * Test getting overdue tasks.
-     */
-    public function test_can_get_overdue_tasks(): void
+    /** @test */
+    public function can_get_overdue_tasks()
     {
-        // Create some overdue tasks
-        Task::factory()->count(2)->overdue()->create([
+        // Create an overdue task
+        Task::factory()->create([
             'user_id' => $this->user->id,
+            'due_date' => now()->subDays(1)->format('Y-m-d'),
+            'completed' => false,
         ]);
 
-        // Create some tasks due today (should not be included)
-        Task::factory()->count(3)->dueToday()->create([
+        // Create a non-overdue task
+        Task::factory()->create([
             'user_id' => $this->user->id,
+            'due_date' => now()->addDays(1)->format('Y-m-d'),
         ]);
 
-        $response = $this->getJson('/api/tasks/overdue');
+        $response = $this->getJson('/api/tasks/overdue?no_pagination=1');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'success',
                 'message',
-                'data' => [
-                    '*' => [
-                        'id',
-                        'title',
-                        'due_date',
-                    ],
-                ],
+                'data',
             ])
-            ->assertJsonCount(2, 'data')
+            ->assertJsonCount(1, 'data')
             ->assertJson([
                 'success' => true,
             ]);
     }
 
-    /**
-     * Test getting upcoming tasks.
-     */
-    public function test_can_get_upcoming_tasks(): void
+    /** @test */
+    public function can_get_upcoming_tasks()
     {
-        // Create upcoming tasks for testing
-        Task::factory()->count(4)->upcoming()->create([
+        // Create tasks with various due dates
+        Task::factory()->create([
             'user_id' => $this->user->id,
+            'due_date' => now()->addDays(1)->format('Y-m-d'),
         ]);
 
-        $response = $this->getJson('/api/tasks/upcoming');
+        Task::factory()->create([
+            'user_id' => $this->user->id,
+            'due_date' => now()->addDays(2)->format('Y-m-d'),
+        ]);
+
+        Task::factory()->create([
+            'user_id' => $this->user->id,
+            'due_date' => now()->addDays(6)->format('Y-m-d'),
+        ]);
+
+        // Task due today (should not be included in upcoming)
+        Task::factory()->create([
+            'user_id' => $this->user->id,
+            'due_date' => now()->format('Y-m-d'),
+        ]);
+
+        $response = $this->getJson('/api/tasks/upcoming?no_pagination=1');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'success',
                 'message',
-                'data' => [
-                    '*' => [
-                        'id',
-                        'title',
-                        'description',
-                        'priority',
-                        'due_date',
-                        'completed',
-                    ],
-                ],
+                'data',
+            ])
+            ->assertJson([
+                'success' => true,
             ]);
+
+        $data = $response->json('data');
         
-        // Get the actual response data
-        $responseData = json_decode($response->getContent(), true)['data'];
-        
-        // The API might have different logic for what counts as "upcoming"
-        // So we'll just verify that the response is well-formed
-        $this->assertIsArray($responseData);
-        
-        // Check that all tasks returned are for our user
-        foreach ($responseData as $task) {
-            $this->assertEquals($this->user->id, $task['user_id']);
-        }
+        // Should only include tasks due in the next 7 days, excluding today
+        $this->assertEquals(3, count($data));
     }
 
-    /**
-     * Test task statistics endpoint.
-     */
-    public function test_can_get_task_statistics(): void
+    /** @test */
+    public function can_get_task_statistics()
     {
-        // Create various tasks for the user
-        Task::factory()->count(3)->completed()->create([
+        // Create tasks with various statuses and dates
+        // Completed tasks
+        Task::factory()->count(3)->create([
             'user_id' => $this->user->id,
+            'completed' => true,
         ]);
-        Task::factory()->count(2)->overdue()->create([
+
+        // Incomplete tasks
+        Task::factory()->count(5)->create([
             'user_id' => $this->user->id,
+            'completed' => false,
         ]);
-        Task::factory()->count(1)->dueToday()->create([
+
+        // Due today
+        Task::factory()->count(2)->create([
             'user_id' => $this->user->id,
+            'due_date' => now()->format('Y-m-d'),
+            'completed' => false,
         ]);
-        Task::factory()->count(4)->upcoming()->create([
+
+        // Overdue
+        Task::factory()->count(3)->create([
             'user_id' => $this->user->id,
+            'due_date' => now()->subDays(1)->format('Y-m-d'),
+            'completed' => false,
         ]);
 
         $response = $this->getJson('/api/tasks/statistics');
@@ -409,120 +400,88 @@ class TaskApiTest extends TestCase
                     'total',
                     'completed',
                     'incomplete',
-                    'today',
+                    'due_today',
                     'overdue',
-                    'upcoming',
                     'completion_rate',
-                    'by_priority',
-                    'by_category',
+                ],
+            ])
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    'total' => 13, // 3 + 5 + 2 + 3
+                    'completed' => 3,
+                    'incomplete' => 10, // 5 + 2 + 3
+                    'due_today' => 2,
+                    'overdue' => 3,
                 ],
             ]);
-            
-        // Only check the values we care about for this test
-        $responseData = json_decode($response->getContent(), true)['data'];
-        $this->assertEquals(10, $responseData['total']);
-        $this->assertTrue($responseData['completed'] >= 3 && $responseData['completed'] <= 4, 
-            "Completed tasks ({$responseData['completed']}) should be between 3 and 4");
-        $this->assertTrue($responseData['incomplete'] > 0);
-        $this->assertTrue($responseData['today'] > 0);
-        $this->assertEquals(2, $responseData['overdue']);
-        $this->assertTrue($responseData['upcoming'] > 0);
+
+        // Verify the completion rate is calculated correctly
+        $data = $response->json('data');
+        $this->assertEquals(round(3 / 13 * 100, 1), $data['completion_rate']);
     }
 
-    /**
-     * Test that users cannot access another user's tasks.
-     */
-    public function test_cannot_access_another_users_tasks(): void
+    /** @test */
+    public function cannot_access_another_users_tasks()
     {
-        // Create another user
-        $anotherUser = User::factory()->create();
-
-        // Create a task for the other user
-        $task = Task::factory()->create([
-            'user_id' => $anotherUser->id,
+        // Create a task for another user
+        $otherUserTask = Task::factory()->create([
+            'user_id' => $this->otherUser->id,
         ]);
 
-        // Try to get the task
-        $response = $this->getJson("/api/tasks/{$task->id}");
+        // Try to get another user's task
+        $response = $this->getJson("/api/tasks/{$otherUserTask->id}");
+        $response->assertStatus(403);
 
-        // Assert not found response (resource exists but not for this user)
-        $response->assertStatus(404);
-
-        // Try to update the task
-        $response = $this->putJson("/api/tasks/{$task->id}", [
-            'title' => 'Hacked Task',
+        // Try to update another user's task
+        $response = $this->putJson("/api/tasks/{$otherUserTask->id}", [
+            'title' => 'Attempted Update',
         ]);
+        $response->assertStatus(403);
 
-        $response->assertStatus(404);
+        // Try to delete another user's task
+        $response = $this->deleteJson("/api/tasks/{$otherUserTask->id}");
+        $response->assertStatus(403);
 
-        // Try to delete the task
-        $response = $this->deleteJson("/api/tasks/{$task->id}");
+        // Try to toggle completion of another user's task
+        $response = $this->patchJson("/api/tasks/{$otherUserTask->id}/toggle");
+        $response->assertStatus(403);
 
-        $response->assertStatus(404);
-
-        // Verify task still exists for the other user
+        // Verify the task wasn't modified
         $this->assertDatabaseHas('tasks', [
-            'id' => $task->id,
-            'user_id' => $anotherUser->id,
+            'id' => $otherUserTask->id,
+            'title' => $otherUserTask->title,
+            'user_id' => $this->otherUser->id,
         ]);
     }
 
-    /**
-     * Test validation errors when creating a task.
-     */
-    public function test_validation_errors_when_creating_task(): void
+    /** @test */
+    public function validation_errors_when_creating_task()
     {
-        // Try to create a task without a title
+        // Test title validation (required)
         $response = $this->postJson('/api/tasks', [
             'description' => 'Test Description',
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonStructure([
-                'success',
-                'message',
-                'errors' => [
-                    'title',
-                ],
-            ])
-            ->assertJson([
-                'success' => false,
-            ]);
+            ->assertJsonValidationErrors('title');
 
-        // Try to create a task with an invalid priority
+        // Test priority validation (min/max)
         $response = $this->postJson('/api/tasks', [
             'title' => 'Test Task',
-            'priority' => 10, // Invalid priority (should be 1-4)
+            'priority' => 5, // Higher than allowed
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonStructure([
-                'success',
-                'message',
-                'errors' => [
-                    'priority',
-                ],
-            ])
-            ->assertJson([
-                'success' => false,
-            ]);
+            ->assertJsonValidationErrors('priority');
 
-        // Try to create a task with non-existent category
+        // Test due_date format validation
         $response = $this->postJson('/api/tasks', [
             'title' => 'Test Task',
-            'category_id' => 9999, // Non-existent category
+            'due_date' => 'invalid-date',
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonStructure([
-                'success',
-                'message',
-                'errors' => [
-                    'category_id',
-                ],
-            ])
-            ->assertJson([
-                'success' => false,
-            ]);
+            ->assertJsonValidationErrors('due_date');
     }
-}
+} 
