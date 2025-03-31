@@ -7,14 +7,14 @@
     <meta name="theme-color" content="#8b5cf6">
     <meta name="description" content="A beautiful task management application">
     
-    <title>{{ config('app.name', 'Todo App') }}</title>
+    <title>{{ config('app.name', 'Task Manager') }}</title>
     
     <!-- Favicon -->
     <link rel="icon" href="{{ asset('favicon.ico') }}">
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}" sizes="180x180">
     
     <!-- Scripts and Styles -->
-    @vite(['resources/css/app.css', 'resources/js/main.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     @inertiaHead
 </head>
 <body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">

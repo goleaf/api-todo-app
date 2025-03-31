@@ -1,14 +1,16 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\CategoryController;
-use App\Http\Controllers\Api\DashboardController;
-use App\Http\Controllers\Api\DeviceTokenController;
-use App\Http\Controllers\Api\StatsController;
-use App\Http\Controllers\Api\TaskController;
-use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\V1\DashboardController;
+use App\Http\Controllers\Api\V1\DeviceTokenController;
+use App\Http\Controllers\Api\V1\DocumentationController;
+use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\TaskController;
+use App\Http\Controllers\Api\V1\UserController;
 use App\Services\OneSignalNotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -22,48 +24,142 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Public routes
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
+// Swagger Documentation JSON
+Route::get('/docs/api-docs.json', function () {
+    $filePath = storage_path('api-docs/api-docs.json');
+    if (File::exists($filePath)) {
+        return response()->file($filePath, ['Content-Type' => 'application/json']);
+    }
 
-// Routes that require authentication
+    return response()->json(['error' => 'Documentation not found'], 404);
+});
+
+// Swagger OAuth2 callback
+Route::get('/oauth2-callback', function () {
+    return view('vendor.l5-swagger.oauth2-callback', ['documentation' => 'default']);
+})->name('l5-swagger.default.oauth2_callback');
+
+// Root API routes that match the test expectations
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+Route::get('/user', function (Request $request) {
+    return $request->user();
+})->middleware('auth:sanctum');
+
+// Test API routes that match direct endpoints expected by tests
 Route::middleware('auth:sanctum')->group(function () {
-    // Auth routes
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/refresh-token', [AuthController::class, 'refresh']);
-    Route::get('/user', [AuthController::class, 'me']);
-    
-    // Dashboard routes
+    // Dashboard endpoint
     Route::get('/dashboard', [DashboardController::class, 'index']);
-    
-    // User routes
-    Route::apiResource('users', UserController::class);
-    
+
     // Tasks routes
     Route::apiResource('tasks', TaskController::class);
     Route::patch('/tasks/{task}/toggle', [TaskController::class, 'toggleComplete']);
-    
-    // Category routes
+
+    // Categories routes
     Route::apiResource('categories', CategoryController::class);
-    
-    // Stats routes
-    Route::get('/stats', [StatsController::class, 'index']);
-    Route::get('/stats/summary', [StatsController::class, 'summary']);
-    Route::get('/stats/daily', [StatsController::class, 'daily']);
-    Route::get('/stats/weekly', [StatsController::class, 'weekly']);
-    Route::get('/stats/monthly', [StatsController::class, 'monthly']);
-    
-    // Device token for push notifications
-    Route::post('/device-token', [DeviceTokenController::class, 'store']);
-    
-    // Test push notification
-    Route::post('/test-notification', function (Request $request) {
-        $notificationService = new OneSignalNotificationService();
-        return $notificationService->sendToUser(
-            auth()->id(),
-            'Test Notification',
-            'This is a test notification from the Todo App',
-            ['type' => 'test']
-        );
+
+    // User routes from UserApiTest
+    Route::get('/users', [UserController::class, 'show']);
+    Route::put('/users/profile', [UserController::class, 'updateProfile']);
+    Route::put('/users/password', [UserController::class, 'updatePassword']);
+    Route::post('/users/photo', [UserController::class, 'uploadPhoto']);
+    Route::delete('/users/photo', [UserController::class, 'deletePhoto']);
+    Route::get('/users/statistics', [UserController::class, 'statistics']);
+
+    // User routes from Api\UserTest
+    Route::get('/users/{user}', [UserController::class, 'show']);
+    Route::put('/users/{user}', [UserController::class, 'update']);
+    Route::put('/users/{user}/password', [UserController::class, 'updatePassword']);
+
+    // Profile routes that follow the original API structure
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
+    Route::post('/profile/photo', [ProfileController::class, 'uploadPhoto']);
+    Route::delete('/profile/photo', [ProfileController::class, 'deletePhoto']);
+});
+
+// API Version 1
+Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
+    // Documentation routes (public)
+    Route::get('/docs', [DocumentationController::class, 'index']);
+    Route::get('/docs/info', [DocumentationController::class, 'info']);
+
+    // Public routes
+    Route::post('/auth/login', [AuthController::class, 'login']);
+    Route::post('/auth/register', [AuthController::class, 'register']);
+
+    // Routes that require authentication
+    Route::middleware('auth:sanctum')->group(function () {
+        // Auth routes
+        Route::post('/auth/logout', [AuthController::class, 'logout']);
+        Route::post('/auth/refresh', [AuthController::class, 'refresh']);
+        Route::get('/auth/me', [AuthController::class, 'me']);
+
+        // Dashboard routes
+        Route::get('/dashboard', [DashboardController::class, 'index']);
+
+        // User routes
+        Route::apiResource('users', UserController::class);
+        Route::get('/profile', [ProfileController::class, 'show']);
+        Route::put('/profile', [ProfileController::class, 'update']);
+        Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
+        Route::post('/profile/photo', [ProfileController::class, 'uploadPhoto']);
+        Route::delete('/profile/photo', [ProfileController::class, 'deletePhoto']);
+
+        // Tasks routes
+        Route::apiResource('tasks', TaskController::class);
+        Route::patch('/tasks/{task}/toggle', [TaskController::class, 'toggleComplete']);
+
+        // Category routes
+        Route::apiResource('categories', CategoryController::class);
+
+        // Device token for push notifications
+        Route::post('/device-token', [DeviceTokenController::class, 'store']);
+
+        // Test push notification
+        Route::post('/test-notification', function (Request $request) {
+            $notificationService = new OneSignalNotificationService;
+
+            return $notificationService->sendToUser(
+                auth()->id(),
+                'Test Notification',
+                'This is a test notification from the Todo App',
+                ['type' => 'test']
+            );
+        });
     });
+});
+
+// Redirect routes for documentation
+Route::get('/documentation', function () {
+    return redirect('/api/documentation');
+});
+
+// Default to latest version for backward compatibility
+Route::fallback(function () {
+    return response()->json([
+        'success' => false,
+        'status_code' => 404,
+        'message' => 'API endpoint not found. Please check the documentation at /api/documentation',
+        'data' => null,
+    ], 404);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Hypervel Async API Routes
+|--------------------------------------------------------------------------
+|
+| These routes demonstrate the use of Hypervel for asynchronous API operations.
+| They use the AsyncApiController which leverages coroutines for concurrent
+| processing and improved performance.
+|
+*/
+
+Route::middleware('auth:sanctum')->prefix('async')->group(function () {
+    Route::get('/dashboard-stats', [App\Http\Controllers\AsyncApiController::class, 'getDashboardStats']);
+    Route::get('/external-apis', [App\Http\Controllers\AsyncApiController::class, 'fetchExternalApis']);
+    Route::post('/process-tasks', [App\Http\Controllers\AsyncApiController::class, 'bulkProcessTasks']);
 });

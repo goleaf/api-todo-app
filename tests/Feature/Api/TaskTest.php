@@ -13,6 +13,7 @@ class TaskTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
@@ -28,10 +29,10 @@ class TaskTest extends TestCase
     public function test_user_can_get_all_tasks(): void
     {
         Task::factory()->count(3)->create([
-            'user_id' => $this->user->id
+            'user_id' => $this->user->id,
         ]);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->getJson('/api/tasks');
 
         $response->assertStatus(200)
@@ -46,7 +47,7 @@ class TaskTest extends TestCase
                         'due_date',
                         'created_at',
                         'updated_at',
-                    ]
+                    ],
                 ],
                 'message',
             ]);
@@ -66,7 +67,7 @@ class TaskTest extends TestCase
             'due_date' => now()->addDays(1)->toDateTimeString(),
         ];
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->postJson('/api/tasks', $taskData);
 
         $response->assertStatus(201)
@@ -90,7 +91,7 @@ class TaskTest extends TestCase
         $this->assertEquals($taskData['title'], $response->json('data.title'));
         $this->assertEquals($taskData['description'], $response->json('data.description'));
         $this->assertFalse($response->json('data.completed'));
-        
+
         $this->assertDatabaseHas('tasks', [
             'title' => $taskData['title'],
             'user_id' => $this->user->id,
@@ -103,10 +104,10 @@ class TaskTest extends TestCase
     public function test_user_can_get_specific_task(): void
     {
         $task = Task::factory()->create([
-            'user_id' => $this->user->id
+            'user_id' => $this->user->id,
         ]);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->getJson("/api/tasks/{$task->id}");
 
         $response->assertStatus(200)
@@ -134,7 +135,7 @@ class TaskTest extends TestCase
     public function test_user_can_update_task(): void
     {
         $task = Task::factory()->create([
-            'user_id' => $this->user->id
+            'user_id' => $this->user->id,
         ]);
 
         $updatedData = [
@@ -143,7 +144,7 @@ class TaskTest extends TestCase
             'due_date' => now()->addDays(5)->toDateTimeString(),
         ];
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->putJson("/api/tasks/{$task->id}", $updatedData);
 
         $response->assertStatus(200)
@@ -165,7 +166,7 @@ class TaskTest extends TestCase
         $this->assertEquals('Task updated successfully', $response->json('message'));
         $this->assertEquals($updatedData['title'], $response->json('data.title'));
         $this->assertEquals($updatedData['description'], $response->json('data.description'));
-        
+
         $this->assertDatabaseHas('tasks', [
             'id' => $task->id,
             'title' => $updatedData['title'],
@@ -179,10 +180,10 @@ class TaskTest extends TestCase
     {
         $task = Task::factory()->create([
             'user_id' => $this->user->id,
-            'completed' => false
+            'completed' => false,
         ]);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->patchJson("/api/tasks/{$task->id}/toggle");
 
         $response->assertStatus(200)
@@ -198,14 +199,14 @@ class TaskTest extends TestCase
         $this->assertTrue($response->json('success'));
         $this->assertTrue($response->json('data.completed'));
         $this->assertEquals('Task status toggled successfully', $response->json('message'));
-        
+
         $this->assertDatabaseHas('tasks', [
             'id' => $task->id,
             'completed' => true,
         ]);
 
         // Toggle back to incomplete
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->patchJson("/api/tasks/{$task->id}/toggle");
 
         $this->assertFalse($response->json('data.completed'));
@@ -221,10 +222,10 @@ class TaskTest extends TestCase
     public function test_user_can_delete_task(): void
     {
         $task = Task::factory()->create([
-            'user_id' => $this->user->id
+            'user_id' => $this->user->id,
         ]);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->deleteJson("/api/tasks/{$task->id}");
 
         $response->assertStatus(200)
@@ -247,24 +248,24 @@ class TaskTest extends TestCase
     {
         $anotherUser = User::factory()->create();
         $task = Task::factory()->create([
-            'user_id' => $anotherUser->id
+            'user_id' => $anotherUser->id,
         ]);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->getJson("/api/tasks/{$task->id}");
 
         $response->assertStatus(403);
-        
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->putJson("/api/tasks/{$task->id}", [
-                'title' => 'Should Not Update'
+                'title' => 'Should Not Update',
             ]);
 
         $response->assertStatus(403);
-        
-        $response = $this->withHeader('Authorization', 'Bearer ' . $this->token)
+
+        $response = $this->withHeader('Authorization', 'Bearer '.$this->token)
             ->deleteJson("/api/tasks/{$task->id}");
 
         $response->assertStatus(403);
     }
-} 
+}

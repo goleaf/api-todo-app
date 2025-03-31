@@ -6,6 +6,7 @@ import { format, isAfter } from 'date-fns';
 export const useTaskStore = defineStore('tasks', {
   state: () => ({
     tasks: [],
+    todos: [],
     categories: [],
     task: null,
     filters: {
@@ -441,6 +442,110 @@ export const useTaskStore = defineStore('tasks', {
         order: 'desc'
       };
       this.pagination.currentPage = 1;
+    },
+    
+    /**
+     * Fetch todos from the new API endpoint
+     */
+    async fetchTodos(params = {}) {
+      const appStore = useAppStore();
+      appStore.setLoading(true);
+      
+      try {
+        const response = await axios.get('/api/todos', { params });
+        this.todos = response.data.data;
+        return response.data.data;
+      } catch (error) {
+        appStore.addToast({
+          type: 'error',
+          message: 'Failed to load todos. Please try again.'
+        });
+        throw error;
+      } finally {
+        appStore.setLoading(false);
+      }
+    },
+    
+    /**
+     * Create a new todo using the new API endpoint
+     */
+    async createTodo(todoData) {
+      const appStore = useAppStore();
+      appStore.setLoading(true);
+      
+      try {
+        const response = await axios.post('/api/todos', todoData);
+        
+        appStore.addToast({
+          type: 'success',
+          message: 'Todo created successfully!'
+        });
+        
+        return response.data.data;
+      } catch (error) {
+        appStore.addToast({
+          type: 'error',
+          message: error.response?.data?.message || 'Failed to create todo. Please try again.'
+        });
+        throw error;
+      } finally {
+        appStore.setLoading(false);
+      }
+    },
+    
+    /**
+     * Update a todo using the new API endpoint
+     */
+    async updateTodo(todoData) {
+      const appStore = useAppStore();
+      appStore.setLoading(true);
+      
+      try {
+        const { id, ...data } = todoData;
+        const response = await axios.put(`/api/todos/${id}`, data);
+        
+        appStore.addToast({
+          type: 'success',
+          message: 'Todo updated successfully!'
+        });
+        
+        return response.data.data;
+      } catch (error) {
+        appStore.addToast({
+          type: 'error',
+          message: error.response?.data?.message || 'Failed to update todo. Please try again.'
+        });
+        throw error;
+      } finally {
+        appStore.setLoading(false);
+      }
+    },
+    
+    /**
+     * Delete a todo using the new API endpoint
+     */
+    async deleteTodo(id) {
+      const appStore = useAppStore();
+      appStore.setLoading(true);
+      
+      try {
+        const response = await axios.delete(`/api/todos/${id}`);
+        
+        appStore.addToast({
+          type: 'success',
+          message: 'Todo deleted successfully!'
+        });
+        
+        return response.data;
+      } catch (error) {
+        appStore.addToast({
+          type: 'error',
+          message: error.response?.data?.message || 'Failed to delete todo. Please try again.'
+        });
+        throw error;
+      } finally {
+        appStore.setLoading(false);
+      }
     }
   }
 }); 

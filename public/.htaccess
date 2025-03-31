@@ -23,3 +23,15 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# Ensure SVG files have the correct MIME type
+<IfModule mod_mime.c>
+    AddType image/svg+xml .svg .svgz
+</IfModule>
+
+# Allow serving gzipped SVG files
+<IfModule mod_rewrite.c>
+    RewriteCond %{HTTP:Accept-Encoding} gzip
+    RewriteCond %{REQUEST_FILENAME}.svgz -f
+    RewriteRule ^(.*)\.svg$ $1\.svgz [L]
+</IfModule>

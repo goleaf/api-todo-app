@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
-import vue from '@vitejs/plugin-vue';
 import path from 'path';
 
 export default defineConfig({
@@ -12,17 +11,20 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 manualChunks: {
-                    vendor: ['vue', 'vue-router', 'pinia', 'axios'],
+                    vendor: ['axios'],
+                    fonts: ['@fontsource/roboto'],
                 },
                 assetFileNames: (assetInfo) => {
-                    // Put font files in a dedicated directory
-                    if (assetInfo.name.endsWith('.woff2') || 
-                        assetInfo.name.endsWith('.woff') || 
-                        assetInfo.name.endsWith('.ttf') || 
-                        assetInfo.name.endsWith('.eot')) {
-                        return 'fonts/[name][extname]';
+                    const info = assetInfo.name.split('.');
+                    const ext = info[info.length - 1];
+                    
+                    // Handle font files
+                    if (/ttf|otf|eot|woff|woff2/i.test(ext)) {
+                        return `assets/fonts/[name]-[hash][extname]`;
                     }
-                    return 'assets/[name]-[hash][extname]';
+                    
+                    // Default for other assets
+                    return `assets/[name]-[hash][extname]`;
                 },
             },
         },
@@ -31,25 +33,15 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
-                'resources/js/main.js',
+                'resources/js/app.js',
             ],
             refresh: true,
             publicDirectory: 'public',
         }),
-        vue({
-            template: {
-                transformAssetUrls: {
-                    base: null,
-                    includeAbsolute: false,
-                },
-            },
-        }),
     ],
     resolve: {
         alias: {
-            '@': path.resolve(__dirname, 'resources/js'),
             '~': path.resolve(__dirname, 'resources'),
-            vue: 'vue/dist/vue.esm-bundler.js',
         },
     },
     server: {

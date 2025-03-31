@@ -26,21 +26,33 @@ class CategoryFactory extends Factory
     public function definition(): array
     {
         $colors = [
-            'red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'purple', 
-            'pink', 'teal', 'cyan', 'amber', 'lime', 'emerald', 'sky', 'violet'
+            'red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'purple',
+            'pink', 'teal', 'cyan', 'amber', 'lime', 'emerald', 'sky', 'violet',
         ];
 
         return [
-            'name' => $this->faker->unique()->words(rand(1, 2), true),
-            'description' => $this->faker->sentence(),
-            'color' => $this->faker->randomElement($colors),
+            'name' => $this->faker->unique()->word(),
+            'description' => $this->faker->optional()->sentence(),
+            'color' => $this->faker->hexColor(),
             'user_id' => User::factory(),
             'icon' => $this->faker->randomElement([
                 'tag', 'folder', 'book', 'briefcase', 'star', 'heart', 'flag',
-                'home', 'user', 'cog', 'file', 'calendar', 'shopping-cart', 
-                'gift', 'money-bill', 'plane', 'car', 'graduation-cap', 'utensils'
+                'home', 'user', 'cog', 'file', 'calendar', 'shopping-cart',
+                'gift', 'money-bill', 'plane', 'car', 'graduation-cap', 'utensils',
             ]),
         ];
+    }
+
+    /**
+     * Indicate that the category belongs to a specific user.
+     */
+    public function forUser(User $user): Factory
+    {
+        return $this->state(function (array $attributes) use ($user) {
+            return [
+                'user_id' => $user->id,
+            ];
+        });
     }
 
     /**
@@ -93,4 +105,4 @@ class CategoryFactory extends Factory
             ];
         });
     }
-} 
+}

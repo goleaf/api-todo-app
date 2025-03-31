@@ -1,73 +1,66 @@
 /**
- * Font Management Utility
- * This module handles font loading and configuration.
- * It allows for dynamic font changes throughout the application.
+ * Font management utility
+ * This module handles font configuration and font switching
  */
 
-// We don't need to import CSS here as the fonts will be imported in main.js
-// Import our CSS variables for fonts
-
-// Available font options - extend this object to add more fonts
-const FONTS = {
-  roboto: {
-    name: 'Roboto',
-    variable: 'var(--font-family)',
-    weights: [300, 400, 500, 700],
-    fallbacks: 'system-ui, -apple-system, "Segoe UI", sans-serif',
-    description: 'Clean and modern sans-serif font'
+// Font configuration with only Roboto for now, but structured for future extensibility
+const fontConfig = {
+  // Default font family
+  defaultFont: 'Roboto',
+  
+  // Available font options (for future font switcher)
+  availableFonts: {
+    'Roboto': {
+      package: '@fontsource/roboto',
+      weights: [300, 400, 500, 700],
+      styles: ['normal'],
+    }
   }
-  // To add a new font:
-  // 1. Install the font package: npm install @fontsource/[font-name]
-  // 2. Add the font here with appropriate configuration
-  // 3. Import the font files in the main.js
 };
 
-// Default font
-const DEFAULT_FONT = 'roboto';
-
 /**
- * Initialize fonts in the application
+ * Initialize fonts by setting CSS variables
  */
 export function initFonts() {
-  // Check for saved font preference
-  const savedFont = localStorage.getItem('font') || DEFAULT_FONT;
-  setFont(savedFont);
+  // Load the user's preferred font from localStorage or use default
+  const savedFont = localStorage.getItem('preferred-font');
+  const fontToUse = savedFont && fontConfig.availableFonts[savedFont] 
+    ? savedFont 
+    : fontConfig.defaultFont;
+  
+  // Set CSS variables for the font
+  document.documentElement.style.setProperty('--font-family', `'${fontToUse}', system-ui, -apple-system, sans-serif`);
 }
 
 /**
- * Set the application font
- * @param {string} fontKey - The key of the font to use (from FONTS object)
- * @returns {boolean} - Success status
+ * Change the current font
+ * @param {string} fontName - Name of the font to switch to
+ * @returns {boolean} Success status
  */
-export function setFont(fontKey) {
-  const font = FONTS[fontKey];
-  
-  if (!font) {
-    console.error(`Font "${fontKey}" is not available.`);
+export function changeFont(fontName) {
+  if (!fontConfig.availableFonts[fontName]) {
+    console.error(`Font "${fontName}" is not available`);
     return false;
   }
   
-  // Set CSS variable value
-  document.documentElement.style.setProperty('--font-family', font.name + ', ' + font.fallbacks);
+  // Update CSS variables
+  document.documentElement.style.setProperty('--font-family', `'${fontName}', system-ui, -apple-system, sans-serif`);
   
   // Save preference
-  localStorage.setItem('font', fontKey);
-  
+  localStorage.setItem('preferred-font', fontName);
   return true;
 }
 
 /**
- * Get the current font key
- * @returns {string} - Current font key
+ * Get the current font configuration
+ * @returns {Object} Current font configuration
  */
-export function getCurrentFont() {
-  return localStorage.getItem('font') || DEFAULT_FONT;
+export function getFontConfig() {
+  return { ...fontConfig };
 }
 
-/**
- * Get available fonts
- * @returns {Object} - Available fonts object
- */
-export function getAvailableFonts() {
-  return { ...FONTS };
-} 
+export default {
+  initFonts,
+  changeFont,
+  getFontConfig
+}; 

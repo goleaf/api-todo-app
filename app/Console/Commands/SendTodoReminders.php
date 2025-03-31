@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Todo;
+use App\Models\Task;
+use App\Models\User;
+use App\Notifications\TodoReminderNotification;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -14,51 +16,84 @@ class SendTodoReminders extends Command
      *
      * @var string
      */
-    protected $signature = 'todos:send-reminders';
+    protected $signature = 'todos:send-reminders {--due-today : Send reminders only for todos due today} {--overdue : Send reminders only for overdue todos}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Send reminders for todos that are due';
+    protected $description = 'Send reminder notifications for todos';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $now = Carbon::now();
-        $this->info('Checking for reminders at '.$now->toDateTimeString());
-
-        // Find todos with reminders due in the last minute
-        $todos = Todo::with('user')
-            ->where('completed', false)
-            ->where('reminder_at', '<=', $now)
-            ->where('reminder_at', '>=', $now->copy()->subMinutes(1))
-            ->get();
-
-        $this->info("Found {$todos->count()} todos with reminders due.");
-
-        foreach ($todos as $todo) {
-            $this->info("Sending reminder for todo: {$todo->title} to user {$todo->user->name}");
-
-            // In a real app, you would send an email or push notification here
-            // For testing purposes, we'll just log it
-            Log::info("Reminder: Todo '{$todo->title}' is due ".
-                     ($todo->due_date ? 'on '.$todo->due_date->format('Y-m-d') : 'soon').
-                     ' for user '.$todo->user->email);
-
-            // For push notifications, you would integrate with Firebase or another service here
-
-            // Mark reminder as sent by setting reminder_at to null
-            // Alternative approach: add a reminder_sent boolean column
-            $todo->reminder_at = null;
-            $todo->save();
+        $this->info('Starting to send todo reminders...');
+        
+        $dueToday = $this->option('due-today');
+        $overdue = $this->option('overdue');
+        
+        $usersWithTodos = User::whereHas('tasks', function ($query) use ($dueToday, $overdue) {
+            $query->where('completed', false);
+            
+            if ($dueToday) {
+                $query->whereDate('due_date', Carbon::today());
+            } elseif ($overdue) {
+                $query->whereDate('due_date', '<', Carbon::today());
+            } else {
+                // Either due today, or with an active reminder
+                $query->where(function ($subquery) {
+                    $subquery->whereDate('due_date', Carbon::today())
+                            ->orWhere(function ($remind) {
+                                $remind->whereNotNull('reminder_at')
+                                      ->where('reminder_at', '<=', now());
+                            });
+                });
+            }
+        })->get();
+        
+        $count = 0;
+        
+        foreach ($usersWithTodos as $user) {
+            $todos = $user->tasks()
+                ->where('completed', false)
+                ->where(function ($query) use ($dueToday, $overdue) {
+                    if ($dueToday) {
+                        $query->whereDate('due_date', Carbon::today());
+                    } elseif ($overdue) {
+                        $query->whereDate('due_date', '<', Carbon::today());
+                    } else {
+                        // Either due today, or with an active reminder
+                        $query->whereDate('due_date', Carbon::today())
+                              ->orWhere(function ($remind) {
+                                  $remind->whereNotNull('reminder_at')
+                                        ->where('reminder_at', '<=', now());
+                              });
+                    }
+                })
+                ->get();
+            
+            foreach ($todos as $todo) {
+                try {
+                    $user->notify(new TodoReminderNotification($todo));
+                    $count++;
+                    
+                    // Reset the reminder time to avoid repeated notifications
+                    if ($todo->reminder_at && $todo->reminder_at->isPast()) {
+                        $todo->reminder_at = null;
+                        $todo->save();
+                    }
+                    
+                    $this->info("Reminder sent for todo: {$todo->title} to {$user->email}");
+                } catch (\Exception $e) {
+                    Log::error("Error sending reminder for todo {$todo->id}: {$e->getMessage()}");
+                    $this->error("Error sending reminder for todo {$todo->id}: {$e->getMessage()}");
+                }
+            }
         }
-
-        $this->info('Finished sending reminders.');
-
-        return Command::SUCCESS;
+        
+        $this->info("Sent {$count} todo reminders");
     }
 }

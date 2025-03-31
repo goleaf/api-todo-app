@@ -2,15 +2,15 @@
 
 namespace App\Http\Requests;
 
-use App\Traits\ApiResponse;
+use App\Traits\ApiResponses;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
 
 abstract class ApiRequest extends FormRequest
 {
-    use ApiResponse;
+    use ApiResponses;
 
     /**
      * Determine if the user is authorized to make this request.
@@ -28,29 +28,42 @@ abstract class ApiRequest extends FormRequest
     /**
      * Handle a failed validation attempt.
      *
-     * @param Validator $validator
-     * @return void
-     *
-     * @throws HttpResponseException
+     * @param  \Illuminate\Contracts\Validation\Validator  $validator
      */
     protected function failedValidation(Validator $validator): void
     {
-        throw new HttpResponseException(
-            $this->validationErrorResponse($validator->errors()->toArray())
-        );
+        if ($this->expectsJson()) {
+            $errors = (new ValidationException($validator))->errors();
+            
+            throw new HttpResponseException(
+                $this->validationErrorResponse($errors)
+            );
+        }
+
+        parent::failedValidation($validator);
     }
 
     /**
-     * Handle a forbidden response.
-     *
-     * @return void
-     *
-     * @throws HttpResponseException
+     * Handle authorization failure
      */
     protected function failedAuthorization(): void
     {
-        throw new HttpResponseException(
-            $this->forbiddenResponse('You do not have permission to access this resource.')
-        );
+        if ($this->expectsJson()) {
+            throw new HttpResponseException(
+                $this->forbiddenResponse('You are not authorized to access this resource')
+            );
+        }
+
+        parent::failedAuthorization();
     }
-} 
+
+    /**
+     * Format error messages with field prefix for nested arrays
+     *
+     * @return array
+     */
+    public function messages()
+    {
+        return [];
+    }
+}

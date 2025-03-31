@@ -1,5 +1,5 @@
 /* Import fonts */
-/* Font files are now imported directly in main.js */
+@import './fonts.css';
 
 @tailwind base;
 @tailwind components;
@@ -20,9 +20,9 @@ body {
 @layer base {
   :root {
     --primary: theme('colors.primary.DEFAULT');
-    --primary-dark: theme('colors.primary.dark');
+    --primary-dark: theme('colors.primary.700');
     --secondary: theme('colors.secondary.DEFAULT');
-    --secondary-dark: theme('colors.secondary.dark');
+    --secondary-dark: theme('colors.secondary.700');
     --background: theme('colors.gray.50');
     --background-dark: theme('colors.gray.900');
   }
@@ -63,7 +63,7 @@ body {
   }
   
   a {
-    @apply text-primary hover:text-primary-dark transition-colors;
+    @apply text-primary hover:text-primary-700 transition-colors;
   }
 }
 
@@ -88,34 +88,45 @@ body {
   }
 
   .btn-primary {
-    @apply btn text-white bg-primary hover:bg-primary-dark focus:ring-primary border border-transparent;
+    @apply btn text-white bg-primary hover:bg-primary-700 focus:ring-primary border border-transparent;
     color: white !important; /* Force text color to be white */
+    background-color: var(--primary) !important;
   }
 
   .btn-secondary {
-    @apply btn text-white bg-secondary hover:bg-secondary-dark focus:ring-secondary border border-transparent;
+    @apply btn text-white bg-secondary hover:bg-secondary-700 focus:ring-secondary border border-transparent;
     color: white !important; /* Force text color to be white */
+    background-color: var(--secondary) !important;
   }
 
   .btn-success {
     @apply btn text-white bg-green-600 hover:bg-green-700 focus:ring-green-500 border border-transparent;
     color: white !important; /* Force text color to be white */
+    background-color: #10b981 !important; /* emerald-600 */
   }
 
   .btn-danger {
     @apply btn text-white bg-red-600 hover:bg-red-700 focus:ring-red-500 border border-transparent;
     color: white !important; /* Force text color to be white */
+    background-color: #dc2626 !important; /* red-600 */
   }
 
   .btn-light {
     @apply btn text-gray-800 bg-white hover:bg-gray-50 border-gray-200 focus:ring-gray-200;
     @apply dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700 dark:focus:ring-gray-700;
     color: currentColor !important; /* Use the current text color */
+    border-width: 1px !important;
+    background-color: white !important;
+  }
+  .dark .btn-light {
+    background-color: #1f2937 !important; /* gray-800 */
+    color: #e5e7eb !important; /* gray-200 */
   }
 
   .btn-dark {
     @apply btn text-white bg-gray-800 hover:bg-gray-900 focus:ring-gray-700 border border-transparent;
     color: white !important; /* Force text color to be white */
+    background-color: #1f2937 !important; /* gray-800 */
   }
   
   .btn-icon {
@@ -132,10 +143,14 @@ body {
   
   .btn-outline-primary {
     @apply btn bg-transparent text-primary border-primary hover:bg-primary hover:text-white focus:ring-primary;
+    border-width: 1px !important;
+    border-color: var(--primary) !important;
   }
   
   .btn-outline-secondary {
     @apply btn bg-transparent text-secondary border-secondary hover:bg-secondary hover:text-white focus:ring-secondary;
+    border-width: 1px !important;
+    border-color: var(--secondary) !important;
   }
   
   .btn-disabled {
@@ -148,27 +163,37 @@ body {
   }
   
   .btn-primary:active {
-    @apply bg-primary-dark;
+    @apply bg-primary-700 shadow-inner;
+    background-color: var(--primary-dark) !important;
   }
   
   .btn-secondary:active {
-    @apply bg-secondary-dark;
+    @apply bg-secondary-700 shadow-inner;
+    background-color: var(--secondary-dark) !important;
   }
   
   .btn-light:active {
-    @apply bg-gray-100 dark:bg-gray-700;
+    @apply bg-gray-100 shadow-inner;
+    background-color: #f3f4f6 !important; /* gray-100 */
+  }
+  .dark .btn-light:active {
+    @apply bg-gray-700;
+    background-color: #374151 !important; /* gray-700 */
   }
   
   .btn-success:active {
-    @apply bg-green-700;
+    @apply bg-green-700 shadow-inner;
+    background-color: #047857 !important; /* green-700 */
   }
   
   .btn-danger:active {
-    @apply bg-red-700;
+    @apply bg-red-700 shadow-inner;
+    background-color: #b91c1c !important; /* red-700 */
   }
   
   .btn-dark:active {
-    @apply bg-gray-900;
+    @apply bg-gray-900 shadow-inner;
+    background-color: #111827 !important; /* gray-900 */
   }
 
   /* Enhanced Form Controls */

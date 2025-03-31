@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('color')->nullable();
             $table->text('description')->nullable();
+            $table->string('icon')->nullable();
             $table->timestamps();
 
             // Add a unique constraint for user_id and name

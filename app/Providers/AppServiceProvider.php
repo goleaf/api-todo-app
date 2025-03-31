@@ -2,7 +2,11 @@
 
 namespace App\Providers;
 
+use App\Livewire\TaskBulkProcessor;
+use App\Livewire\TaskMvc;
+use App\Services\HypervelService;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -11,7 +15,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->register(HypervelServiceProvider::class);
     }
 
     /**
@@ -19,6 +23,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register Livewire components
+        Livewire::component('task-bulk-processor', TaskBulkProcessor::class);
+        Livewire::component('task-mvc', TaskMvc::class);
     }
 }

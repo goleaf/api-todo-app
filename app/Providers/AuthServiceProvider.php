@@ -4,10 +4,10 @@ namespace App\Providers;
 
 use App\Models\Category;
 use App\Models\Task;
-use App\Models\Todo;
+use App\Models\User;
 use App\Policies\CategoryPolicy;
 use App\Policies\TaskPolicy;
-use App\Policies\TodoPolicy;
+use App\Policies\UserPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -18,9 +18,9 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        Todo::class => TodoPolicy::class,
         Task::class => TaskPolicy::class,
         Category::class => CategoryPolicy::class,
+        User::class => UserPolicy::class,
     ];
 
     /**

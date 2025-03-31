@@ -25,18 +25,23 @@ class StoreTaskRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'due_date' => ['nullable', 'date'],
             'category_id' => [
-                'nullable', 
+                'nullable',
                 'exists:categories,id',
                 function ($attribute, $value, $fail) {
                     if ($value) {
                         $category = \App\Models\Category::find($value);
-                        if (!$category || $category->user_id !== Auth::id()) {
+                        if (! $category || $category->user_id !== Auth::id()) {
                             $fail('The selected category is invalid.');
                         }
                     }
-                }
+                },
             ],
-            'priority' => ['nullable', 'string', 'in:low,medium,high'],
+            'priority' => ['nullable', 'string', 'in:low,medium,high,0,1,2'],
+            'session_id' => ['nullable', 'string', 'max:255'],
+            'reminder_at' => ['nullable', 'date'],
+            'tags' => ['nullable', 'array'],
+            'tags.*' => ['string', 'max:50'],
+            'progress' => ['nullable', 'integer', 'min:0', 'max:100'],
         ];
     }
 
@@ -50,7 +55,34 @@ class StoreTaskRequest extends FormRequest
             'title.max' => 'The task title may not be greater than :max characters.',
             'due_date.date' => 'The due date must be a valid date.',
             'category_id.exists' => 'The selected category is invalid.',
-            'priority.in' => 'The priority must be low, medium, or high.',
+            'priority.in' => 'The priority must be low, medium, high, or a number between 0-2.',
+            'reminder_at.date' => 'The reminder date must be a valid date.',
+            'tags.array' => 'Tags must be provided as an array.',
+            'tags.*.string' => 'Each tag must be a string.',
+            'tags.*.max' => 'Tags cannot be longer than :max characters.',
+            'progress.integer' => 'Progress must be an integer.',
+            'progress.min' => 'Progress cannot be less than :min.',
+            'progress.max' => 'Progress cannot be more than :max.',
         ];
     }
-} 
+    
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation()
+    {
+        // Convert string tag input to array if needed
+        if ($this->has('tags') && is_string($this->tags)) {
+            $this->merge([
+                'tags' => array_map('trim', explode(',', $this->tags))
+            ]);
+        }
+        
+        // Convert priority from string to integer if needed
+        if ($this->has('priority') && is_numeric($this->priority)) {
+            $this->merge([
+                'priority' => (int) $this->priority
+            ]);
+        }
+    }
+}

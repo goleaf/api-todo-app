@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Category;
 use App\Models\Task;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -27,82 +28,98 @@ class TaskFactory extends Factory
     public function definition(): array
     {
         return [
-            'title' => $this->faker->sentence(rand(4, 8)),
-            'description' => $this->faker->paragraphs(rand(1, 3), true),
+            'title' => $this->faker->sentence(4),
+            'description' => $this->faker->paragraph(),
+            'completed' => $this->faker->boolean(20),
+            'priority' => $this->faker->randomElement([0, 1, 2]), // Low, Medium, High
+            'progress' => $this->faker->numberBetween(0, 100), // Random progress
+            'due_date' => $this->faker->randomElement([
+                null,
+                Carbon::today(),
+                Carbon::yesterday(),
+                Carbon::tomorrow(),
+                Carbon::today()->addDays(rand(2, 14)),
+                Carbon::today()->subDays(rand(2, 14)),
+            ]),
+            'reminder_at' => $this->faker->optional(40)->dateTimeBetween('now', '+1 week'), // 40% chance of having a reminder
             'user_id' => User::factory(),
-            'category_id' => Category::factory(),
-            'due_date' => $this->faker->dateTimeBetween('now', '+30 days'),
-            'priority' => $this->faker->randomElement(['low', 'medium', 'high']),
-            'status' => $this->faker->randomElement(['todo', 'in_progress', 'done']),
-            'completed' => $this->faker->boolean(30),
+            'category_id' => function () {
+                return Category::factory()->create()->id;
+            },
+            'tags' => json_encode($this->faker->randomElements(['work', 'home', 'urgent', 'meeting', 'personal', 'shopping', 'health'], $this->faker->numberBetween(0, 3))),
             'completed_at' => function (array $attributes) {
-                return $attributes['completed'] ? $this->faker->dateTimeBetween('-30 days', 'now') : null;
+                return $attributes['completed'] ? Carbon::now()->subDays(rand(0, 5)) : null;
             },
         ];
     }
 
     /**
-     * Configure the model factory.
-     *
-     * @return $this
+     * Indicate that the task is completed.
      */
-    public function configure()
+    public function completed(): Factory
     {
-        return $this->afterMaking(function (Task $task) {
-            // Any after making configurations
-        })->afterCreating(function (Task $task) {
-            // Ensure progress is 100 if completed
-            if ($task->completed) {
-                $task->progress = 100;
-                $task->save();
-            }
-        });
+        return $this->state(fn (array $attributes) => [
+            'completed' => true,
+            'completed_at' => Carbon::now()->subDays(rand(0, 5)),
+            'progress' => 100,
+        ]);
     }
 
     /**
-     * Set the task as completed.
+     * Indicate that the task is not completed.
      */
-    public function completed(): static
+    public function active(): Factory
     {
-        return $this->state(function (array $attributes) {
-            return [
-                'completed' => true,
-                'progress' => 100,
-                'completed_at' => $this->faker->dateTimeBetween($attributes['created_at'], 'now'),
-            ];
-        });
+        return $this->state(fn (array $attributes) => [
+            'completed' => false,
+            'completed_at' => null,
+        ]);
     }
 
     /**
-     * Set the task as not completed.
+     * Indicate that the task is due today.
      */
-    public function notCompleted(): static
+    public function dueToday(): Factory
     {
-        return $this->state(function (array $attributes) {
-            return [
-                'completed' => false,
-                'progress' => $this->faker->numberBetween(0, 90),
-                'completed_at' => null,
-            ];
-        });
+        return $this->state(fn (array $attributes) => [
+            'due_date' => Carbon::today(),
+        ]);
     }
 
     /**
-     * Set the task with high priority.
+     * Indicate that the task is overdue.
      */
-    public function highPriority(): static
+    public function overdue(): Factory
     {
-        return $this->state(function (array $attributes) {
-            return [
-                'priority' => 3,
-            ];
-        });
+        return $this->state(fn (array $attributes) => [
+            'due_date' => Carbon::today()->subDays(rand(1, 7)),
+        ]);
     }
 
     /**
-     * Set the task with medium priority.
+     * Indicate that the task is upcoming.
      */
-    public function mediumPriority(): static
+    public function upcoming(): Factory
+    {
+        return $this->state(fn (array $attributes) => [
+            'due_date' => Carbon::today()->addDays(rand(1, 14)),
+        ]);
+    }
+
+    /**
+     * Indicate that the task has no due date.
+     */
+    public function noDueDate(): Factory
+    {
+        return $this->state(fn (array $attributes) => [
+            'due_date' => null,
+        ]);
+    }
+
+    /**
+     * Indicate that the task is high priority.
+     */
+    public function highPriority(): Factory
     {
         return $this->state(function (array $attributes) {
             return [
@@ -112,9 +129,9 @@ class TaskFactory extends Factory
     }
 
     /**
-     * Set the task with low priority.
+     * Indicate that the task has medium priority.
      */
-    public function lowPriority(): static
+    public function mediumPriority(): Factory
     {
         return $this->state(function (array $attributes) {
             return [
@@ -124,26 +141,50 @@ class TaskFactory extends Factory
     }
 
     /**
-     * Set the task with a due date in the past.
+     * Indicate that the task has low priority.
      */
-    public function overdue(): static
+    public function lowPriority(): Factory
     {
         return $this->state(function (array $attributes) {
             return [
-                'due_date' => $this->faker->dateTimeBetween('-10 days', '-1 day'),
+                'priority' => 0,
+            ];
+        });
+    }
+
+    /**
+     * Indicate that the task has low progress.
+     */
+    public function lowProgress(): Factory
+    {
+        return $this->state(function (array $attributes) {
+            return [
+                'progress' => $this->faker->numberBetween(0, 30),
                 'completed' => false,
             ];
         });
     }
 
     /**
-     * Set the task with a due date for today.
+     * Indicate that the task belongs to a specific category.
      */
-    public function dueToday(): static
+    public function inCategory(Category $category): Factory
     {
-        return $this->state(function (array $attributes) {
+        return $this->state(function (array $attributes) use ($category) {
             return [
-                'due_date' => now()->format('Y-m-d'),
+                'category_id' => $category->id,
+            ];
+        });
+    }
+
+    /**
+     * Indicate that the task has specific tags.
+     */
+    public function withTags(array $tags): Factory
+    {
+        return $this->state(function (array $attributes) use ($tags) {
+            return [
+                'tags' => json_encode($tags),
             ];
         });
     }

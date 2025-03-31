@@ -2,12 +2,22 @@
 
 namespace App\Console;
 
+use App\Console\Commands\HypervelBenchmarkCommand;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Artisan;
 
 class Kernel extends ConsoleKernel
 {
+    /**
+     * The Artisan commands provided by your application.
+     *
+     * @var array
+     */
+    protected $commands = [
+        HypervelBenchmarkCommand::class,
+    ];
+
     /**
      * Define the application's command schedule.
      */

@@ -114,7 +114,7 @@ class AuthTest extends TestCase
         $user = User::factory()->create();
         $token = $user->createToken('test_device')->plainTextToken;
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->postJson('/api/logout');
 
         $response->assertStatus(200)
@@ -146,7 +146,7 @@ class AuthTest extends TestCase
         $user = User::factory()->create();
         $token = $user->createToken('test_device')->plainTextToken;
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->getJson('/api/user');
 
         $response->assertStatus(200)
@@ -179,7 +179,7 @@ class AuthTest extends TestCase
                     'name',
                     'email',
                     'password',
-                    'terms'
+                    'terms',
                 ],
             ]);
 
@@ -252,4 +252,4 @@ class AuthTest extends TestCase
         $this->assertFalse($response->json('success'));
         $this->assertArrayHasKey('email', $response->json('errors'));
     }
-} 
+}

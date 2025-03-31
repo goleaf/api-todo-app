@@ -2,10 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Schema;
 
 class DatabaseSeeder extends Seeder
 {
@@ -14,23 +11,19 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Disable foreign key constraints for seeders
-        Schema::disableForeignKeyConstraints();
-
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-
-        $this->call([
-            UserSeeder::class,
-            TodoSeeder::class,
-            TaskSeeder::class,
-        ]);
-
-        // Re-enable foreign key constraints
-        Schema::enableForeignKeyConstraints();
+        // Call UserSeeder to create initial users
+        $this->call(UserSeeder::class);
+        
+        // Call CategorySeeder to create initial categories
+        $this->call(CategorySeeder::class);
+        
+        // Call TodoSeeder to create initial tasks
+        $this->call(TodoSeeder::class);
+        
+        // Only use TaskSeeder if TodoSeeder didn't create any tasks
+        // This is a fallback and can be removed when TodoSeeder is fully working
+        if (\App\Models\Task::count() === 0) {
+            $this->call(TaskSeeder::class);
+        }
     }
 }

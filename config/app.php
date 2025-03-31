@@ -164,6 +164,7 @@ return [
         /*
          * Package Service Providers...
          */
+        // Tightenco\Ziggy\ZiggyServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -173,6 +174,7 @@ return [
         App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+        App\Providers\HypervelServiceProvider::class,
     ],
 
 ];

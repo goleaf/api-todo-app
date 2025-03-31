@@ -24,6 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'profile_photo_path',
+        'photo_path',
     ];
 
     /**
@@ -47,12 +48,13 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the todos for the user.
+     * The accessors to append to the model's array form.
+     *
+     * @var array<int, string>
      */
-    public function todos(): HasMany
-    {
-        return $this->hasMany(Todo::class);
-    }
+    protected $appends = [
+        'photo_url',
+    ];
 
     /**
      * Get the tasks for the user.
@@ -78,7 +80,18 @@ class User extends Authenticatable
         if ($this->photo_path) {
             return asset('storage/' . $this->photo_path);
         }
-        
+
         return null;
+    }
+
+    /**
+     * Determine if the user is an admin.
+     * Note: This is just a placeholder method until proper role implementation.
+     */
+    public function isAdmin(): bool
+    {
+        // For now, return false for all users.
+        // In a real application, this would check against a role or permission system.
+        return false;
     }
 }

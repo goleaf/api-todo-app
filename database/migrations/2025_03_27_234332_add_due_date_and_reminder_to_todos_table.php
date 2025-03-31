@@ -12,9 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('todos', function (Blueprint $table) {
-            $table->timestamp('due_date')->nullable()->after('completed');
-            $table->timestamp('reminder_at')->nullable()->after('due_date');
-            $table->integer('priority')->default(0)->after('reminder_at')->comment('0: Low, 1: Medium, 2: High');
+            if (!Schema::hasColumn('todos', 'due_date')) {
+                $table->datetime('due_date')->nullable();
+            }
+            
+            if (!Schema::hasColumn('todos', 'reminder_at')) {
+                $table->datetime('reminder_at')->nullable();
+            }
         });
     }
 
@@ -24,7 +28,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('todos', function (Blueprint $table) {
-            $table->dropColumn(['due_date', 'reminder_at', 'priority']);
+            if (Schema::hasColumn('todos', 'due_date')) {
+                $table->dropColumn('due_date');
+            }
+            
+            if (Schema::hasColumn('todos', 'reminder_at')) {
+                $table->dropColumn('reminder_at');
+            }
         });
     }
 };
