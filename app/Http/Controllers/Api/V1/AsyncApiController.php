@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\ApiController;
+use App\Http\Requests\Api\Async\AsyncBatchTagOperationRequest;
 use App\Http\Requests\Api\Async\AsyncBulkProcessTasksRequest;
+use App\Models\Task;
+use App\Models\Tag;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AsyncApiController extends ApiController
 {
@@ -74,5 +78,106 @@ class AsyncApiController extends ApiController
             'total' => count($taskIds),
             'success_count' => count(array_filter($processed, fn ($item) => $item['success'])),
         ]);
+    }
+
+    /**
+     * Process batch tag operations asynchronously across multiple tasks.
+     * 
+     * This method allows adding or removing tags from multiple tasks at once,
+     * which is especially useful for bulk operations on large datasets.
+     */
+    public function batchTagOperation(AsyncBatchTagOperationRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+        $taskIds = $validated['task_ids'];
+        $tagNames = $validated['tags'];
+        $operation = $validated['operation'];
+        
+        $userId = Auth::id();
+        
+        // Process the tag names to get their IDs
+        $tagIds = [];
+        foreach ($tagNames as $name) {
+            if (empty(trim($name))) continue;
+            
+            // Find or create the tag
+            $tag = Tag::findOrCreateForUser($name, $userId);
+            $tagIds[] = $tag->id;
+        }
+        
+        // Skip if no valid tags
+        if (empty($tagIds)) {
+            return $this->errorResponse(__('validation.tag.none_valid'), 422);
+        }
+        
+        // Process each task
+        $processed = [];
+        foreach ($taskIds as $taskId) {
+            try {
+                $task = Task::forUser($userId)->find($taskId);
+                
+                if (!$task) {
+                    $processed[] = [
+                        'id' => $taskId,
+                        'success' => false,
+                        'message' => __('validation.task.not_found'),
+                    ];
+                    continue;
+                }
+                
+                // Perform the operation
+                if ($operation === 'add') {
+                    $task->addTags($tagIds);
+                    $message = __('messages.task.tags_added');
+                } else {
+                    $task->removeTags($tagIds);
+                    $message = __('messages.task.tags_removed');
+                }
+                
+                $processed[] = [
+                    'id' => $taskId,
+                    'success' => true,
+                    'message' => $message,
+                ];
+                
+            } catch (\Exception $e) {
+                $processed[] = [
+                    'id' => $taskId,
+                    'success' => false,
+                    'message' => __('messages.task.process_failed') . ': ' . $e->getMessage(),
+                ];
+            }
+        }
+        
+        // Update tag usage counts
+        $this->updateTagUsageCounts($userId);
+        
+        return $this->successResponse([
+            'processed' => $processed,
+            'total' => count($taskIds),
+            'success_count' => count(array_filter($processed, fn ($item) => $item['success'])),
+            'operation' => $operation,
+            'tags' => $tagNames,
+        ]);
+    }
+    
+    /**
+     * Update usage counts for all tags belonging to a user.
+     */
+    private function updateTagUsageCounts(int $userId): void
+    {
+        // Get all user tags
+        $tags = Tag::forUser($userId)->get();
+        
+        foreach ($tags as $tag) {
+            // Count tasks with this tag
+            $count = $tag->tasks()->count();
+            
+            // Update usage count if different
+            if ($tag->usage_count !== $count) {
+                $tag->usage_count = $count;
+                $tag->save();
+            }
+        }
     }
 }

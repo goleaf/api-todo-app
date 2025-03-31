@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Api\Task;
 
-use App\Http\Requests\Api\ApiRequest;
+use App\Http\Requests\ApiRequest;
 
 class TaskUpdateTagsRequest extends ApiRequest
 {

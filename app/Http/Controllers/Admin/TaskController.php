@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\TaskPriority;
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\TaskStoreRequest;
 use App\Http\Requests\Admin\TaskUpdateRequest;
 use App\Models\Category;
@@ -12,7 +11,7 @@ use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
 
-class TaskController extends Controller
+class TaskController extends AdminController
 {
     /**
      * Display a listing of the tasks.

@@ -140,7 +140,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <h3>@yield('title', 'Admin Dashboard')</h3>
                             <div>
-                                <span class="text-muted me-2">Welcome, {{ Auth::guard('admin')->user()->name }}</span>
+                                <span class="text-muted me-2">Logged in as: {{ Auth::guard('admin')->user()->email }}</span>
                             </div>
                         </div>
                         <nav aria-label="breadcrumb">

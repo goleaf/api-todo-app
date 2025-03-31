@@ -176,6 +176,12 @@ class TagsApiTest extends TestCase
             'tags' => $newTagNames,
         ]);
 
+        // Output response content for debugging
+        if ($response->status() !== 200) {
+            echo "Response status: " . $response->status() . "\n";
+            echo "Response content: " . $response->getContent() . "\n";
+        }
+
         $response->assertStatus(200);
 
         // Check that task has exactly 3 tags now
@@ -246,6 +252,12 @@ class TagsApiTest extends TestCase
             'tags' => $newTagNames,
         ]);
         
+        // Output response content for debugging
+        if ($response->status() !== 200) {
+            echo "Response status: " . $response->status() . "\n";
+            echo "Response content: " . $response->getContent() . "\n";
+        }
+        
         $response->assertStatus(200);
         
         // We should now have 3 tags on the task (the initial one + 2 new ones)
@@ -304,6 +316,12 @@ class TagsApiTest extends TestCase
             'operation' => 'remove',
             'tags' => ['tag-to-remove-1', 'tag-to-remove-2'],
         ]);
+        
+        // Output response content for debugging
+        if ($response->status() !== 200) {
+            echo "Response status: " . $response->status() . "\n";
+            echo "Response content: " . $response->getContent() . "\n";
+        }
         
         $response->assertStatus(200);
         

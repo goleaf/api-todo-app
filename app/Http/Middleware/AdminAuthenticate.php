@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 
 class AdminAuthenticate
 {
@@ -26,6 +27,9 @@ class AdminAuthenticate
             
             return redirect()->route('admin.login');
         }
+
+        // Set the current guard to 'admin' for this request
+        Auth::shouldUse('admin');
 
         return $next($request);
     }

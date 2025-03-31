@@ -36,6 +36,7 @@ Route::get('/documentation', function () {
                 'tags' => ['/tags', '/tags/{id}', '/tags/popular', '/tags/task-counts', '/tags/{id}/tasks', '/tags/merge', '/tags/suggestions', '/tags/batch'],
                 'profile' => ['/profile', '/profile/password', '/profile/photo'],
                 'dashboard' => ['/dashboard'],
+                'async' => ['/async/dashboard-stats', '/async/external-apis', '/async/process-tasks', '/async/batch-tag-operation'],
             ],
         ],
     ]);
@@ -142,4 +143,70 @@ Route::middleware('auth:sanctum')->prefix('async')->group(function () {
     Route::get('/dashboard-stats', [AsyncApiController::class, 'getDashboardStats']);
     Route::get('/external-apis', [AsyncApiController::class, 'fetchExternalApis']);
     Route::post('/process-tasks', [AsyncApiController::class, 'bulkProcessTasks']);
+    Route::post('/batch-tag-operation', [AsyncApiController::class, 'batchTagOperation']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| Admin API Routes
+|--------------------------------------------------------------------------
+|
+| These routes handle admin authentication and admin functionality via API.
+|
+*/
+
+Route::post('/admin/login', function () {
+    $credentials = request()->only('email', 'password');
+    
+    if (auth()->guard('admin')->attempt($credentials)) {
+        $admin = auth()->guard('admin')->user();
+        $token = $admin->createToken('admin-token', ['admin'])->plainTextToken;
+        
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'admin' => $admin,
+                'token' => $token,
+            ],
+        ]);
+    }
+    
+    return response()->json([
+        'success' => false,
+        'message' => 'Invalid credentials',
+    ], 401);
+})->name('api.admin.login');
+
+// Admin protected routes
+Route::middleware(['auth:sanctum', 'can:admin'])->prefix('admin')->group(function () {
+    // Dashboard stats
+    Route::get('/stats', function () {
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'users_count' => App\Models\User::count(),
+                'tasks_count' => App\Models\Task::count(),
+                'categories_count' => App\Models\Category::count(),
+                'tags_count' => App\Models\Tag::count(),
+                'completed_tasks_count' => App\Models\Task::where('completed', true)->count(),
+                'incomplete_tasks_count' => App\Models\Task::where('completed', false)->count(),
+            ],
+        ]);
+    })->name('api.admin.stats');
+    
+    // User management
+    Route::get('/users', function () {
+        return response()->json([
+            'success' => true,
+            'data' => App\Models\User::all(),
+        ]);
+    })->name('api.admin.users.index');
+    
+    Route::get('/users/{id}', function ($id) {
+        $user = App\Models\User::findOrFail($id);
+        return response()->json([
+            'success' => true,
+            'data' => $user,
+        ]);
+    })->name('api.admin.users.show');
 });

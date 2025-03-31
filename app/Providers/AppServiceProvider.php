@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Admin;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +21,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // No services to boot
+        // Register admin authentication extensions
+        Auth::viaRequest('admin', function ($request) {
+            if ($request->session()->has('admin_id')) {
+                return Admin::find($request->session()->get('admin_id'));
+            }
+            return null;
+        });
     }
 }

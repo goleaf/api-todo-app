@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\CategoryType;
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CategoryStoreRequest;
 use App\Http\Requests\Admin\CategoryUpdateRequest;
 use App\Models\Category;
 use App\Models\User;
 use Illuminate\Http\Request;
 
-class CategoryController extends Controller
+class CategoryController extends AdminController
 {
     /**
      * Display a listing of the categories.

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Api;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -28,7 +29,7 @@ class UserTest extends TestCase
             'password' => Hash::make('Password123!'),
         ]);
         $this->adminUser = User::factory()->create([
-            'role' => 'admin',
+            'role' => UserRole::ADMIN->value,
             'password' => Hash::make('Password123!'),
         ]);
         
@@ -204,7 +205,7 @@ class UserTest extends TestCase
             'email' => $this->faker->unique()->safeEmail,
             'password' => 'password',
             'password_confirmation' => 'password',
-            'role' => 'user',
+            'role' => UserRole::USER->value,
         ];
 
         $response = $this->postJson($this->baseUrl, $data);

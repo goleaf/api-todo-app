@@ -346,4 +346,83 @@ class TagTest extends TestCase
             ])
             ->assertJsonCount(2, 'data.tasks');
     }
+    
+    /** @test */
+    public function can_get_tag_suggestions()
+    {
+        // Create some tags for the user
+        $tag1 = Tag::create([
+            'name' => 'Project Alpha',
+            'color' => '#FF5733',
+            'user_id' => $this->user->id,
+            'usage_count' => 5,
+        ]);
+        
+        $tag2 = Tag::create([
+            'name' => 'Project Beta',
+            'color' => '#33FF57',
+            'user_id' => $this->user->id,
+            'usage_count' => 10,
+        ]);
+        
+        $tag3 = Tag::create([
+            'name' => 'Personal',
+            'color' => '#5733FF',
+            'user_id' => $this->user->id,
+            'usage_count' => 2,
+        ]);
+        
+        // Create a tag for another user (should not be in results)
+        Tag::create([
+            'name' => 'Project Other',
+            'color' => '#FFFFFF',
+            'user_id' => $this->otherUser->id,
+            'usage_count' => 3,
+        ]);
+        
+        // Test basic search
+        $response = $this->getJson('/api/tags/suggestions?query=Project');
+        
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'data' => [
+                    '*' => [
+                        'id',
+                        'name',
+                        'color',
+                        'usage_count',
+                    ],
+                ],
+            ])
+            ->assertJsonCount(2, 'data')
+            ->assertJson([
+                'success' => true,
+                'data' => [
+                    [
+                        'name' => 'Project Beta',
+                        'usage_count' => 10,
+                    ],
+                    [
+                        'name' => 'Project Alpha',
+                        'usage_count' => 5,
+                    ],
+                ],
+            ]);
+        
+        // Test with limit parameter
+        $response = $this->getJson('/api/tags/suggestions?query=Pro&limit=1');
+        
+        $response->assertStatus(200)
+            ->assertJsonCount(1, 'data')
+            ->assertJson([
+                'data' => [
+                    [
+                        'name' => 'Project Beta',
+                        'usage_count' => 10,
+                    ],
+                ],
+            ]);
+    }
 } 

@@ -28,6 +28,7 @@ class User extends Authenticatable
         'password',
         'profile_photo_path',
         'photo_path',
+        'role',
     ];
 
     /**
@@ -48,6 +49,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'role' => UserRole::class,
     ];
 
     /**
@@ -230,5 +232,19 @@ class User extends Authenticatable
         }
         
         return $result;
+    }
+
+    /**
+     * Check if the user is an admin.
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        if ($this->role instanceof UserRole) {
+            return $this->role === UserRole::ADMIN;
+        }
+        
+        return $this->role === UserRole::ADMIN->value || $this->role === 'admin';
     }
 }

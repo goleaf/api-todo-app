@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\TagStoreRequest;
 use App\Http\Requests\Admin\TagUpdateRequest;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Http\Request;
 
-class TagController extends Controller
+class TagController extends AdminController
 {
     /**
      * Display a listing of the tags.

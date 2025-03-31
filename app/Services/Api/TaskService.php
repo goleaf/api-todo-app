@@ -298,12 +298,12 @@ class TaskService
         
         // Perform the operation
         if ($operation === 'add') {
-            // Attach new tags without detaching existing ones
-            $task->tags()->syncWithoutDetaching($tagIds);
+            // Use the new Task model method to add tags
+            $task->addTags($tagIds);
             $message = __('messages.task.tags_added');
         } else {
-            // Remove specified tags
-            $task->tags()->detach($tagIds);
+            // Use the new Task model method to remove tags
+            $task->removeTags($tagIds);
             $message = __('messages.task.tags_removed');
         }
         

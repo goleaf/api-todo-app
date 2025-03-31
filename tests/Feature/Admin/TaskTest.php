@@ -214,7 +214,7 @@ class TaskTest extends TestCase
             'description' => $task->description,
             'user_id' => $user->id,
             'category_id' => $task->category_id,
-            'priority' => $task->priority,
+            'priority' => $task->priority->value,
             'tags' => $tags->pluck('id')->toArray(),
         ];
 
