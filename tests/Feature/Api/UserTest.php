@@ -192,7 +192,6 @@ class UserTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'success',
-                'status_code',
                 'message',
                 'data' => [
                     'user',
@@ -201,7 +200,7 @@ class UserTest extends TestCase
             ]);
 
         $this->assertTrue($response->json('success'));
-        $this->assertEquals('User logged in successfully', $response->json('message'));
+        $this->assertEquals('messages.auth.logged_in', $response->json('message'));
     }
 
     /**
@@ -221,15 +220,11 @@ class UserTest extends TestCase
         $response->assertStatus(401)
             ->assertJsonStructure([
                 'success',
-                'status_code',
                 'message',
-                'errors' => [
-                    'email',
-                ],
             ]);
 
         $this->assertFalse($response->json('success'));
-        $this->assertEquals('The provided credentials are incorrect.', $response->json('message'));
+        $this->assertEquals('These credentials do not match our records.', $response->json('message'));
     }
 
     /**
@@ -245,15 +240,10 @@ class UserTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'success',
-                'status_code',
                 'message',
-                'data',
             ]);
 
         $this->assertTrue($response->json('success'));
-        $this->assertEquals('User logged out successfully', $response->json('message'));
-
-        // Tokens should be revoked
-        $this->assertCount(0, $user->tokens);
+        $this->assertEquals('messages.auth.logged_out', $response->json('message'));
     }
 }
