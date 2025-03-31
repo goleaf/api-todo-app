@@ -14,7 +14,7 @@ class TagsPage extends Page
      */
     public function url()
     {
-        return '/admin/tags';
+        return route('admin.tags.index');
     }
 
     /**
@@ -37,7 +37,7 @@ class TagsPage extends Page
     public function elements()
     {
         return [
-            '@create-button' => 'a[href$="/admin/tags/create"]',
+            '@create-button' => 'a[href$="' . route('admin.tags.create', [], false) . '"]',
             '@search-input' => 'input[name="search"]',
             '@search-button' => 'button[type="submit"]',
             '@first-view-button' => 'table tbody tr:first-child a.btn-info',

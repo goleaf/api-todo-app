@@ -5,17 +5,20 @@ namespace Tests\Browser\Admin;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\Dusk\Browser;
+use Tests\Browser\Pages\Admin\Dashboard;
 use Tests\DuskTestCase;
 
 class AdminLoginTest extends DuskTestCase
 {
+    use DatabaseMigrations;
+    
     /**
      * Test admin login page loads.
      */
     public function testAdminLoginPageLoads()
     {
         $this->browse(function (Browser $browser) {
-            $browser->visit('/admin/login')
+            $browser->visit(route('admin.login'))
                     ->assertSee('Login to Admin Panel')
                     ->assertSee('Email')
                     ->assertSee('Password');
@@ -28,7 +31,7 @@ class AdminLoginTest extends DuskTestCase
     public function testLoginWithInvalidCredentials()
     {
         $this->browse(function (Browser $browser) {
-            $browser->visit('/admin/login')
+            $browser->visit(route('admin.login'))
                     ->type('email', 'invalid@example.com')
                     ->type('password', 'wrong-password')
                     ->press('Login')
@@ -41,18 +44,19 @@ class AdminLoginTest extends DuskTestCase
      */
     public function testLoginWithValidCredentials()
     {
-        $admin = User::where('role', 'admin')->first();
-
-        if (!$admin) {
-            $this->markTestSkipped('No admin user found in the database');
-        }
+        // Create an admin user for testing
+        $admin = User::factory()->create([
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
 
         $this->browse(function (Browser $browser) use ($admin) {
-            $browser->visit('/admin/login')
+            $browser->visit(route('admin.login'))
                     ->type('email', $admin->email)
-                    ->type('password', 'password') // Assuming default password
+                    ->type('password', 'password')
                     ->press('Login')
-                    ->waitForLocation('/admin/dashboard')
+                    ->waitForLocation(route('admin.dashboard'))
                     ->assertPathIs('/admin/dashboard');
         });
     }
@@ -62,11 +66,12 @@ class AdminLoginTest extends DuskTestCase
      */
     public function testAdminLogout()
     {
-        $admin = User::where('role', 'admin')->first();
-
-        if (!$admin) {
-            $this->markTestSkipped('No admin user found in the database');
-        }
+        // Create an admin user for testing
+        $admin = User::factory()->create([
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)

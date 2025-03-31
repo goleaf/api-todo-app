@@ -14,7 +14,7 @@ class CategoriesPage extends Page
      */
     public function url()
     {
-        return '/admin/categories';
+        return route('admin.categories.index');
     }
 
     /**
@@ -37,7 +37,7 @@ class CategoriesPage extends Page
     public function elements()
     {
         return [
-            '@create-button' => 'a[href$="/admin/categories/create"]',
+            '@create-button' => 'a[href$="' . route('admin.categories.create', [], false) . '"]',
             '@search-input' => 'input[name="search"]',
             '@search-button' => 'button[type="submit"]',
             '@first-view-button' => 'table tbody tr:first-child a.btn-info',

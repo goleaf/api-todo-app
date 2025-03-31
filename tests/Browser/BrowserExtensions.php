@@ -58,8 +58,9 @@ trait BrowserExtensions
      */
     public function navigateToAdminSection($section)
     {
+        $route = 'admin.' . strtolower($section) . '.index';
         return $this->clickLink(ucfirst($section))
-                   ->waitForLocation('/admin/' . strtolower($section));
+                   ->waitForLocation(route($route, [], false));
     }
     
     /**
@@ -71,10 +72,10 @@ trait BrowserExtensions
      */
     public function loginAsAdmin($email, $password)
     {
-        return $this->visit('/admin/login')
+        return $this->visit(route('admin.login'))
                    ->type('email', $email)
                    ->type('password', $password)
                    ->press('Login')
-                   ->waitForLocation('/admin/dashboard');
+                   ->waitForLocation(route('admin.dashboard', [], false));
     }
 } 

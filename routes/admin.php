@@ -17,8 +17,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// Redirect root to admin login
+Route::redirect('/', '/admin/login');
+
 // Admin Authentication Routes
 Route::group([], function () {
+    // Redirect admin root to login
+    Route::redirect('/', '/admin/login');
+
     // Guest routes
     Route::middleware('guest:admin')->group(function () {
         Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');

@@ -9,20 +9,23 @@ use Tests\DuskTestCase;
 
 class UserCrudTest extends DuskTestCase
 {
+    use DatabaseMigrations;
+    
     /**
      * Test user listing page.
      */
     public function testUserListingPage()
     {
-        $admin = User::where('role', 'admin')->first();
-
-        if (!$admin) {
-            $this->markTestSkipped('No admin user found in the database');
-        }
+        // Create an admin user for testing
+        $admin = User::factory()->create([
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)
-                    ->visit('/admin/users')
+                    ->visit(route('admin.users.index'))
                     ->assertSee('Users')
                     ->assertSee('Create New User')
                     ->assertSee('ID')
@@ -38,15 +41,16 @@ class UserCrudTest extends DuskTestCase
      */
     public function testCreateUserForm()
     {
-        $admin = User::where('role', 'admin')->first();
-
-        if (!$admin) {
-            $this->markTestSkipped('No admin user found in the database');
-        }
+        // Create an admin user for testing
+        $admin = User::factory()->create([
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)
-                    ->visit('/admin/users')
+                    ->visit(route('admin.users.index'))
                     ->clickLink('Create New User')
                     ->assertPathIs('/admin/users/create')
                     ->assertSee('Create New User')
@@ -62,17 +66,18 @@ class UserCrudTest extends DuskTestCase
      */
     public function testUserCreation()
     {
-        $admin = User::where('role', 'admin')->first();
-
-        if (!$admin) {
-            $this->markTestSkipped('No admin user found in the database');
-        }
+        // Create an admin user for testing
+        $admin = User::factory()->create([
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
 
         $testUserEmail = 'test_' . time() . '@example.com';
 
         $this->browse(function (Browser $browser) use ($admin, $testUserEmail) {
             $browser->loginAs($admin)
-                    ->visit('/admin/users/create')
+                    ->visit(route('admin.users.create'))
                     ->type('name', 'Test User')
                     ->type('email', $testUserEmail)
                     ->type('password', 'password')
@@ -95,16 +100,21 @@ class UserCrudTest extends DuskTestCase
      */
     public function testEditUserForm()
     {
-        $admin = User::where('role', 'admin')->first();
-        $user = User::where('role', 'user')->first();
-
-        if (!$admin || !$user) {
-            $this->markTestSkipped('Admin or user not found in the database');
-        }
+        // Create an admin user for testing
+        $admin = User::factory()->create([
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
+        
+        // Create a test user
+        $user = User::factory()->create([
+            'role' => 'user',
+        ]);
 
         $this->browse(function (Browser $browser) use ($admin, $user) {
             $browser->loginAs($admin)
-                    ->visit('/admin/users')
+                    ->visit(route('admin.users.index'))
                     ->click('@edit-user-' . $user->id)
                     ->assertPathIs('/admin/users/' . $user->id . '/edit')
                     ->assertSee('Edit User')
@@ -118,27 +128,26 @@ class UserCrudTest extends DuskTestCase
      */
     public function testUserUpdate()
     {
-        $admin = User::where('role', 'admin')->first();
+        // Create an admin user for testing
+        $admin = User::factory()->create([
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
         
         // Create a test user that we can modify
-        $user = User::create([
+        $user = User::factory()->create([
             'name' => 'Test Update User',
             'email' => 'test_update_' . time() . '@example.com',
-            'password' => bcrypt('password'),
             'role' => 'user',
             'active' => true,
         ]);
-
-        if (!$admin) {
-            $this->markTestSkipped('Admin not found in the database');
-            $user->delete();
-        }
 
         $newName = 'Updated User ' . time();
 
         $this->browse(function (Browser $browser) use ($admin, $user, $newName) {
             $browser->loginAs($admin)
-                    ->visit('/admin/users/' . $user->id . '/edit')
+                    ->visit(route('admin.users.edit', $user->id))
                     ->clear('name')
                     ->type('name', $newName)
                     ->press('Save')
@@ -156,25 +165,24 @@ class UserCrudTest extends DuskTestCase
      */
     public function testUserDeletion()
     {
-        $admin = User::where('role', 'admin')->first();
+        // Create an admin user for testing
+        $admin = User::factory()->create([
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
         
         // Create a test user that we can delete
-        $user = User::create([
+        $user = User::factory()->create([
             'name' => 'Test Delete User',
             'email' => 'test_delete_' . time() . '@example.com',
-            'password' => bcrypt('password'),
             'role' => 'user',
             'active' => true,
         ]);
 
-        if (!$admin) {
-            $this->markTestSkipped('Admin not found in the database');
-            $user->delete();
-        }
-
         $this->browse(function (Browser $browser) use ($admin, $user) {
             $browser->loginAs($admin)
-                    ->visit('/admin/users')
+                    ->visit(route('admin.users.index'))
                     ->assertSee($user->name)
                     ->click('@delete-user-' . $user->id)
                     ->waitForDialog()

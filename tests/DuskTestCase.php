@@ -7,8 +7,10 @@ use Facebook\WebDriver\Chrome\ChromeOptions;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Laravel\Dusk\TestCase as BaseTestCase;
-use Tests\Browser\BrowserExtensions;
 use Laravel\Dusk\Browser;
+use ReflectionClass;
+use ReflectionMethod;
+use Tests\Browser\BrowserExtensions;
 
 abstract class DuskTestCase extends BaseTestCase
 {
@@ -23,14 +25,23 @@ abstract class DuskTestCase extends BaseTestCase
     {
         parent::setUp();
         
-        Browser::mixin(new class {
+        // Directly register each method from the BrowserExtensions trait as a macro
+        $extensionMethods = (new ReflectionClass(BrowserExtensions::class))->getMethods(
+            ReflectionMethod::IS_PUBLIC
+        );
+        
+        $extensionsInstance = new class {
             use BrowserExtensions;
+        };
+        
+        foreach ($extensionMethods as $method) {
+            $methodName = $method->getName();
+            $callback = function(...$parameters) use ($extensionsInstance, $methodName) {
+                return $extensionsInstance->$methodName(...$parameters);
+            };
             
-            public function __call($method, $parameters)
-            {
-                return $this->{$method}(...$parameters);
-            }
-        });
+            Browser::macro($methodName, $callback->bindTo(null, Browser::class));
+        }
     }
 
     /**
@@ -75,7 +86,7 @@ abstract class DuskTestCase extends BaseTestCase
      *
      * @return bool
      */
-    protected function hasHeadlessDisabled()
+    protected function hasHeadlessDisabled(): bool
     {
         return isset($_SERVER['DUSK_HEADLESS_DISABLED']) ||
                isset($_ENV['DUSK_HEADLESS_DISABLED']);
@@ -86,7 +97,7 @@ abstract class DuskTestCase extends BaseTestCase
      *
      * @return bool
      */
-    protected function shouldKeepBrowserOpen()
+    protected function shouldKeepBrowserOpen(): bool
     {
         return isset($_SERVER['DUSK_KEEP_OPEN']) ||
                isset($_ENV['DUSK_KEEP_OPEN']);

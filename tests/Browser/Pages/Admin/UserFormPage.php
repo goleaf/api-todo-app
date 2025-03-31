@@ -14,7 +14,7 @@ class UserFormPage extends Page
      */
     public function url()
     {
-        return '/admin/users/create';
+        return route('admin.users.create');
     }
 
     /**
@@ -25,7 +25,7 @@ class UserFormPage extends Page
      */
     public function assert(Browser $browser)
     {
-        $browser->assertPathContains('/admin/users')
+        $browser->assertPathContains(parse_url(route('admin.users.create'), PHP_URL_PATH))
                 ->assertSee('User Form');
     }
 
@@ -43,7 +43,7 @@ class UserFormPage extends Page
             '@password-confirm-input' => 'input[name="password_confirmation"]',
             '@role-select' => 'select[name="role"]',
             '@submit-button' => 'button[type="submit"]',
-            '@back-button' => 'a.btn-secondary',
+            '@back-button' => 'a[href$="' . route('admin.users.index', [], false) . '"]',
         ];
     }
 

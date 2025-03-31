@@ -16,7 +16,7 @@ class AdminAuthTest extends TestCase
      */
     public function test_login_page_loads(): void
     {
-        $response = $this->get(route('admin.login'));
+        $response = $this->get('/admin/login');
         $response->assertStatus(200);
         $response->assertViewIs('admin.auth.login');
     }
@@ -31,7 +31,7 @@ class AdminAuthTest extends TestCase
             'password' => bcrypt('password'),
         ]);
 
-        $response = $this->post(route('admin.login.submit'), [
+        $response = $this->post('/admin/login', [
             'email' => 'test@admin.com',
             'password' => 'password',
         ]);
@@ -50,7 +50,7 @@ class AdminAuthTest extends TestCase
             'password' => bcrypt('password'),
         ]);
 
-        $response = $this->post(route('admin.login.submit'), [
+        $response = $this->post('/admin/login', [
             'email' => 'test@admin.com',
             'password' => 'wrong-password',
         ]);
@@ -68,7 +68,7 @@ class AdminAuthTest extends TestCase
         $admin = Admin::factory()->create();
         $this->actingAs($admin, 'admin');
 
-        $response = $this->post(route('admin.logout'));
+        $response = $this->post('/admin/logout');
         
         $response->assertRedirect();
         $this->assertGuest('admin');
@@ -79,7 +79,7 @@ class AdminAuthTest extends TestCase
      */
     public function test_unauthenticated_admin_cannot_access_dashboard(): void
     {
-        $response = $this->get(route('admin.dashboard'));
-        $response->assertStatus(302);
+        $response = $this->get('/admin/dashboard');
+        $response->assertStatus(302); // Assert a redirect status without checking the target
     }
 } 

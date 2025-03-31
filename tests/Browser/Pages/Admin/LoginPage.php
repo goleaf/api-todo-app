@@ -14,7 +14,7 @@ class LoginPage extends Page
      */
     public function url()
     {
-        return '/admin/login';
+        return route('admin.login');
     }
 
     /**
@@ -56,6 +56,6 @@ class LoginPage extends Page
         $browser->type('@email', $email)
                 ->type('@password', $password)
                 ->press('@login-button')
-                ->waitForLocation('/admin/dashboard');
+                ->waitForLocation(route('admin.dashboard', [], false));
     }
 } 

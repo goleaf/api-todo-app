@@ -14,7 +14,7 @@ class DashboardPage extends Page
      */
     public function url()
     {
-        return '/admin/dashboard';
+        return route('admin.dashboard');
     }
 
     /**
@@ -43,10 +43,10 @@ class DashboardPage extends Page
             '@categories-card' => '#categories-card',
             '@tags-card' => '#tags-card',
             '@logout-button' => 'form[action$="logout"] button',
-            '@users-link' => 'a[href$="/admin/users"]',
-            '@categories-link' => 'a[href$="/admin/categories"]',
-            '@tags-link' => 'a[href$="/admin/tags"]',
-            '@tasks-link' => 'a[href$="/admin/tasks"]',
+            '@users-link' => 'a[href$="' . route('admin.users.index', [], false) . '"]',
+            '@categories-link' => 'a[href$="' . route('admin.categories.index', [], false) . '"]',
+            '@tags-link' => 'a[href$="' . route('admin.tags.index', [], false) . '"]',
+            '@tasks-link' => 'a[href$="' . route('admin.tasks.index', [], false) . '"]',
         ];
     }
 
