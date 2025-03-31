@@ -112,7 +112,7 @@
                 <label for="tags" class="form-label">Tags</label>
                 <select class="form-select @error('tags') is-invalid @enderror" id="tags" name="tags[]" multiple>
                     @foreach($tags as $tag)
-                        <option value="{{ $tag->id }}" {{ in_array($tag->id, old('tags', isset($task) && $task->tags ? $task->tags->pluck('id')->toArray() : [])) ? 'selected' : '' }}>
+                        <option value="{{ $tag->id }}" {{ in_array($tag->id, old('tags', isset($task) && isset($task->tags) ? (is_object($task->tags) ? $task->tags->pluck('id')->toArray() : (is_array($task->tags) ? array_column($task->tags, 'id') : [])) : [])) ? 'selected' : '' }}>
                             {{ $tag->name }}
                         </option>
                     @endforeach
@@ -140,7 +140,7 @@
         const categorySelect = document.getElementById('category_id');
         const tagSelect = document.getElementById('tags');
         const currentCategoryId = {{ isset($task) && $task->category_id ? $task->category_id : 'null' }};
-        const currentTagIds = {{ isset($task) && $task->tags ? json_encode($task->tags->pluck('id')) : '[]' }};
+        const currentTagIds = {{ isset($task) && isset($task->tags) ? (is_object($task->tags) ? json_encode($task->tags->pluck('id')) : (is_array($task->tags) ? json_encode(array_column($task->tags, 'id')) : '[]')) : '[]' }};
         
         userSelect.addEventListener('change', function() {
             const userId = this.value;

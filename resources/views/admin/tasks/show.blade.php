@@ -104,8 +104,8 @@
                 @if(isset($task->tags) && (is_object($task->tags) ? $task->tags->count() > 0 : !empty($task->tags)))
                     <div class="d-flex flex-wrap gap-2">
                         @foreach(is_object($task->tags) ? $task->tags : collect($task->tags) as $tag)
-                            <span class="badge" style="background-color: {{ $tag->color }}">
-                                {{ $tag->name }}
+                            <span class="badge" style="background-color: {{ is_object($tag) ? $tag->color : '#6c757d' }}">
+                                {{ is_object($tag) ? $tag->name : $tag }}
                             </span>
                         @endforeach
                     </div>
