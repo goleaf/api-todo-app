@@ -5,6 +5,10 @@ namespace App\Models;
 use App\Enums\TaskPriority;
 use App\Enums\TaskProgressStatus;
 use App\Enums\TaskStatus;
+use App\Events\TaskCompleted;
+use App\Events\TaskCreated;
+use App\Events\TaskDeleted;
+use App\Events\TaskUpdated;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -174,7 +178,33 @@ class Task extends Model
      */
     public function scopeWithTag(Builder $query, string $tag): Builder
     {
-        return $query->whereJsonContains('tags', $tag);
+        return $query->whereHas('tags', function ($query) use ($tag) {
+            $query->where('name', $tag);
+        });
+    }
+
+    /**
+     * Scope a query to only include tasks with any of the specified tag IDs.
+     */
+    public function scopeWithAnyTag(Builder $query, array $tagIds): Builder
+    {
+        return $query->whereHas('tags', function ($query) use ($tagIds) {
+            $query->whereIn('tags.id', $tagIds);
+        });
+    }
+
+    /**
+     * Scope a query to only include tasks with all of the specified tag IDs.
+     */
+    public function scopeWithAllTags(Builder $query, array $tagIds): Builder
+    {
+        foreach ($tagIds as $tagId) {
+            $query->whereHas('tags', function ($query) use ($tagId) {
+                $query->where('tags.id', $tagId);
+            });
+        }
+        
+        return $query;
     }
 
     /**
@@ -215,15 +245,22 @@ class Task extends Model
     }
 
     /**
-     * Toggle the completed status of the task.
+     * Toggle the completion status of a task.
      */
     public function toggleCompletion(): bool
     {
+        $wasCompleted = $this->completed;
         $this->completed = !$this->completed;
         $this->completed_at = $this->completed ? now() : null;
         $this->progress = $this->completed ? 100 : ($this->progress ?? 0);
         
-        return $this->save();
+        $saved = $this->save();
+        
+        if ($saved && $this->completed && !$wasCompleted) {
+            event(new TaskCompleted($this));
+        }
+        
+        return $saved;
     }
 
     /**
@@ -318,7 +355,13 @@ class Task extends Model
         $this->completed_at = now();
         $this->progress = 100;
         
-        return $this->save();
+        $saved = $this->save();
+        
+        if ($saved) {
+            event(new TaskCompleted($this));
+        }
+        
+        return $saved;
     }
 
     /**
@@ -333,11 +376,51 @@ class Task extends Model
     }
 
     /**
+     * Add multiple tags to the task.
+     */
+    public function addTags(array $tagIds): bool
+    {
+        $this->tags()->syncWithoutDetaching($tagIds);
+        return true;
+    }
+
+    /**
+     * Remove multiple tags from the task.
+     */
+    public function removeTags(array $tagIds): bool
+    {
+        $this->tags()->detach($tagIds);
+        return true;
+    }
+
+    /**
+     * Check if the task has a specific tag.
+     */
+    public function hasTag(int $tagId): bool
+    {
+        return $this->tags()->where('tags.id', $tagId)->exists();
+    }
+
+    /**
      * Boot the model.
      */
     protected static function boot()
     {
         parent::boot();
+
+        static::created(function ($task) {
+            event(new TaskCreated($task));
+        });
+
+        static::updated(function ($task) {
+            if ($task->wasChanged() && !$task->wasChanged('completed')) {
+                event(new TaskUpdated($task));
+            }
+        });
+
+        static::deleted(function ($task) {
+            event(new TaskDeleted($task));
+        });
 
         static::saved(function ($task) {
             // Clear any cached data related to this task

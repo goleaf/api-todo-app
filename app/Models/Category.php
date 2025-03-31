@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use App\Enums\CategoryType;
+use App\Events\CategoryCreated;
+use App\Events\CategoryDeleted;
+use App\Events\CategoryUpdated;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -176,5 +179,27 @@ class Category extends Model
                 $query->where('completed', true);
             }
         ]);
+    }
+    
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($category) {
+            event(new CategoryCreated($category));
+        });
+
+        static::updated(function ($category) {
+            if ($category->wasChanged()) {
+                event(new CategoryUpdated($category));
+            }
+        });
+
+        static::deleted(function ($category) {
+            event(new CategoryDeleted($category));
+        });
     }
 }
