@@ -56,4 +56,23 @@ class AdminLoginTest extends DuskTestCase
                     ->assertPathIs('/admin/dashboard');
         });
     }
+
+    /**
+     * Test admin logout functionality.
+     */
+    public function testAdminLogout()
+    {
+        $admin = User::where('role', 'admin')->first();
+
+        if (!$admin) {
+            $this->markTestSkipped('No admin user found in the database');
+        }
+
+        $this->browse(function (Browser $browser) use ($admin) {
+            $browser->loginAs($admin)
+                    ->visit(new Dashboard)
+                    ->logout()
+                    ->assertPathIs('/admin/login');
+        });
+    }
 } 

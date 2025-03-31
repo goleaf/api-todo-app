@@ -25,7 +25,8 @@ class LoginPage extends Page
      */
     public function assert(Browser $browser)
     {
-        $browser->assertPathIs($this->url());
+        $browser->assertPathIs($this->url())
+                ->assertSee('Login to Admin Panel');
     }
 
     /**
@@ -38,22 +39,23 @@ class LoginPage extends Page
         return [
             '@email' => 'input[name=email]',
             '@password' => 'input[name=password]',
-            '@login' => 'button[type=submit]',
+            '@login-button' => 'button[type=submit]',
         ];
     }
 
     /**
-     * Login as admin
+     * Login as an admin user.
      *
-     * @param Browser $browser
-     * @param string $email
-     * @param string $password
+     * @param  Browser  $browser
+     * @param  string  $email
+     * @param  string  $password
      * @return void
      */
-    public function login(Browser $browser, $email, $password)
+    public function loginAsAdmin(Browser $browser, $email, $password)
     {
         $browser->type('@email', $email)
                 ->type('@password', $password)
-                ->click('@login');
+                ->press('@login-button')
+                ->waitForLocation('/admin/dashboard');
     }
 } 

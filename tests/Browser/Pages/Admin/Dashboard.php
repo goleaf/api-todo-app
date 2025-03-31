@@ -42,6 +42,7 @@ class Dashboard extends Page
             '@tasks-card' => '#tasks-card',
             '@categories-card' => '#categories-card',
             '@tags-card' => '#tags-card',
+            '@logout-button' => 'form[action$="logout"] button',
         ];
     }
 
@@ -87,5 +88,16 @@ class Dashboard extends Page
     public function navigateToTags(Browser $browser)
     {
         $browser->clickLink('Tags');
+    }
+    
+    /**
+     * Logout the admin user.
+     *
+     * @param  Browser  $browser
+     * @return void
+     */
+    public function logout(Browser $browser)
+    {
+        $browser->click('@logout-button');
     }
 } 
