@@ -32,63 +32,38 @@
             </div>
             
             <!-- Task Statistics -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <!-- Total Tasks -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg transform transition-all hover:scale-105">
-                    <div class="p-6">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 mr-4 bg-indigo-100 dark:bg-indigo-900 p-3 rounded-full">
-                                <i class="fas fa-tasks text-indigo-600 dark:text-indigo-400 text-xl"></i>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Tasks</p>
-                                <p class="text-3xl font-semibold text-gray-900 dark:text-white">{{ $stats['total'] }}</p>
-                            </div>
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                <div class="p-6 bg-white border-b border-gray-200">
+                    <h2 class="text-xl font-semibold mb-4">Task Statistics</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <!-- Total Tasks -->
+                        <div class="bg-blue-50 p-4 rounded-lg shadow">
+                            <h3 class="text-blue-700 text-lg font-medium">Total Tasks</h3>
+                            <p class="text-3xl font-bold">{{ $taskStats['total'] }}</p>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Completed Tasks -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg transform transition-all hover:scale-105">
-                    <div class="p-6">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 mr-4 bg-green-100 dark:bg-green-900 p-3 rounded-full">
-                                <i class="fas fa-check text-green-600 dark:text-green-400 text-xl"></i>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Completed</p>
-                                <p class="text-3xl font-semibold text-gray-900 dark:text-white">{{ $stats['completed'] }}</p>
-                            </div>
+                        
+                        <!-- Completed Tasks -->
+                        <div class="bg-green-50 p-4 rounded-lg shadow">
+                            <h3 class="text-green-700 text-lg font-medium">Completed</h3>
+                            <p class="text-3xl font-bold">{{ $taskStats['completed'] }}</p>
+                            <p class="text-sm text-gray-500">
+                                {{ $taskStats['total'] > 0 
+                                    ? round(($taskStats['completed'] / $taskStats['total']) * 100) 
+                                    : 0 }}% of all tasks
+                            </p>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Pending Tasks -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg transform transition-all hover:scale-105">
-                    <div class="p-6">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 mr-4 bg-blue-100 dark:bg-blue-900 p-3 rounded-full">
-                                <i class="fas fa-clock text-blue-600 dark:text-blue-400 text-xl"></i>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Pending</p>
-                                <p class="text-3xl font-semibold text-gray-900 dark:text-white">{{ $stats['pending'] }}</p>
-                            </div>
+                        
+                        <!-- Pending Tasks -->
+                        <div class="bg-yellow-50 p-4 rounded-lg shadow">
+                            <h3 class="text-yellow-700 text-lg font-medium">Pending</h3>
+                            <p class="text-3xl font-bold">{{ $taskStats['pending'] }}</p>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Overdue Tasks -->
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg transform transition-all hover:scale-105">
-                    <div class="p-6">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 mr-4 bg-red-100 dark:bg-red-900 p-3 rounded-full">
-                                <i class="fas fa-exclamation-triangle text-red-600 dark:text-red-400 text-xl"></i>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Overdue</p>
-                                <p class="text-3xl font-semibold text-gray-900 dark:text-white">{{ $stats['overdue'] }}</p>
-                            </div>
+                        
+                        <!-- Overdue Tasks -->
+                        <div class="bg-red-50 p-4 rounded-lg shadow">
+                            <h3 class="text-red-700 text-lg font-medium">Overdue</h3>
+                            <p class="text-3xl font-bold">{{ $taskStats['overdue'] }}</p>
                         </div>
                     </div>
                 </div>
@@ -105,7 +80,7 @@
                         
                         <div class="mb-2 flex justify-between">
                             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ $completionRate }}% Complete</span>
-                            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $stats['completed'] }}/{{ $stats['total'] }}</span>
+                            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ $taskStats['completed'] }}/{{ $taskStats['total'] }}</span>
                         </div>
                         
                         <div class="relative pt-1">
@@ -114,7 +89,7 @@
                             </div>
                         </div>
                         
-                        @if($stats['total'] === 0)
+                        @if($taskStats['total'] === 0)
                             <p class="text-sm text-gray-500 dark:text-gray-400 text-center mt-4">
                                 No tasks created yet. Create some tasks to see statistics.
                             </p>
@@ -144,7 +119,7 @@
                                         </div>
                                         <div class="relative pt-1">
                                             <div class="overflow-hidden h-2 mb-4 text-xs flex rounded-full bg-gray-200 dark:bg-gray-700">
-                                                <div style="width:{{ ($category['task_count'] / $stats['total']) * 100 }}%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-{{ $category['color'] ?? 'purple' }}-600 dark:bg-{{ $category['color'] ?? 'purple' }}-500 rounded-full"></div>
+                                                <div style="width:{{ ($category['task_count'] / $taskStats['total']) * 100 }}%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-{{ $category['color'] ?? 'purple' }}-600 dark:bg-{{ $category['color'] ?? 'purple' }}-500 rounded-full"></div>
                                             </div>
                                         </div>
                                     </div>

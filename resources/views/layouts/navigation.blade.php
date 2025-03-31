@@ -20,7 +20,11 @@
         {{ __('Hypervel Demo') }}
     </x-nav-link>
     
-    <x-nav-link :href="route('todomvc')" :active="request()->routeIs('todomvc')">
+    <x-nav-link :href="route('taskmvc')" :active="request()->routeIs('taskmvc')">
         {{ __('TaskMVC') }}
+    </x-nav-link>
+
+    <x-nav-link :href="route('tasks.bulk')" :active="request()->routeIs('tasks.bulk')">
+        {{ __('Bulk Tasks') }}
     </x-nav-link>
 </div> 
