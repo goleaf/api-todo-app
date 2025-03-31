@@ -2,14 +2,17 @@
 
 namespace Tests\Browser\Admin;
 
-use App\Models\User;
+use App\Models\Admin;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\Dusk\Browser;
-use Tests\Browser\Pages\Admin\Dashboard;
+use Tests\Browser\Pages\Admin\DashboardPage;
 use Tests\Browser\Pages\Admin\LoginPage;
 use Tests\DuskTestCase;
 
 class AdminDashboardTest extends DuskTestCase
 {
+    use DatabaseMigrations;
+
     /**
      * Test dashboard page loads after login
      *
@@ -17,16 +20,12 @@ class AdminDashboardTest extends DuskTestCase
      */
     public function testDashboardPageLoads()
     {
-        $admin = User::where('role', 'admin')->first();
-
-        if (!$admin) {
-            $this->markTestSkipped('No admin user found in the database');
-        }
+        $admin = Admin::factory()->create();
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->visit(new LoginPage)
                     ->loginAsAdmin($admin->email, 'password')
-                    ->on(new Dashboard)
+                    ->on(new DashboardPage)
                     ->assertSee('Dashboard');
         });
     }
@@ -38,15 +37,12 @@ class AdminDashboardTest extends DuskTestCase
      */
     public function testNavigationToUsers()
     {
-        $admin = User::where('role', 'admin')->first();
-
-        if (!$admin) {
-            $this->markTestSkipped('No admin user found in the database');
-        }
+        $admin = Admin::factory()->create();
 
         $this->browse(function (Browser $browser) use ($admin) {
-            $browser->loginAs($admin)
-                    ->visit(new Dashboard)
+            $browser->visit(new LoginPage)
+                    ->loginAsAdmin($admin->email, 'password')
+                    ->visit(new DashboardPage)
                     ->navigateToUsers()
                     ->assertPathIs('/admin/users')
                     ->assertSee('Users');
@@ -60,15 +56,12 @@ class AdminDashboardTest extends DuskTestCase
      */
     public function testNavigationToCategories()
     {
-        $admin = User::where('role', 'admin')->first();
-
-        if (!$admin) {
-            $this->markTestSkipped('No admin user found in the database');
-        }
+        $admin = Admin::factory()->create();
 
         $this->browse(function (Browser $browser) use ($admin) {
-            $browser->loginAs($admin)
-                    ->visit(new Dashboard)
+            $browser->visit(new LoginPage)
+                    ->loginAsAdmin($admin->email, 'password')
+                    ->visit(new DashboardPage)
                     ->navigateToCategories()
                     ->assertPathIs('/admin/categories')
                     ->assertSee('Categories');
@@ -82,15 +75,12 @@ class AdminDashboardTest extends DuskTestCase
      */
     public function testNavigationToTags()
     {
-        $admin = User::where('role', 'admin')->first();
-
-        if (!$admin) {
-            $this->markTestSkipped('No admin user found in the database');
-        }
+        $admin = Admin::factory()->create();
 
         $this->browse(function (Browser $browser) use ($admin) {
-            $browser->loginAs($admin)
-                    ->visit(new Dashboard)
+            $browser->visit(new LoginPage)
+                    ->loginAsAdmin($admin->email, 'password')
+                    ->visit(new DashboardPage)
                     ->navigateToTags()
                     ->assertPathIs('/admin/tags')
                     ->assertSee('Tags');
@@ -104,15 +94,12 @@ class AdminDashboardTest extends DuskTestCase
      */
     public function testNavigationToTasks()
     {
-        $admin = User::where('role', 'admin')->first();
-
-        if (!$admin) {
-            $this->markTestSkipped('No admin user found in the database');
-        }
+        $admin = Admin::factory()->create();
 
         $this->browse(function (Browser $browser) use ($admin) {
-            $browser->loginAs($admin)
-                    ->visit(new Dashboard)
+            $browser->visit(new LoginPage)
+                    ->loginAsAdmin($admin->email, 'password')
+                    ->visit(new DashboardPage)
                     ->navigateToTasks()
                     ->assertPathIs('/admin/tasks')
                     ->assertSee('Tasks');
@@ -126,15 +113,12 @@ class AdminDashboardTest extends DuskTestCase
      */
     public function testAdminLogout()
     {
-        $admin = User::where('role', 'admin')->first();
-
-        if (!$admin) {
-            $this->markTestSkipped('No admin user found in the database');
-        }
+        $admin = Admin::factory()->create();
 
         $this->browse(function (Browser $browser) use ($admin) {
-            $browser->loginAs($admin)
-                    ->visit(new Dashboard)
+            $browser->visit(new LoginPage)
+                    ->loginAsAdmin($admin->email, 'password')
+                    ->visit(new DashboardPage)
                     ->logout()
                     ->assertPathIs('/admin/login');
         });
@@ -145,14 +129,11 @@ class AdminDashboardTest extends DuskTestCase
      */
     public function testDashboardChartDataApi()
     {
-        $admin = User::where('role', 'admin')->first();
-
-        if (!$admin) {
-            $this->markTestSkipped('No admin user found in the database');
-        }
+        $admin = Admin::factory()->create();
 
         $this->browse(function (Browser $browser) use ($admin) {
-            $browser->loginAs($admin)
+            $browser->visit(new LoginPage)
+                    ->loginAsAdmin($admin->email, 'password')
                     ->visit('/admin/dashboard')
                     ->pause(1000) // Wait for any JavaScript to load
                     
