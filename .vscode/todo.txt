@@ -39,7 +39,6 @@ try to integrate this all packages:
     https://laravel-news.com/laravel-user-monitoring
     https://laravel-news.com/manage-user-browser-sessions-in-laravel
     https://laravel-news.com/lara-date-filter
-    https://laravel-news.com/laravel-rest-api rewrite wxisting api with this package and make tests
     https://laravel-news.com/laravel-lif
     https://laravel-news.com/enumconcern
     https://laravel-news.com/bolt-form-builder
@@ -55,6 +54,7 @@ try to integrate this all packages:
     https://laravel-news.com/banhammer
     https://laravel-news.com/laravel-log-reader
     https://laravel-news.com/laravel-populated-factory
+    [DONE] https://laravel-news.com/laravel-rest-api rewrite existing api with this package and make tests
     ✅ https://laravel-news.com/laravel-scopes-generator
     ✅ https://laravel-news.com/laravel-model-info
     ✅ https://laravel-news.com/laravel-drafts
