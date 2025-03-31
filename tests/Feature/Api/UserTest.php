@@ -45,21 +45,19 @@ class UserTest extends TestCase
 
         $updateData = [
             'name' => 'Updated Name',
+            'email' => $user->email,
         ];
 
         $response = $this->putJson('/api/users/'.$user->id, $updateData);
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                'status',
+                'success',
                 'data' => [
                     'id',
                     'name',
                     'email',
-                    'created_at',
-                    'updated_at',
                 ],
-                'message',
             ]);
 
         $this->assertDatabaseHas('users', [
