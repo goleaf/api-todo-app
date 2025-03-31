@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Enums\TaskPriority;
 use App\Models\Category;
+use App\Models\Tag;
 use App\Models\Task;
 use App\Models\User;
 use Carbon\Carbon;
@@ -15,210 +17,55 @@ class TaskSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get all users
-        $users = User::all();
-
-        foreach ($users as $user) {
-            // Get user's categories
+        // Create random tasks for each user
+        User::all()->each(function (User $user) {
+            // Get all categories for this user
             $categories = Category::where('user_id', $user->id)->get();
-
-            if ($categories->isEmpty()) {
-                continue; // Skip users without categories
+            $tags = Tag::where('user_id', $user->id)->get();
+            
+            // Create between 15-30 tasks per user
+            $taskCount = fake()->numberBetween(15, 30);
+            
+            for ($i = 0; $i < $taskCount; $i++) {
+                // Determine if task is completed
+                $completed = fake()->boolean(30); // 30% chance of being completed
+                
+                // Create random due date (past, today, future)
+                $dueOption = fake()->randomElement(['past', 'today', 'future', null]);
+                $dueDate = null;
+                
+                if ($dueOption === 'past') {
+                    $dueDate = Carbon::now()->subDays(fake()->numberBetween(1, 14));
+                } elseif ($dueOption === 'today') {
+                    $dueDate = Carbon::today();
+                } elseif ($dueOption === 'future') {
+                    $dueDate = Carbon::now()->addDays(fake()->numberBetween(1, 30));
+                }
+                
+                // Randomly select a category
+                $category = $categories->random();
+                
+                // Create task
+                $task = Task::create([
+                    'title' => fake()->sentence(fake()->numberBetween(3, 8)),
+                    'description' => fake()->boolean(70) ? fake()->paragraph() : null,
+                    'due_date' => $dueDate,
+                    'priority' => fake()->randomElement(TaskPriority::cases()),
+                    'completed' => $completed,
+                    'user_id' => $user->id,
+                    'category_id' => $category->id,
+                    'notes' => fake()->boolean(30) ? fake()->paragraphs(2, true) : null,
+                    'progress' => $completed ? 100 : fake()->numberBetween(0, 90),
+                    'completed_at' => $completed ? Carbon::now()->subDays(fake()->numberBetween(0, 5)) : null,
+                ]);
+                
+                // Attach random tags (0-3)
+                $tagCount = fake()->numberBetween(0, 3);
+                if ($tagCount > 0 && $tags->count() > 0) {
+                    $randomTags = $tags->random(min($tagCount, $tags->count()))->pluck('id')->toArray();
+                    $task->tags()->attach($randomTags);
+                }
             }
-
-            // Create predefined tasks with varied properties
-            $this->createPredefinedTasksForUser($user, $categories);
-
-            // Create some additional random tasks
-            $this->createRandomTasksForUser($user, $categories);
-        }
-    }
-
-    /**
-     * Create predefined tasks for a user
-     */
-    private function createPredefinedTasksForUser($user, $categories)
-    {
-        // Get category IDs for easier use
-        $categoryIds = $categories->pluck('id')->toArray();
-
-        // Create a set of predefined tasks
-        $tasks = [
-            [
-                'title' => 'Finalize project proposal',
-                'description' => 'Complete the draft of the project proposal including budget and timeline',
-                'due_date' => Carbon::now()->addDays(3),
-                'priority' => 2, // High
-                'completed' => false,
-                'category_id' => $this->getCategoryByName($categories, 'Work'),
-                'tags' => ['project', 'important', 'deadline'],
-                'progress' => 75,
-            ],
-            [
-                'title' => 'Schedule dentist appointment',
-                'description' => 'Call dentist office for annual checkup',
-                'due_date' => Carbon::now()->addDays(7),
-                'priority' => 1, // Medium
-                'completed' => false,
-                'category_id' => $this->getCategoryByName($categories, 'Health'),
-                'tags' => ['health', 'routine'],
-                'reminder_at' => Carbon::now()->addDays(6)->setHour(9)->setMinute(0),
-                'progress' => 0,
-            ],
-            [
-                'title' => 'Submit expense report',
-                'description' => 'Upload receipts and complete expense form for business trip',
-                'due_date' => Carbon::now()->addDay(),
-                'priority' => 2, // High
-                'completed' => false,
-                'category_id' => $this->getCategoryByName($categories, 'Work'),
-                'tags' => ['finance', 'reports', 'urgent'],
-                'progress' => 50,
-            ],
-            [
-                'title' => 'Complete online course module',
-                'description' => 'Finish Module 3 of the Advanced Programming course',
-                'due_date' => Carbon::now()->addDays(5),
-                'priority' => 1, // Medium
-                'completed' => false,
-                'category_id' => $this->getCategoryByName($categories, 'Education'),
-                'tags' => ['learning', 'programming'],
-                'progress' => 25,
-            ],
-            [
-                'title' => 'Pay utilities bill',
-                'description' => 'Pay water and electricity bill for the month',
-                'due_date' => Carbon::now()->addDays(2),
-                'priority' => 2, // High
-                'completed' => false,
-                'category_id' => $this->getCategoryByName($categories, 'Finance'),
-                'reminder_at' => Carbon::now()->addDays(1)->setHour(15)->setMinute(0),
-                'tags' => ['bills', 'monthly'],
-                'progress' => 0,
-            ],
-            [
-                'title' => 'Completed Task Example',
-                'description' => 'This is an example of a completed task',
-                'due_date' => Carbon::now()->subDays(1),
-                'priority' => 0, // Low
-                'completed' => true,
-                'completed_at' => Carbon::now()->subHours(5),
-                'category_id' => $this->getCategoryByName($categories, 'Personal'),
-                'tags' => ['example', 'complete'],
-                'progress' => 100,
-            ],
-        ];
-
-        // Create the tasks
-        foreach ($tasks as $task) {
-            Task::create(array_merge($task, ['user_id' => $user->id]));
-        }
-    }
-
-    /**
-     * Create random tasks for a user
-     */
-    private function createRandomTasksForUser($user, $categories)
-    {
-        $priorities = [0, 1, 2]; // Low, Medium, High
-        $categoryIds = $categories->pluck('id')->toArray();
-
-        // Create 3-6 random tasks
-        $count = rand(3, 6);
-        for ($i = 0; $i < $count; $i++) {
-            $completed = rand(0, 1) === 1;
-            $progress = $completed ? 100 : rand(0, 90);
-
-            // Create task with random properties
-            Task::create([
-                'user_id' => $user->id,
-                'title' => 'Task '.($i + 1).' - '.$this->getRandomTaskTitle(),
-                'description' => $this->getRandomTaskDescription(),
-                'due_date' => Carbon::now()->addDays(rand(-5, 14)),
-                'priority' => $priorities[array_rand($priorities)],
-                'completed' => $completed,
-                'completed_at' => $completed ? Carbon::now()->subHours(rand(1, 100)) : null,
-                'category_id' => $categoryIds[array_rand($categoryIds)],
-                'tags' => $this->getRandomTags(),
-                'progress' => $progress,
-                'reminder_at' => rand(0, 1) === 1 ? Carbon::now()->addDays(rand(1, 5)) : null,
-            ]);
-        }
-    }
-
-    /**
-     * Get a category ID by name
-     */
-    private function getCategoryByName($categories, $name)
-    {
-        $category = $categories->where('name', $name)->first();
-
-        return $category ? $category->id : $categories->first()->id;
-    }
-
-    /**
-     * Get a random task title
-     */
-    private function getRandomTaskTitle()
-    {
-        $titles = [
-            'Review document',
-            'Prepare presentation',
-            'Call client',
-            'Research new tools',
-            'Update website',
-            'Plan meeting',
-            'Order supplies',
-            'Send email follow-up',
-            'Organize files',
-            'Clean workspace',
-        ];
-
-        return $titles[array_rand($titles)];
-    }
-
-    /**
-     * Get a random task description
-     */
-    private function getRandomTaskDescription()
-    {
-        $descriptions = [
-            'This task needs to be completed soon',
-            'Make sure to check all the details before submitting',
-            'Follow up with the team for feedback',
-            'Requires focused concentration',
-            'Should take about 30 minutes to complete',
-            'An important task that will help project progress',
-            'Remember to document all steps taken',
-            'Coordinate with relevant team members',
-            'Check resources before starting',
-            'May need approval from management',
-        ];
-
-        return $descriptions[array_rand($descriptions)];
-    }
-
-    /**
-     * Get random tags for a task
-     */
-    private function getRandomTags()
-    {
-        $allTags = [
-            'urgent', 'important', 'routine', 'follow-up', 'meeting',
-            'client', 'internal', 'planning', 'review', 'documentation',
-            'research', 'development', 'design', 'testing', 'deployment',
-            'admin', 'personal', 'team', 'project', 'quarterly',
-        ];
-
-        // Get 0-3 random tags
-        $tagCount = rand(0, 3);
-        if ($tagCount === 0) {
-            return [];
-        }
-
-        // Shuffle and take the first $tagCount elements
-        shuffle($allTags);
-
-        return array_slice($allTags, 0, $tagCount);
+        });
     }
 }

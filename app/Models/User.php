@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class User extends Authenticatable
 {
@@ -26,7 +28,6 @@ class User extends Authenticatable
         'password',
         'profile_photo_path',
         'photo_path',
-        'role',
     ];
 
     /**
@@ -47,7 +48,6 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'role' => UserRole::class,
     ];
 
     /**
@@ -94,21 +94,11 @@ class User extends Authenticatable
     /**
      * Get the user's photo URL.
      */
-    public function getPhotoUrlAttribute()
+    protected function photoUrl(): Attribute
     {
-        if ($this->photo_path) {
-            return asset('storage/'.$this->photo_path);
-        }
-
-        return null;
-    }
-
-    /**
-     * Determine if the user is an admin.
-     */
-    public function isAdmin(): bool
-    {
-        return $this->role === UserRole::ADMIN;
+        return Attribute::make(
+            get: fn () => $this->photo_path ? asset('storage/'.$this->photo_path) : null,
+        );
     }
 
     /**
@@ -156,9 +146,10 @@ class User extends Authenticatable
      */
     public function scopeSearch(Builder $query, string $search): Builder
     {
+        $search = '%' . $search . '%';
         return $query->where(function ($query) use ($search) {
-            $query->where('name', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%");
+            $query->where('name', 'like', $search)
+                ->orWhere('email', 'like', $search);
         });
     }
 
@@ -175,22 +166,43 @@ class User extends Authenticatable
      */
     public function getTaskStatistics(): array
     {
-        $total = $this->tasks()->count();
-        $completed = $this->completedTasks()->count();
+        // Use a single query to get task counts by completion status
+        $taskCounts = $this->tasks()
+            ->select(
+                DB::raw('COUNT(*) as total'),
+                DB::raw('SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed'),
+                DB::raw('SUM(CASE WHEN completed = 0 THEN 1 ELSE 0 END) as incomplete')
+            )
+            ->first();
+            
+        // Get counts for specific task types
+        $todayCount = $this->tasksDueToday()->count();
+        $overdueCount = $this->overdueTasks()->count();
+        $upcomingCount = $this->upcomingTasks()->count();
+        
+        // Get priority counts in a single query
+        $priorityCounts = $this->tasks()
+            ->select('priority', DB::raw('COUNT(*) as count'))
+            ->groupBy('priority')
+            ->pluck('count', 'priority')
+            ->toArray();
+            
+        $total = $taskCounts->total ?? 0;
+        $completed = $taskCounts->completed ?? 0;
         
         return [
             'total' => $total,
             'completed' => $completed,
-            'incomplete' => $total - $completed,
-            'today' => $this->tasksDueToday()->count(),
-            'overdue' => $this->overdueTasks()->count(),
-            'upcoming' => $this->upcomingTasks()->count(),
+            'incomplete' => $taskCounts->incomplete ?? 0,
+            'today' => $todayCount,
+            'overdue' => $overdueCount,
+            'upcoming' => $upcomingCount,
             'completion_rate' => $total > 0 ? round(($completed / $total) * 100, 1) : 0,
             'by_priority' => [
-                '1' => $this->tasks()->withPriority(1)->count(),
-                '2' => $this->tasks()->withPriority(2)->count(),
-                '3' => $this->tasks()->withPriority(3)->count(),
-                '4' => $this->tasks()->withPriority(4)->count(),
+                '1' => $priorityCounts[1] ?? 0,
+                '2' => $priorityCounts[2] ?? 0,
+                '3' => $priorityCounts[3] ?? 0,
+                '4' => $priorityCounts[4] ?? 0,
             ],
             'by_category' => $this->getCategoryStatistics(),
         ];
@@ -202,16 +214,21 @@ class User extends Authenticatable
     private function getCategoryStatistics(): array
     {
         $result = [];
-        $categories = $this->categories()->get();
         
-        foreach ($categories as $category) {
+        // Use a join to get category counts in a single query
+        $categoryCounts = Category::select('categories.id', 'categories.name', DB::raw('COUNT(tasks.id) as count'))
+            ->leftJoin('tasks', 'categories.id', '=', 'tasks.category_id')
+            ->where('categories.user_id', $this->id)
+            ->groupBy('categories.id', 'categories.name')
+            ->get();
+            
+        foreach ($categoryCounts as $category) {
             $result[$category->id] = [
                 'name' => $category->name,
-                'count' => $category->tasks()->count(),
+                'count' => $category->count,
             ];
         }
         
         return $result;
     }
 }
-

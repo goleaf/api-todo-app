@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Api\User\UserPasswordUpdateRequest;
+use App\Http\Requests\Api\User\UserPhotoUploadRequest;
 use App\Http\Requests\Api\User\UserProfileUpdateRequest;
 use App\Http\Requests\Api\User\UserStoreRequest;
 use App\Services\Api\UserService;
@@ -89,7 +90,7 @@ class UserApiController extends ApiController
     /**
      * Upload a profile photo.
      */
-    public function uploadPhoto(Request $request): JsonResponse
+    public function uploadPhoto(UserPhotoUploadRequest $request): JsonResponse
     {
         return $this->service->uploadPhoto($request);
     }

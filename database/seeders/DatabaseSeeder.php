@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
 
 class DatabaseSeeder extends Seeder
 {
@@ -11,19 +12,27 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Call UserSeeder to create initial users
-        $this->call(UserSeeder::class);
-
-        // Call CategorySeeder to create initial categories
-        $this->call(CategorySeeder::class);
-
-        // Call TodoSeeder to create initial tasks
-        $this->call(TodoSeeder::class);
-
-        // Only use TaskSeeder if TodoSeeder didn't create any tasks
-        // This is a fallback and can be removed when TodoSeeder is fully working
-        if (\App\Models\Task::count() === 0) {
-            $this->call(TaskSeeder::class);
-        }
+        // Disable foreign key constraints
+        Schema::disableForeignKeyConstraints();
+        
+        // Truncate tables
+        \App\Models\User::truncate();
+        \App\Models\Admin::truncate();
+        \App\Models\Category::truncate();
+        \App\Models\Tag::truncate();
+        \App\Models\Task::truncate();
+        \DB::table('task_tag')->truncate();
+        
+        // Enable foreign key constraints
+        Schema::enableForeignKeyConstraints();
+        
+        // Run all seeders in the correct order
+        $this->call([
+            AdminSeeder::class,
+            UserSeeder::class,
+            CategorySeeder::class,
+            TagSeeder::class,
+            TaskSeeder::class,
+        ]);
     }
 }

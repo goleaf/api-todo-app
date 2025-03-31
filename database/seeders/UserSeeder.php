@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UserSeeder extends Seeder
 {
@@ -13,26 +14,16 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Delete any existing users to avoid conflicts
-        User::truncate();
-
-        // Create an admin user
-        User::factory()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password'),
-        ]);
-
-        // Create a test user
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password' => Hash::make('password'),
-        ]);
-
-        // Create 8 more regular users
-        User::factory()
-            ->count(8)
-            ->create();
+        // Create 10 random users with usernames as emails
+        for ($i = 1; $i <= 10; $i++) {
+            $username = 'user' . $i;
+            User::create([
+                'name' => 'Test User ' . $i,
+                'email' => $username . '@example.com',
+                'password' => Hash::make('password123'),
+                'email_verified_at' => now(),
+                'remember_token' => Str::random(10),
+            ]);
+        }
     }
 }

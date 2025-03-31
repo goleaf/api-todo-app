@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\Cache;
 
 class Task extends Model
 {
@@ -33,6 +36,7 @@ class Task extends Model
         'notes',
         'attachments',
         'progress',
+        'completed_at',
     ];
 
     /**
@@ -46,6 +50,7 @@ class Task extends Model
         'priority' => TaskPriority::class,
         'tags' => 'array',
         'attachments' => 'array',
+        'completed_at' => 'datetime',
     ];
 
     /**
@@ -54,6 +59,19 @@ class Task extends Model
      * @var array<int, string>
      */
     protected $with = ['category'];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'formatted_due_date',
+        'priority_label',
+        'priority_color',
+        'status',
+        'progress_status',
+    ];
 
     /**
      * Get the user that owns the task.
@@ -69,6 +87,14 @@ class Task extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Get the tags associated with the task.
+     */
+    public function tags(): BelongsToMany
+    {
+        return $this->belongsToMany(Tag::class, 'task_tag');
     }
 
     /**
@@ -117,6 +143,7 @@ class Task extends Model
     public function scopeOverdue(Builder $query): Builder
     {
         return $query->where('completed', false)
+            ->whereNotNull('due_date')
             ->where('due_date', '<', Carbon::today());
     }
 
@@ -126,6 +153,7 @@ class Task extends Model
     public function scopeUpcoming(Builder $query, int $days = 7): Builder
     {
         return $query->where('completed', false)
+            ->whereNotNull('due_date')
             ->whereBetween('due_date', [
                 Carbon::today(),
                 Carbon::today()->addDays($days),
@@ -135,9 +163,10 @@ class Task extends Model
     /**
      * Scope a query to only include tasks with a specific priority.
      */
-    public function scopeWithPriority(Builder $query, int $priority): Builder
+    public function scopeWithPriority(Builder $query, int|TaskPriority $priority): Builder
     {
-        return $query->where('priority', $priority);
+        $priorityValue = $priority instanceof TaskPriority ? $priority->value : $priority;
+        return $query->where('priority', $priorityValue);
     }
 
     /**
@@ -145,7 +174,7 @@ class Task extends Model
      */
     public function scopeWithTag(Builder $query, string $tag): Builder
     {
-        return $query->where('tags', 'like', '%"'.$tag.'"%');
+        return $query->whereJsonContains('tags', $tag);
     }
 
     /**
@@ -177,10 +206,11 @@ class Task extends Model
      */
     public function scopeSearch(Builder $query, string $search): Builder
     {
-        return $query->where(function ($query) use ($search) {
-            $query->where('title', 'like', "%{$search}%")
-                ->orWhere('description', 'like', "%{$search}%")
-                ->orWhere('notes', 'like', "%{$search}%");
+        $searchTerm = '%' . $search . '%';
+        return $query->where(function ($query) use ($searchTerm) {
+            $query->where('title', 'like', $searchTerm)
+                ->orWhere('description', 'like', $searchTerm)
+                ->orWhere('notes', 'like', $searchTerm);
         });
     }
 
@@ -189,8 +219,10 @@ class Task extends Model
      */
     public function toggleCompletion(): bool
     {
-        $this->completed = ! $this->completed;
-
+        $this->completed = !$this->completed;
+        $this->completed_at = $this->completed ? now() : null;
+        $this->progress = $this->completed ? 100 : ($this->progress ?? 0);
+        
         return $this->save();
     }
 
@@ -199,11 +231,11 @@ class Task extends Model
      */
     public function isOverdue(): bool
     {
-        if ($this->completed) {
+        if ($this->completed || !$this->due_date) {
             return false;
         }
 
-        return $this->due_date && $this->due_date->isPast();
+        return $this->due_date->isPast();
     }
 
     /**
@@ -219,7 +251,7 @@ class Task extends Model
      */
     public function isUpcoming(int $days = 7): bool
     {
-        if (! $this->due_date || $this->completed) {
+        if (!$this->due_date || $this->completed) {
             return false;
         }
 
@@ -230,41 +262,51 @@ class Task extends Model
     /**
      * Get the formatted due date.
      */
-    public function getFormattedDueDateAttribute(): ?string
+    protected function formattedDueDate(): Attribute
     {
-        return $this->due_date ? $this->due_date->format('Y-m-d') : null;
+        return Attribute::make(
+            get: fn () => $this->due_date ? $this->due_date->format('Y-m-d') : null,
+        );
     }
 
     /**
      * Get the priority label.
      */
-    public function getPriorityLabelAttribute(): string
+    protected function priorityLabel(): Attribute
     {
-        return $this->priority ? $this->priority->label() : 'None';
+        return Attribute::make(
+            get: fn () => $this->priority ? $this->priority->label() : 'None',
+        );
     }
 
     /**
      * Get the priority color.
      */
-    public function getPriorityColorAttribute(): string
+    protected function priorityColor(): Attribute
     {
-        return $this->priority ? $this->priority->color() : 'secondary';
+        return Attribute::make(
+            get: fn () => $this->priority ? $this->priority->color() : 'secondary',
+        );
     }
 
     /**
      * Get the status enum for this task.
      */
-    public function getStatusAttribute(): TaskStatus
+    protected function status(): Attribute
     {
-        return $this->completed ? TaskStatus::COMPLETE : TaskStatus::INCOMPLETE;
+        return Attribute::make(
+            get: fn () => $this->completed ? TaskStatus::COMPLETE : TaskStatus::INCOMPLETE,
+        );
     }
 
     /**
      * Get the progress status enum for this task.
      */
-    public function getProgressStatusAttribute(): TaskProgressStatus
+    protected function progressStatus(): Attribute
     {
-        return TaskProgressStatus::fromPercentage($this->progress ?? 0);
+        return Attribute::make(
+            get: fn () => TaskProgressStatus::fromPercentage($this->progress ?? 0),
+        );
     }
 
     /**
@@ -288,5 +330,25 @@ class Task extends Model
         $this->completed_at = null;
         
         return $this->save();
+    }
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saved(function ($task) {
+            // Clear any cached data related to this task
+            $cacheKeys = [
+                "user.{$task->user_id}.tasks",
+                "category.{$task->category_id}.tasks",
+            ];
+            
+            foreach ($cacheKeys as $key) {
+                Cache::forget($key);
+            }
+        });
     }
 }

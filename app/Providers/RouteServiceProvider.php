@@ -33,9 +33,13 @@ class RouteServiceProvider extends ServiceProvider
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
 
-            // Web routes are disabled - this is an API-only application
-            // Route::middleware('web')
-            //     ->group(base_path('routes/web.php'));
+            // Enable web routes for admin panel
+            Route::middleware('web')
+                ->group(base_path('routes/web.php'));
+            
+            // Admin routes
+            Route::middleware('web')
+                ->group(base_path('routes/admin.php'));
         });
     }
 }

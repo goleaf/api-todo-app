@@ -97,8 +97,17 @@ class TaskService
         if (!isset($data['progress'])) {
             $data['progress'] = 0;
         }
+        
+        // Extract tags to handle separately
+        $tagNames = $data['tags'] ?? [];
+        unset($data['tags']);
 
         $task = Task::create($data);
+        
+        // Handle tags
+        if (!empty($tagNames)) {
+            $this->syncTagsForTask($task, $tagNames);
+        }
 
         return $this->createdResponse($task, __('messages.task.created'));
     }
@@ -129,8 +138,20 @@ class TaskService
         if (! $task) {
             return $this->errorResponse(__('validation.task.not_found'), 404);
         }
+        
+        // Extract tags to handle separately
+        $tagNames = null;
+        if (array_key_exists('tags', $data)) {
+            $tagNames = $data['tags'] ?? [];
+            unset($data['tags']);
+        }
 
         $task->update($data);
+        
+        // Handle tags if provided
+        if ($tagNames !== null) {
+            $this->syncTagsForTask($task, $tagNames);
+        }
 
         return $this->successResponse($task, __('messages.task.updated'));
     }
@@ -212,9 +233,201 @@ class TaskService
      */
     public function getStatistics(): JsonResponse
     {
-        $userId = Auth::id();
         $user = Auth::user();
+        $statistics = $user->getTaskStatistics();
 
-        return $this->successResponse($user->getTaskStatistics());
+        return $this->successResponse($statistics);
+    }
+    
+    /**
+     * Get all tags for a task.
+     */
+    public function getTaskTags(int $taskId): JsonResponse
+    {
+        $userId = Auth::id();
+        $task = Task::forUser($userId)->find($taskId);
+
+        if (!$task) {
+            return $this->errorResponse(__('validation.task.not_found'), 404);
+        }
+
+        $tags = $task->tags()->get();
+        
+        return $this->successResponse($tags);
+    }
+    
+    /**
+     * Update tags for a task.
+     */
+    public function updateTaskTags(int $taskId, array $tagNames): JsonResponse
+    {
+        $userId = Auth::id();
+        $task = Task::forUser($userId)->find($taskId);
+
+        if (!$task) {
+            return $this->errorResponse(__('validation.task.not_found'), 404);
+        }
+        
+        $this->syncTagsForTask($task, $tagNames);
+        
+        return $this->successResponse(
+            $task->load('tags'), 
+            __('messages.task.tags_updated')
+        );
+    }
+    
+    /**
+     * Perform bulk operations on task tags (add or remove).
+     */
+    public function bulkTagOperation(int $taskId, string $operation, array $tagNames): JsonResponse
+    {
+        $userId = Auth::id();
+        $task = Task::forUser($userId)->find($taskId);
+
+        if (!$task) {
+            return $this->errorResponse(__('validation.task.not_found'), 404);
+        }
+        
+        // Skip if no tags provided
+        if (empty($tagNames)) {
+            return $this->successResponse($task->load('tags'));
+        }
+        
+        // Process tags and get their IDs
+        $tagIds = $this->getOrCreateTagIds($tagNames, $userId);
+        
+        // Perform the operation
+        if ($operation === 'add') {
+            // Attach new tags without detaching existing ones
+            $task->tags()->syncWithoutDetaching($tagIds);
+            $message = __('messages.task.tags_added');
+        } else {
+            // Remove specified tags
+            $task->tags()->detach($tagIds);
+            $message = __('messages.task.tags_removed');
+        }
+        
+        // Update tag usage counts
+        $this->updateTagUsageCount($userId);
+        
+        return $this->successResponse(
+            $task->load('tags'),
+            $message
+        );
+    }
+    
+    /**
+     * Get or create tags and return their IDs.
+     */
+    protected function getOrCreateTagIds(array $tagNames, int $userId): array
+    {
+        $tagIds = [];
+        
+        foreach ($tagNames as $name) {
+            // Skip empty tag names
+            if (empty(trim($name))) {
+                continue;
+            }
+            
+            // Find or create the tag
+            $tag = \App\Models\Tag::firstOrCreate(
+                ['name' => $name, 'user_id' => $userId],
+                ['color' => '#' . substr(md5($name), 0, 6)]
+            );
+            
+            $tagIds[] = $tag->id;
+        }
+        
+        return $tagIds;
+    }
+    
+    /**
+     * Sync tags for a task.
+     */
+    protected function syncTagsForTask(Task $task, array $tagNames): void
+    {
+        $userId = Auth::id();
+        
+        // Get or create tags
+        $tagIds = $this->getOrCreateTagIds($tagNames, $userId);
+        
+        // Sync tags
+        $task->tags()->sync($tagIds);
+        
+        // Update usage counts
+        $this->updateTagUsageCount($userId);
+    }
+    
+    /**
+     * Update tag usage counts.
+     */
+    protected function updateTagUsageCount(int $userId): void
+    {
+        // Get all user tags
+        $tags = \App\Models\Tag::where('user_id', $userId)->get();
+        
+        foreach ($tags as $tag) {
+            // Count tasks with this tag
+            $count = $tag->tasks()->count();
+            
+            // Update usage count if different
+            if ($tag->usage_count !== $count) {
+                $tag->usage_count = $count;
+                $tag->save();
+            }
+        }
+    }
+    
+    /**
+     * Find tasks by tag name.
+     */
+    public function findTasksByTagName(string $tagName, Request $request = null): JsonResponse
+    {
+        $userId = Auth::id();
+        
+        // Try to find the tag
+        $tag = \App\Models\Tag::where('name', $tagName)
+            ->where('user_id', $userId)
+            ->first();
+            
+        if (!$tag) {
+            return $this->successResponse([]);
+        }
+        
+        // Build query for tasks with this tag
+        $query = $tag->tasks()
+            ->where('user_id', $userId);
+            
+        // Apply filters if request provided
+        if ($request) {
+            // Filter by completion status
+            if ($request->has('completed')) {
+                $completed = filter_var($request->completed, FILTER_VALIDATE_BOOLEAN);
+                $query = $completed ? $query->where('completed', true) : $query->where('completed', false);
+            }
+            
+            // Filter by due date
+            if ($request->has('due_date')) {
+                $query->whereDate('due_date', $request->due_date);
+            }
+            
+            // Filter by priority
+            if ($request->has('priority')) {
+                $query->where('priority', $request->priority);
+            }
+            
+            // Order by
+            $sortBy = $request->get('sort_by', 'created_at');
+            $sortDir = $request->get('sort_dir', 'desc');
+            $query->orderBy($sortBy, $sortDir);
+        }
+        
+        // Get tasks
+        $tasks = $query->get();
+        
+        return $this->successResponse([
+            'tag' => $tag,
+            'tasks' => $tasks,
+        ]);
     }
 }

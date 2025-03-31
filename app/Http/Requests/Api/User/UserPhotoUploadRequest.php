@@ -7,25 +7,33 @@ use App\Http\Requests\ApiRequest;
 class UserPhotoUploadRequest extends ApiRequest
 {
     /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      */
     public function rules(): array
     {
         return [
-            'photo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
     }
 
     /**
-     * Get custom messages for validator errors.
+     * Get custom error messages for validator errors.
      */
     public function messages(): array
     {
         return [
-            'photo.required' => __('validation.user.photo_required'),
-            'photo.image' => __('validation.user.photo_image'),
-            'photo.mimes' => __('validation.user.photo_mimes'),
-            'photo.max' => __('validation.user.photo_max'),
+            'photo.required' => __('validation.required', ['attribute' => 'photo']),
+            'photo.image' => __('validation.image', ['attribute' => 'photo']),
+            'photo.mimes' => __('validation.mimes', ['attribute' => 'photo', 'values' => 'jpeg, png, jpg, gif']),
+            'photo.max' => __('validation.max.file', ['attribute' => 'photo', 'max' => '2MB']),
         ];
     }
 

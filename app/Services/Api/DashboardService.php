@@ -20,12 +20,42 @@ class DashboardService
     public function getDashboardData(): JsonResponse
     {
         $user = Auth::user();
-
-        if ($user->isAdmin()) {
-            return $this->getAdminDashboard();
-        }
-
-        return $this->getUserDashboard();
+        $taskStats = $user->getTaskStatistics();
+        
+        $data = [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'photo_url' => $user->photo_url,
+            ],
+            'tasks' => [
+                'total' => $taskStats['total'],
+                'completed' => $taskStats['completed'],
+                'incomplete' => $taskStats['incomplete'],
+                'completion_rate' => $taskStats['completion_rate'],
+                'due_today' => $taskStats['today'],
+                'overdue' => $taskStats['overdue'],
+                'upcoming' => $taskStats['upcoming'],
+                'by_priority' => $taskStats['by_priority'],
+            ],
+            'categories' => [
+                'total' => $user->categories()->count(),
+                'with_tasks' => $user->categories()->whereHas('tasks')->count(),
+                'stats' => $taskStats['by_category'],
+            ],
+            'recent_tasks' => $user->tasks()
+                ->latest()
+                ->limit(5)
+                ->get(),
+            'upcoming_tasks' => $user->tasks()
+                ->upcoming()
+                ->orderBy('due_date')
+                ->limit(5)
+                ->get(),
+        ];
+        
+        return $this->successResponse($data);
     }
 
     /**

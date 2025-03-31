@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\DashboardApiController;
 use App\Http\Controllers\Api\V1\ProfileApiController;
 use App\Http\Controllers\Api\V1\TaskApiController;
 use App\Http\Controllers\Api\V1\UserApiController;
+use App\Http\Controllers\Api\V1\TagApiController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -30,8 +31,9 @@ Route::get('/documentation', function () {
             'endpoints' => [
                 'auth' => ['/register', '/login', '/logout', '/me', '/refresh'],
                 'users' => ['/users', '/users/{id}', '/users/statistics'],
-                'tasks' => ['/tasks', '/tasks/{id}', '/tasks/statistics'],
+                'tasks' => ['/tasks', '/tasks/{id}', '/tasks/statistics', '/tasks/{id}/tags', '/tasks/{id}/tags/bulk', '/tasks/by-tag/{tagName}'],
                 'categories' => ['/categories', '/categories/{id}', '/categories/task-counts'],
+                'tags' => ['/tags', '/tags/{id}', '/tags/popular', '/tags/task-counts', '/tags/{id}/tasks'],
                 'profile' => ['/profile', '/profile/password', '/profile/photo'],
                 'dashboard' => ['/dashboard'],
             ],
@@ -77,10 +79,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/due-today', [TaskApiController::class, 'dueToday']);
         Route::get('/overdue', [TaskApiController::class, 'overdue']);
         Route::get('/upcoming', [TaskApiController::class, 'upcoming']);
+        Route::get('/by-tag/{tagName}', [TaskApiController::class, 'findByTag']);
         Route::get('/{id}', [TaskApiController::class, 'show']);
         Route::put('/{id}', [TaskApiController::class, 'update']);
         Route::delete('/{id}', [TaskApiController::class, 'destroy']);
         Route::patch('/{id}/toggle', [TaskApiController::class, 'toggleCompletion']);
+        Route::get('/{id}/tags', [TaskApiController::class, 'tags']);
+        Route::put('/{id}/tags', [TaskApiController::class, 'updateTags']);
+        Route::post('/{id}/tags', [TaskApiController::class, 'bulkTagOperation']);
     });
 
     // Category routes
@@ -91,6 +97,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{id}', [CategoryApiController::class, 'show']);
         Route::put('/{id}', [CategoryApiController::class, 'update']);
         Route::delete('/{id}', [CategoryApiController::class, 'destroy']);
+    });
+
+    // Tag routes
+    Route::prefix('tags')->group(function () {
+        Route::get('/', [TagApiController::class, 'index']);
+        Route::post('/', [TagApiController::class, 'store']);
+        Route::get('/popular', [TagApiController::class, 'popular']);
+        Route::get('/task-counts', [TagApiController::class, 'taskCounts']);
+        Route::get('/{id}', [TagApiController::class, 'show']);
+        Route::put('/{id}', [TagApiController::class, 'update']);
+        Route::delete('/{id}', [TagApiController::class, 'destroy']);
+        Route::get('/{id}/tasks', [TagApiController::class, 'tasks']);
     });
 
     // Dashboard routes

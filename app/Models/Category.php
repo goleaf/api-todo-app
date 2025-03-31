@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\DB;
 
 class Category extends Model
 {
@@ -83,7 +85,7 @@ class Category extends Model
      */
     public function getTaskCountAttribute(): int
     {
-        return $this->tasks()->count();
+        return $this->tasks_count ?? $this->tasks()->count();
     }
 
     /**
@@ -91,20 +93,24 @@ class Category extends Model
      */
     public function getCompletedTaskCountAttribute(): int
     {
-        return $this->completedTasks()->count();
+        return $this->completed_tasks_count ?? $this->completedTasks()->count();
     }
 
     /**
      * Get the completion percentage for the category.
      */
-    public function getCompletionPercentageAttribute(): float
+    public function completionPercentage(): Attribute
     {
-        $total = $this->task_count;
-        if ($total === 0) {
-            return 0;
-        }
+        return Attribute::make(
+            get: function (): float {
+                $total = $this->task_count;
+                if ($total === 0) {
+                    return 0;
+                }
 
-        return ($this->completed_task_count / $total) * 100;
+                return ($this->completed_task_count / $total) * 100;
+            }
+        );
     }
 
     /**
@@ -147,7 +153,7 @@ class Category extends Model
     public function scopeWithTag(Builder $query, string $tag): Builder
     {
         return $query->whereHas('tasks', function ($query) use ($tag) {
-            $query->where('tags', 'like', '%"'.$tag.'"%');
+            $query->whereJsonContains('tags', $tag);
         });
     }
 
@@ -157,5 +163,18 @@ class Category extends Model
     public function scopeSearch(Builder $query, string $search): Builder
     {
         return $query->where('name', 'like', "%{$search}%");
+    }
+
+    /**
+     * Load task counts efficiently.
+     */
+    public function scopeWithTaskCounts(Builder $query): Builder
+    {
+        return $query->withCount([
+            'tasks as tasks_count',
+            'tasks as completed_tasks_count' => function (Builder $query) {
+                $query->where('completed', true);
+            }
+        ]);
     }
 }
