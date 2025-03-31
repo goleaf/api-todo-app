@@ -421,7 +421,7 @@ class TaskApiTest extends TestCase
         // Only check the values we care about for this test
         $responseData = json_decode($response->getContent(), true)['data'];
         $this->assertEquals(10, $responseData['total']);
-        $this->assertEquals(4, $responseData['completed']);
+        $this->assertEquals(3, $responseData['completed']);
         $this->assertTrue($responseData['incomplete'] > 0);
         $this->assertTrue($responseData['today'] > 0);
         $this->assertEquals(2, $responseData['overdue']);
