@@ -39,14 +39,14 @@ class TodoReminderNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $dueDate = $this->todo->due_date ? Carbon::parse($this->todo->due_date)->format('M d, Y') : 'No due date';
-        $todoUrl = url('/todomvc/' . ($this->todo->is_overdue ? 'overdue' : ($this->todo->is_due_today ? 'due-today' : 'upcoming')));
-        
+        $todoUrl = url('/todomvc/'.($this->todo->is_overdue ? 'overdue' : ($this->todo->is_due_today ? 'due-today' : 'upcoming')));
+
         return (new MailMessage)
-            ->subject('Reminder: ' . $this->todo->title)
-            ->greeting('Hello ' . $notifiable->name . '!')
+            ->subject('Reminder: '.$this->todo->title)
+            ->greeting('Hello '.$notifiable->name.'!')
             ->line('This is a reminder for your task:')
-            ->line('**' . $this->todo->title . '**')
-            ->line('Due Date: ' . $dueDate)
+            ->line('**'.$this->todo->title.'**')
+            ->line('Due Date: '.$dueDate)
             ->line($this->getReminderMessage())
             ->action('View Todo', $todoUrl)
             ->line('Thank you for using our application!');
@@ -67,29 +67,29 @@ class TodoReminderNotification extends Notification implements ShouldQueue
             'type' => $this->getReminderType(),
         ];
     }
-    
+
     /**
      * Get the reminder message based on due date status.
      */
     protected function getReminderMessage(): string
     {
-        if (!$this->todo->due_date) {
+        if (! $this->todo->due_date) {
             return 'This task has no due date set, but was marked for a reminder.';
         }
-        
+
         if ($this->todo->is_overdue) {
-            return 'This task is overdue! It was due on ' . Carbon::parse($this->todo->due_date)->format('M d, Y') . '.';
+            return 'This task is overdue! It was due on '.Carbon::parse($this->todo->due_date)->format('M d, Y').'.';
         }
-        
+
         if ($this->todo->is_due_today) {
             return 'This task is due today!';
         }
-        
+
         $daysUntilDue = Carbon::today()->diffInDays(Carbon::parse($this->todo->due_date), false);
-        
+
         return "This task is due in {$daysUntilDue} days.";
     }
-    
+
     /**
      * Get the reminder type based on due date status.
      */
@@ -98,11 +98,11 @@ class TodoReminderNotification extends Notification implements ShouldQueue
         if ($this->todo->is_overdue) {
             return 'overdue';
         }
-        
+
         if ($this->todo->is_due_today) {
             return 'due-today';
         }
-        
+
         return 'upcoming';
     }
 }

@@ -2,29 +2,28 @@
 
 namespace Tests\Unit\Services;
 
-use App\Services\HypervelService;
 use App\Exceptions\HypervelException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Collection;
-use Tests\TestCase;
-use Mockery;
+use App\Services\HypervelService;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Middleware;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
+use Illuminate\Support\Collection;
+use Tests\TestCase;
 
 class HypervelServiceTest extends TestCase
 {
     protected $hypervelService;
+
     protected $container = [];
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->hypervelService = new HypervelService();
+        $this->hypervelService = new HypervelService;
     }
 
     /** @test */
@@ -32,9 +31,9 @@ class HypervelServiceTest extends TestCase
     {
         // Define test operations
         $operations = [
-            'operation1' => fn() => $this->simulateOperation(100, 'result1'),
-            'operation2' => fn() => $this->simulateOperation(100, 'result2'),
-            'operation3' => fn() => $this->simulateOperation(100, 'result3'),
+            'operation1' => fn () => $this->simulateOperation(100, 'result1'),
+            'operation2' => fn () => $this->simulateOperation(100, 'result2'),
+            'operation3' => fn () => $this->simulateOperation(100, 'result3'),
         ];
 
         // Measure time without concurrency
@@ -84,6 +83,7 @@ class HypervelServiceTest extends TestCase
             if ($attemptCount < 3) {
                 throw new \Exception("Attempt {$attemptCount} failed");
             }
+
             return 'success';
         };
 
@@ -100,7 +100,7 @@ class HypervelServiceTest extends TestCase
     {
         // Operation that always fails
         $operation = function () {
-            throw new \Exception("Operation failed");
+            throw new \Exception('Operation failed');
         };
 
         // Assert exception is thrown
@@ -149,7 +149,7 @@ class HypervelServiceTest extends TestCase
     {
         // Setup mock that throws exceptions
         $mock = new MockHandler([
-            new RequestException("Connection error", new Request('GET', 'https://example.com')),
+            new RequestException('Connection error', new Request('GET', 'https://example.com')),
         ]);
 
         $handlerStack = HandlerStack::create($mock);
@@ -170,11 +170,11 @@ class HypervelServiceTest extends TestCase
     public function it_processes_collections_concurrently()
     {
         $collection = collect(['item1', 'item2', 'item3', 'item4', 'item5']);
-        
+
         $processedCollection = $this->hypervelService->processCollection($collection, function ($item) {
             return $this->simulateOperation(50, "processed-{$item}");
         }, 2);
-        
+
         $this->assertCount(5, $processedCollection);
         $this->assertEquals('processed-item1', $processedCollection[0]);
         $this->assertEquals('processed-item5', $processedCollection[4]);
@@ -186,6 +186,7 @@ class HypervelServiceTest extends TestCase
     private function simulateOperation(int $delayMs, mixed $result): mixed
     {
         usleep($delayMs * 1000);
+
         return $result;
     }
 
@@ -199,4 +200,4 @@ class HypervelServiceTest extends TestCase
         $property->setAccessible(true);
         $property->setValue($object, $value);
     }
-} 
+}

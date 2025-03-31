@@ -13,7 +13,7 @@ class UserProfileUpdateRequest extends ApiRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . auth()->id(),
+            'email' => 'required|string|email|max:255|unique:users,email,'.auth()->id(),
         ];
     }
 
@@ -40,4 +40,4 @@ class UserProfileUpdateRequest extends ApiRequest
             'email' => __('validation.attributes.email'),
         ];
     }
-} 
+}

@@ -2,16 +2,14 @@
 
 namespace Tests;
 
-use App\Models\User;
 use App\Models\Task;
+use App\Models\User;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 /**
  * Test helpers for Livewire component testing
- * 
+ *
  * This class provides utility methods to simplify testing Livewire components,
  * especially for components that replaced Vue.js components during migration.
  */
@@ -22,7 +20,7 @@ class LivewireTestHelpers
      */
     public static function uniqueEmail(string $prefix = 'test'): string
     {
-        return $prefix . '_' . time() . '_' . Str::random(8) . '@example.com';
+        return $prefix.'_'.time().'_'.Str::random(8).'@example.com';
     }
 
     /**
@@ -58,7 +56,7 @@ class LivewireTestHelpers
     public static function createTasksForUser(int $count = 3, ?User $user = null): array
     {
         $user = $user ?? self::createUserWithUniqueEmail();
-        
+
         $tasks = [];
         for ($i = 0; $i < $count; $i++) {
             $tasks[] = self::createTaskWithUser([
@@ -67,7 +65,7 @@ class LivewireTestHelpers
                 'due_date' => now()->addDays($i + 1),
             ], $user);
         }
-        
+
         return [$user, collect($tasks)];
     }
 
@@ -78,12 +76,13 @@ class LivewireTestHelpers
     {
         $user = self::createUserWithUniqueEmail($userAttributes);
         [$_, $tasks] = self::createTasksForUser($taskCount, $user);
-        
+
         return [$user, $tasks];
     }
 
     /**
      * For backward compatibility - Create a todo with an associated user (alias for createTaskWithUser)
+     *
      * @deprecated Use createTaskWithUser instead
      */
     public static function createTodoWithUser(array $todoAttributes = [], ?User $user = null): Task
@@ -93,6 +92,7 @@ class LivewireTestHelpers
 
     /**
      * For backward compatibility - Create multiple todos for a user (alias for createTasksForUser)
+     *
      * @deprecated Use createTasksForUser instead
      */
     public static function createTodosForUser(int $count = 3, ?User $user = null): array
@@ -106,7 +106,7 @@ class LivewireTestHelpers
     public static function testComponentAsUser($component, $user = null, $params = [])
     {
         $user = $user ?? self::createUserWithUniqueEmail();
-        
+
         return Livewire::actingAs($user)->test($component, $params);
     }
 
@@ -116,26 +116,26 @@ class LivewireTestHelpers
     public static function testFormSubmission($component, $method, $formData, $validationRules = [])
     {
         $test = Livewire::test($component);
-        
+
         // Set form data
         foreach ($formData as $field => $value) {
             $test->set($field, $value);
         }
-        
+
         // Call the submit method
         $test = $test->call($method);
-        
+
         // Check for validation errors if rules are provided
-        if (!empty($validationRules)) {
+        if (! empty($validationRules)) {
             foreach ($validationRules as $field => $rule) {
-                if (isset($formData[$field]) && !$rule($formData[$field])) {
+                if (isset($formData[$field]) && ! $rule($formData[$field])) {
                     $test->assertHasErrors([$field]);
                 } else {
                     $test->assertHasNoErrors([$field]);
                 }
             }
         }
-        
+
         return $test;
     }
 
@@ -145,12 +145,12 @@ class LivewireTestHelpers
     public static function testComponentState($component, $initialState, $action, $expectedState)
     {
         $test = Livewire::test($component);
-        
+
         // Set initial state
         foreach ($initialState as $property => $value) {
             $test->set($property, $value);
         }
-        
+
         // Perform action (method call or event)
         if (is_array($action)) {
             $method = $action[0];
@@ -159,12 +159,12 @@ class LivewireTestHelpers
         } else {
             $test->call($action);
         }
-        
+
         // Assert expected state
         foreach ($expectedState as $property => $value) {
             $test->assertSet($property, $value);
         }
-        
+
         return $test;
     }
 
@@ -174,7 +174,7 @@ class LivewireTestHelpers
     public static function testComponentEvents($component, $action, $expectedEvents)
     {
         $test = Livewire::test($component);
-        
+
         // Perform action
         if (is_array($action)) {
             $method = $action[0];
@@ -183,16 +183,16 @@ class LivewireTestHelpers
         } else {
             $test->call($action);
         }
-        
+
         // Assert expected events
         foreach ($expectedEvents as $event => $params) {
             if (is_numeric($event)) {
                 $test->assertEmitted($params);
             } else {
-                $test->assertEmitted($event, ...(array)$params);
+                $test->assertEmitted($event, ...(array) $params);
             }
         }
-        
+
         return $test;
     }
 
@@ -202,19 +202,19 @@ class LivewireTestHelpers
     public static function testComponentResponseToEvent($component, $event, $params, $expectedState)
     {
         $test = Livewire::test($component);
-        
+
         // Emit event to the component
         if (is_array($params)) {
             $test->emit($event, ...$params);
         } else {
             $test->emit($event, $params);
         }
-        
+
         // Assert expected state after event
         foreach ($expectedState as $property => $value) {
             $test->assertSet($property, $value);
         }
-        
+
         return $test;
     }
 
@@ -224,10 +224,10 @@ class LivewireTestHelpers
     public static function getApiAuthHeaders(User $user, string $tokenName = 'test-token'): array
     {
         $token = $user->createToken($tokenName)->plainTextToken;
-        
+
         return [
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
             'Accept' => 'application/json',
         ];
     }
-} 
+}

@@ -3,267 +3,712 @@ description:
 globs: 
 alwaysApply: false
 ---
-# Todo App Dev Guide
-
-## Common Issues & Fixes
-
-### Registration Error
-If you encounter: "An error occurred during registration. Please try again."
-- Check logs for: `Registration error: Method App\Livewire\Auth\Register::emit does not exist`
-- Fix: Replace `$this->emit()` with `$this->dispatch()` in Register.php for Livewire 3 compatibility
-
-### Login/Auth Issues
-- Session errors: Run `php artisan session:table` and `php artisan migrate`
-- Remember token not working: Check that the remember_token column exists in users table
-- Authentication failing: Ensure the correct guard is configured in config/auth.php
-
-### Database Seeding
-For fresh installation:
-1. Run migrations: `php artisan migrate:fresh`
-2. Run seeders: `php artisan db:seed`
-- Creates admin user (admin@example.com / password)
-- Creates test user (test@example.com / password)
-- Creates sample tasks and categories
-
-### Running Tests
-- Feature tests: `php artisan test --filter=Feature`
-- Unit tests: `php artisan test --filter=Unit`
-- Specific test: `php artisan test --filter=RegisterTest`
-
-### Common Laravel Commands
-- Clear cache: `php artisan cache:clear`
-- Clear config: `php artisan config:clear`
-- Clear views: `php artisan view:clear`
-- Clear routes: `php artisan route:clear`
-- Clear all: `php artisan optimize:clear`
-
-### Testing Workflow
-1. Run unit tests first: `php artisan test --filter=Unit`
-2. Run feature tests: `php artisan test --filter=Feature`
-3. Run specific component test: `php artisan test --filter=RegisterTest`
-4. Check for failed tests and fix issues
-5. Rerun tests until all pass
-
-### Task Model Fields
-- title: string, required
-- description: string, nullable
-- due_date: date, nullable
-- category_id: foreign key, nullable
-- priority: int (0=low, 1=medium, 2=high)
-- completed: boolean
-- completed_at: timestamp, nullable
-- session_id: string, nullable
-- reminder_at: date, nullable
-- tags: array, nullable
-- progress: int (0-100), nullable
-
-### Category Model Fields
-- name: string, required
-- color: string, required (hex color code)
-- icon: string, required (icon name)
-- user_id: foreign key, required
-
-### Livewire 3 Migration Notes
-- Changed $emit() to $dispatch()
-- Changed wire:model to wire:model.live for real-time updates
-- Changed assertEmitted() to assertDispatched() in tests
-- Component namespaces are now App\Livewire instead of App\Http\Livewire
-
 # Todo App API Guide
 
-## API-Only Architecture
+## Pure API-Based Architecture
 
-This application follows an API-only architecture. All interactions must be performed through the API endpoints. There are no web routes or controllers - only API endpoints.
+This is a 100% pure API-based application with a service-based architecture. There are no web routes or controllers - only API endpoints. All interactions with the application must be done through the API.
+
+### Core Components
+
+1. **API Controllers**: Thin controllers that don't extend Laravel's base Controller class (app/Http/Controllers/Api/*.php)
+2. **Services Layer**: Where all business logic lives (app/Services/Api/*.php)
+3. **Request Validation**: Dedicated request classes with custom error messages (app/Http/Requests/Api/*.php)
+4. **Language Files**: Store localized messages (resources/lang/en/*.php)
+5. **Models**: Core data models (app/Models/*.php)
 
 ## Authentication
 
-The API uses Laravel Sanctum for authentication.
+The API uses Laravel Sanctum for token-based authentication:
 
 1. Register: `POST /api/register`
 2. Login: `POST /api/login`
 3. Logout: `POST /api/logout` (requires authentication)
+4. Get User: `GET /api/me` (requires authentication)
+5. Refresh Token: `POST /api/refresh` (requires authentication)
 
 All authenticated routes require a valid Bearer token in the Authorization header.
+
+## API Workflow Loop
+
+The API follows a complete request-response cycle:
+
+1. **Client Request**: Client sends a request to an API endpoint with authentication token
+2. **Controller**: Receives the request and passes data to a Request class
+3. **Request Validation**: Validates input data with custom error messages from language files
+4. **Service Processing**: Controller delegates to service for business logic
+5. **Database Operations**: Service interacts with models to perform database operations
+6. **Response**: Service returns a standardized JSON response
+7. **Loop**: Client continues making requests as needed
+
+## Response Format
+
+All API responses follow this standardized format:
+
+```json
+// Success Response
+{
+  "success": true,
+  "message": "Operation successful",
+  "data": { ... }
+}
+
+// Error Response
+{
+  "success": false,
+  "message": "Error message",
+  "errors": { ... }
+}
+```
 
 ## Core Resources
 
 ### Tasks
 
-Tasks are the primary entities in the system, representing to-do items.
+Tasks are the main resource of the application.
 
 - List all tasks: `GET /api/tasks`
-- Get a specific task: `GET /api/tasks/{id}`
 - Create a task: `POST /api/tasks`
+- Get a specific task: `GET /api/tasks/{id}`
 - Update a task: `PUT /api/tasks/{id}`
 - Delete a task: `DELETE /api/tasks/{id}`
-- Toggle completion: `PATCH /api/tasks/{id}/toggle`
+- Toggle task completion: `PATCH /api/tasks/{id}/toggle`
+- Get tasks due today: `GET /api/tasks/due-today`
+- Get overdue tasks: `GET /api/tasks/overdue`
+- Get upcoming tasks: `GET /api/tasks/upcoming`
 - Get task statistics: `GET /api/tasks/statistics`
 
-#### Task Model Fields
+Task model fields:
 - title: string, required
-- description: string, nullable
-- due_date: date, nullable
-- category_id: foreign key, nullable
-- priority: int (0=low, 1=medium, 2=high)
-- completed: boolean
-- completed_at: timestamp, nullable
-- session_id: string, nullable
-- reminder_at: date, nullable
-- tags: array, nullable
-- progress: int (0-100), nullable
+- description: text, optional
+- due_date: date, optional
+- priority: integer, optional (1=Low, 2=Medium, 3=High, 4=Urgent)
+- completed: boolean, required
+- user_id: foreign key, required
+- category_id: foreign key, optional
+- tags: json array, optional
+- notes: text, optional
+- attachments: json array, optional
 
 ### Categories
 
 Categories help organize tasks.
 
 - List all categories: `GET /api/categories`
-- Get a specific category: `GET /api/categories/{id}`
 - Create a category: `POST /api/categories`
+- Get a specific category: `GET /api/categories/{id}`
 - Update a category: `PUT /api/categories/{id}`
 - Delete a category: `DELETE /api/categories/{id}`
 - Get task counts by category: `GET /api/categories/task-counts`
 
-#### Category Model Fields
+Category model fields:
 - name: string, required
-- color: string, required (hex color code)
-- icon: string, required (icon name)
+- color: string, optional (hex color code)
+- icon: string, optional (icon name)
 - user_id: foreign key, required
+
+### Users and Profiles
+
+Users represent the application's accounts.
+
+- List all users: `GET /api/users` (admin only)
+- Get a specific user: `GET /api/users/{id}`
+- Get user statistics: `GET /api/users/statistics`
+- Get current user profile: `GET /api/profile`
+- Update profile: `PUT /api/profile`
+- Update password: `PUT /api/profile/password`
+- Upload profile photo: `POST /api/profile/photo`
+- Delete profile photo: `DELETE /api/profile/photo`
 
 ### Dashboard
 
 - Get dashboard data: `GET /api/dashboard`
 
-## API Workflow Loop
+## Service-Based Architecture
 
-The API follows a standard workflow:
+The application uses a service-based architecture to separate business logic from controllers:
 
-1. **Authentication**: Client obtains a token via login endpoint
-2. **Request**: Client makes a request to an API endpoint with the token
-3. **Validation**: Server validates the request data
-4. **Processing**: Server processes the request
-5. **Response**: Server sends a standardized JSON response
-6. **Loop**: Client continues making requests as needed
+1. **Base ApiService**: Provides common CRUD operations for all resources
+2. **Resource-specific Services**: Extend the base service with resource-specific logic
+3. **Thin API Controllers**: Delegate to services and handle request/response
+4. **Request Validation**: Dedicated request classes with validation rules
+5. **Standardized Responses**: Consistent JSON response format for all endpoints
 
-## Response Format
+## Request Validation
 
-All API responses follow a standard format:
+All requests are validated using dedicated request classes. Custom validation messages are defined in language files:
 
-**Success Response**:
+- `resources/lang/en/validation.php` - General validation messages
+- `resources/lang/en/messages.php` - Response messages
+
+## Common Issues & Fixes
+
+### Authentication Errors
+
+If you encounter: "Unauthenticated"
+- Check that you are sending the correct Bearer token in the Authorization header
+- Token may have expired; try logging in again or refreshing token
+
+### Validation Errors
+
+If you encounter: "Validation error"
+- Check the 'errors' field in the response for specific validation failures
+- Make sure you're sending the correct data types and required fields
+- For category_id, ensure the category belongs to the authenticated user
+
+### 404 Not Found
+
+If you encounter: "Resource not found"
+- Verify the ID exists in the database
+- Ensure the resource belongs to the authenticated user
+
+## Testing API Endpoints
+
+Use tools like Postman, Insomnia, or curl to test API endpoints:
+
+```bash
+# Register a new user
+curl -X POST http://your-api.com/api/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test User","email":"test@example.com","password":"password","password_confirmation":"password"}'
+
+# Login
+curl -X POST http://your-api.com/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password"}'
+
+# Create a task (authenticated)
+curl -X POST http://your-api.com/api/tasks \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Test Task","description":"This is a test","priority":2,"due_date":"2024-06-30"}'
+```
+
+## Todo to Task Model Migration Status
+
+This project has completed the migration from the old `Todo` model to the new `Task` model. The following components have been updated:
+
+- ✅ Created `Task` model with modern design patterns
+- ✅ Created DB migration for tasks table
+- ✅ Created data migration to transfer todos to tasks
+- ✅ Updated TaskService to use new model
+- ✅ Created TaskApiController
+- ✅ Created validation request classes
+- ✅ Updated API routes
+- ✅ Added new message translations
+- ✅ Updated Dashboard service for task statistics
+
+### Model Differences
+
+#### Todo vs Task
+
+| Feature          | Old Todo Model                    | New Task Model                         |
+|------------------|-----------------------------------|---------------------------------------|
+| Priority levels  | 0-2 (Low, Medium, High)           | 1-4 (Low, Medium, High, Urgent)       |
+| Completion       | completed + completed_at          | completed boolean only                 |
+| Progress         | progress 0-100                    | Removed in favor of completed flag     |
+| Tags             | JSON encoded strings              | Native array cast                      |
+| Reminders        | reminder_at datetime              | Removed (will be added to user prefs)  |
+| New fields       | -                                 | Added notes and attachments fields     |
+| Query scopes     | Basic scopes                      | Enhanced with additional query scopes  |
+| Methods          | markAsCompleted, setPriority      | Replaced with toggleCompletion         |
+
+# Todo API Documentation
+
+## Pure API-Only Architecture
+
+The Todo application is built as a 100% pure API-based system with a service-oriented architecture. This approach separates the frontend from the backend, providing a clean and maintainable codebase.
+
+### Core Components
+
+- **API Controllers**: Thin standalone controllers with minimal logic (app/Http/Controllers/Api)
+- **Services**: Business logic is isolated in service classes (app/Services)
+- **Requests**: Form validation through dedicated request classes (app/Http/Requests/Api)
+- **API Responses**: Standardized JSON responses
+- **Language Files**: Localized messages
+
+### Authentication
+
+Authentication is handled via Laravel Sanctum using token-based authentication.
+
+- **Registration**: `POST /api/auth/register`
+- **Login**: `POST /api/auth/login`
+- **Logout**: `POST /api/auth/logout`
+- **Token Refresh**: `POST /api/auth/refresh`
+
+### Core Resources
+
+#### Tasks
+
+Tasks are the central model, replacing the old Todo model.
+
+**API Endpoints:**
+- `GET /api/tasks`: List all tasks
+- `POST /api/tasks`: Create a new task
+- `GET /api/tasks/{id}`: Get a specific task
+- `PUT /api/tasks/{id}`: Update a task
+- `DELETE /api/tasks/{id}`: Delete a task
+- `PATCH /api/tasks/{id}/toggle`: Toggle completion status
+- `GET /api/tasks/due-today`: Get tasks due today
+- `GET /api/tasks/overdue`: Get overdue tasks
+- `GET /api/tasks/upcoming`: Get upcoming tasks
+- `GET /api/tasks/statistics`: Get task statistics
+
+**Model Fields:**
+- `id`: Unique identifier
+- `title`: Task title
+- `description`: Task description
+- `priority`: Priority level (1-4)
+- `due_date`: Due date for the task
+- `completed`: Completion status
+- `user_id`: Owner of the task
+- `category_id`: Associated category
+- `created_at`: Creation timestamp
+- `updated_at`: Last update timestamp
+
+#### Categories
+
+Categories help organize tasks.
+
+**API Endpoints:**
+- `GET /api/categories`: List all categories
+- `POST /api/categories`: Create a new category
+- `GET /api/categories/{id}`: Get a specific category
+- `PUT /api/categories/{id}`: Update a category
+- `DELETE /api/categories/{id}`: Delete a category
+- `GET /api/categories/with-tasks-count`: Get categories with task counts
+
+**Model Fields:**
+- `id`: Unique identifier
+- `name`: Category name
+- `description`: Category description
+- `color`: Color code (hex)
+- `user_id`: Owner of the category
+- `created_at`: Creation timestamp
+- `updated_at`: Last update timestamp
+
+### Service-Based Architecture
+
+The application follows a service-based approach where:
+
+1. Controllers receive requests and pass data to services
+2. Services contain business logic and handle operations
+3. Models represent data structures and relationships
+4. Responses are standardized across all endpoints
+
+Services extend a base service that provides common CRUD operations:
+
+```php
+class ApiService
+{
+    use ApiResponse;
+    
+    protected $model;
+    
+    public function index(Request $request);
+    public function show(int $id, Request $request);
+    public function store(array $validatedData);
+    public function update(int $id, array $validatedData);
+    public function destroy(int $id);
+}
+```
+
+### API Workflow
+
+1. **Authentication**: Client authenticates and receives a token
+2. **Request**: Client sends a request to an API endpoint
+3. **Validation**: Request is validated by a request class
+4. **Controller**: Minimal logic, delegates to the service
+5. **Service**: Handles business logic and operations
+6. **Response**: Standardized JSON response is returned
+
+### Response Format
+
+All API responses follow a consistent structure:
+
+**Success Response:**
 ```json
 {
   "success": true,
   "message": "Operation completed successfully",
   "data": {
-    // Response data here
+    // Response data
   }
 }
 ```
 
-**Error Response**:
+**Error Response:**
 ```json
 {
   "success": false,
   "message": "Error message",
   "errors": {
-    // Validation errors or other error details
+    // Validation errors or details
   }
 }
 ```
 
-## Request Validation
+### Request Validation
 
-All requests are validated using Laravel's request validation. Custom validation messages are defined in language files.
+Validation is handled by custom request classes extending `ApiRequest`. Common validations include:
 
-## Common Issues & Fixes
+- Required fields
+- String lengths
+- Email formats
+- Unique constraints
+- Numeric ranges
+- Date formats
 
-### Authentication Error
-If you encounter: "Unauthenticated"
-- Check that you are sending the correct Bearer token in the Authorization header
-- Token may have expired; try logging in again
+## API Testing
 
-### Validation Errors
-- Check the response for specific validation error messages
-- Ensure you're sending all required fields
-- Check field types and formats
+The API has comprehensive test coverage to ensure reliability and functionality. The tests are organized by resource and cover all aspects of the API.
 
-### Testing API Endpoints
+### Test Structure
 
-Use tools like Postman or curl to test API endpoints:
+Tests are located in the `tests/Feature/Api` directory and follow a consistent structure:
+
+- **ApiTestSuite**: Overall API health check and core functionality
+- **AuthApiTest**: Authentication-related tests
+- **ProfileApiTest**: User profile management tests
+- **TaskApiTest**: Task CRUD and special endpoints tests
+- **CategoryApiTest**: Category management tests
+
+### Running Tests
+
+Tests can be run using the custom Artisan command:
 
 ```bash
-# Example login request
-curl -X POST http://localhost:8000/api/login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "password": "password"}'
-
-# Example authenticated request
-curl -X GET http://localhost:8000/api/tasks \
-  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
-  -H "Content-Type: application/json"
+php artisan app:run-api-tests
 ```
 
-## Todo to Task Migration Guide
+Options include:
+- `--filter`: Run specific tests (e.g., `--filter=TaskApiTest`)
+- `--coverage`: Generate test coverage report
 
-## Overview
+### Test Coverage
 
-The application has been migrated from using a `Todo` model to using a `Task` model. This guide documents the changes and how to handle the transition.
+The tests cover the following areas:
 
-## Migration Status (Completed March 31, 2025)
+1. **Authentication**
+   - Registration
+   - Login/logout
+   - Token management
+   - Authorization
 
-- [x] Created new Task model
-- [x] Added all required fields to Task model
-- [x] Created migration to move data from todos to tasks table
-- [x] Created migration to drop todos table
-- [x] Updated all endpoints to use Task model
-- [x] Created API services for Tasks and Categories
-- [x] Removed web controllers
-- [x] Converted to API-only architecture
-- [x] Added custom validation with language files
+2. **Task Management**
+   - CRUD operations
+   - Task filters (due today, overdue, upcoming)
+   - Task completion toggling
+   - Statistics
 
-## Common Issues
+3. **Category Management**
+   - CRUD operations
+   - Getting categories with task counts
+   - Authorization checks
 
-### SQL Error "Table 'todos' doesn't exist"
+4. **User Profile**
+   - Profile retrieval and updates
+   - Password changes
+   - Avatar uploads
+   - User statistics
 
-This error occurs when code is still referencing the `todos` table that has been dropped. To fix:
+5. **API Health**
+   - Endpoint availability
+   - Error handling
+   - Rate limiting
+   - Maintenance mode
 
-1. Change `use App\Models\Todo` to `use App\Models\Task` in any files that import the Todo model
-2. Replace any query to `Todo::where(...)` with `Task::where(...)`
-3. Replace any factory usage `Todo::factory()->create(...)` with `Task::factory()->create(...)`
+# Task Manager API - Architecture Documentation
 
-### Components Using Task Model
+## Pure API Architecture
 
-The following components have been updated to use Task model:
-- Calendar component
-- LivewireTestHelpers
-- TaskMvc
-- TaskBulkProcessor
-- Dashboard
+This application is built as a 100% API-based task management system with no traditional Laravel controllers or frontend logic. All interactions are performed exclusively through API endpoints.
 
-## Component Registration
+## Key Architecture Decisions
 
-All new Task components are registered in the AppServiceProvider:
+### 1. Custom API Controller Base Class
 
-```php
-public function boot(): void
+- `ApiController` replaces Laravel's base Controller class
+- No Laravel controller inheritance
+- Clean architecture focusing solely on API responses
+- Located at `app/Http/Controllers/Api/ApiController.php`
+
+### 2. Request Validation
+
+- All validation handled via dedicated request classes
+- Custom messages from language files
+- Clean separation of validation logic from controllers
+- Example: `app/Http/Requests/Api/User/UserStoreRequest.php`
+
+### 3. Complete CRUD Operations
+
+- Users, Tasks, and Categories all have full CRUD capabilities
+- All operations accessible only via API endpoints
+- Role-based permissions for admin vs regular users
+
+### 4. API Response Structure
+
+All API responses follow a consistent structure:
+
+```json
 {
-    // Register Livewire components
-    Livewire::component('task-bulk-processor', TaskBulkProcessor::class);
-    Livewire::component('task-mvc', TaskMvc::class);
+  "success": true|false,
+  "message": "Operation successful message",
+  "data": { ... },
+  "errors": { ... } // Only present on error
 }
 ```
 
-## Backwards Compatibility
+### 5. Authentication
 
-The following measures ensure backward compatibility:
-1. Redirect routes from old paths to new ones (e.g., /todomvc redirects to /taskmvc)
-2. Preserved the original Todo component for alternate interfaces
-3. Validation command to help identify any remaining Todo references
+- Token-based authentication using Laravel Sanctum
+- No session-based authentication
+- Clear token management endpoints (login, logout, refresh)
 
-## Validation
+### 6. Testing
 
-To validate that the migration is complete, run:
+- Comprehensive API tests for all endpoints
+- Sanctum authentication in tests
+- Validation testing
+- Authorization testing
+
+## API Endpoint Groups
+
+1. **Authentication**
+   - Register, login, logout, refresh token
+
+2. **Users**
+   - CRUD operations on users
+   - Admin-only operations for listing/creating users
+
+3. **Profile**
+   - User profile management
+   - Password updates
+   - Profile photo management
+
+4. **Tasks**
+   - Complete task management
+   - Additional endpoints for dashboard views (due today, overdue, etc.)
+
+5. **Categories**
+   - Organization of tasks by categories
+   - Task counts by category
+
+6. **Dashboard**
+   - Aggregated statistics for dashboard display
+
+7. **Async Operations**
+   - Performance-optimized async operations
+
+## Code Organization
+
+- Controllers: `app/Http/Controllers/Api/V1/`
+- Request Classes: `app/Http/Requests/Api/`
+- Models: `app/Models/`
+- Services: `app/Services/Api/`
+- Tests: `tests/Feature/Api/`
+
+## API Documentation
+
+API documentation is available at:
+- `/api/documentation` - Interactive documentation
+- View templates at `resources/views/app.blade.php`
+
+# Pure API Architecture Documentation
+
+## Overview
+
+This application is a 100% pure API-based task management system with no traditional controllers or frontend logic. All interactions must be performed exclusively through API endpoints. The architecture follows a strict service-based approach with complete separation of concerns.
+
+## Core Architecture Components
+
+### 1. Custom API Controller Base Class
+
+- `ApiController` replaces Laravel's base Controller class
+- No Laravel controller inheritance
+- Clean architecture focusing solely on API responses
+- Located at `app/Http/Controllers/Api/ApiController.php`
+
+### 2. Service-Based Structure
+
+All business logic is isolated in dedicated service classes:
+
+- `AuthService` - Authentication and token management
+- `UserService` - User and profile management
+- `TaskService` - Task operations with comprehensive filtering
+- `CategoryService` - Category management with task aggregation
+- `DashboardService` - Analytics and statistics with role-based views
+- `AsyncApiService` - Asynchronous API operations
+
+### 3. Request Validation System
+
+- All validation handled via dedicated request classes
+- Custom messages from language files
+- Each API operation has its own validation class
+- Validation errors returned in standardized JSON format
+- Examples: `app/Http/Requests/Api/User/UserStoreRequest.php`, `app/Http/Requests/Api/Category/CategoryStoreRequest.php`
+
+### 4. Enhanced Models
+
+All models have been enhanced with API-focused features:
+
+- Search scopes for filtering (e.g., `$model->search($term)`)
+- Role-based filtering (User model)
+- Task filtering by multiple criteria (due date, priority, etc.)
+- Task statistics methods
+- Relationship optimization for API responses
+
+### 5. API Response Structure
+
+All API responses follow a consistent format:
+
+```json
+// Success response
+{
+  "success": true,
+  "message": "Operation successful message",
+  "data": { ... }
+}
+
+// Error response
+{
+  "success": false,
+  "message": "Error message",
+  "errors": { ... }
+}
 ```
-php artisan app:validate-todo-task-migration
+
+## API Endpoint Groups
+
+### Authentication Endpoints
+
+- `POST /api/register` - Register a new user
+- `POST /api/login` - Login with credentials to get token
+- `POST /api/logout` - Invalidate current token
+- `POST /api/refresh` - Refresh authentication token
+- `GET /api/me` - Get current authenticated user
+
+### User Management Endpoints
+
+- `GET /api/users` - List all users (admin only)
+- `POST /api/users` - Create a new user (admin only)
+- `GET /api/users/{id}` - Get user details
+- `PUT /api/users/{id}` - Update a user
+- `DELETE /api/users/{id}` - Delete a user
+- `GET /api/users/statistics` - Get user statistics
+
+### Profile Management Endpoints
+
+- `GET /api/profile` - Get current user profile
+- `PUT /api/profile` - Update current user profile
+- `PUT /api/profile/password` - Update password
+- `POST /api/profile/photo` - Upload profile photo
+- `DELETE /api/profile/photo` - Delete profile photo
+
+### Task Management Endpoints
+
+- `GET /api/tasks` - List tasks with filtering
+- `POST /api/tasks` - Create a new task
+- `GET /api/tasks/{id}` - Get task details
+- `PUT /api/tasks/{id}` - Update a task
+- `DELETE /api/tasks/{id}` - Delete a task
+- `PATCH /api/tasks/{id}/toggle` - Toggle completion status
+- `GET /api/tasks/statistics` - Get task statistics
+- `GET /api/tasks/due-today` - Get tasks due today
+- `GET /api/tasks/overdue` - Get overdue tasks
+- `GET /api/tasks/upcoming` - Get upcoming tasks
+
+### Category Management Endpoints
+
+- `GET /api/categories` - List categories with filtering
+- `POST /api/categories` - Create a new category
+- `GET /api/categories/{id}` - Get category details
+- `PUT /api/categories/{id}` - Update a category
+- `DELETE /api/categories/{id}` - Delete a category
+- `GET /api/categories/task-counts` - Get task counts by category
+
+### Dashboard Endpoints
+
+- `GET /api/dashboard` - Get dashboard statistics
+  - Provides different views for admin and regular users
+
+### Async Operation Endpoints
+
+- `GET /api/async/dashboard-stats` - Get dashboard statistics asynchronously
+- `GET /api/async/external-apis` - Fetch data from external APIs asynchronously
+- `POST /api/async/process-tasks` - Process tasks in bulk asynchronously
+
+## Request and Response Flow
+
+1. Client sends API request with authentication token
+2. Request is validated by a dedicated request class
+3. Controller delegates to the appropriate service
+4. Service performs business logic and database operations
+5. Service returns standardized JSON response
+6. Response is returned to client
+
+## Testing Strategy
+
+The API endpoints are tested using:
+
+1. **PHPUnit Tests** - Functional tests to validate API behavior
+2. **Laravel Dusk** - API automation tests
+3. **API Request Validation Tests** - Testing validation rules
+
+## Rules for API Development
+
+1. All new functionality must be added as API endpoints
+2. No web routes or traditional controllers
+3. All validation must use dedicated request classes
+4. All business logic must be in service classes
+5. Controllers should only delegate to services
+6. All responses must follow standardized format
+7. Use language files for all messages
+8. All models should have API-focused scopes
+
+## Sample Request Workflow
+
+### Registration Request
+
+```
+POST /api/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123",
+  "password_confirmation": "password123"
+}
 ```
 
-This command will check for any remaining references to the Todo model or todos table and report issues.
+### Registration Response
+
+```
+Status: 201 Created
+Content-Type: application/json
+
+{
+  "success": true,
+  "message": "Registration successful",
+  "data": {
+    "user": {
+      "id": 1,
+      "name": "John Doe",
+      "email": "john@example.com",
+      "created_at": "2023-08-10T12:00:00.000000Z"
+    },
+    "token": "1|laravel_sanctum_token..."
+  }
+}
+```
+
+### Authentication for API Requests
+
+All authenticated endpoints require a Bearer token:
+
+```
+GET /api/tasks
+Authorization: Bearer 1|laravel_sanctum_token...
+Accept: application/json
+```

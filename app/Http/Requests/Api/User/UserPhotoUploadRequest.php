@@ -12,7 +12,7 @@ class UserPhotoUploadRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'photo' => 'required|image|max:2048', // 2MB Max
+            'photo' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ];
     }
 
@@ -24,6 +24,7 @@ class UserPhotoUploadRequest extends ApiRequest
         return [
             'photo.required' => __('validation.user.photo_required'),
             'photo.image' => __('validation.user.photo_image'),
+            'photo.mimes' => __('validation.user.photo_mimes'),
             'photo.max' => __('validation.user.photo_max'),
         ];
     }
@@ -37,4 +38,4 @@ class UserPhotoUploadRequest extends ApiRequest
             'photo' => __('validation.attributes.photo'),
         ];
     }
-} 
+}

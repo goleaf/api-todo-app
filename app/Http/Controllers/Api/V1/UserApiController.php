@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\User\UserProfileUpdateRequest;
+use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Api\User\UserPasswordUpdateRequest;
+use App\Http\Requests\Api\User\UserProfileUpdateRequest;
+use App\Http\Requests\Api\User\UserStoreRequest;
 use App\Services\Api\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class UserApiController extends Controller
+class UserApiController extends ApiController
 {
     protected UserService $service;
 
@@ -30,11 +31,35 @@ class UserApiController extends Controller
     }
 
     /**
+     * Store a newly created resource in storage.
+     */
+    public function store(UserStoreRequest $request): JsonResponse
+    {
+        return $this->service->store($request->validated());
+    }
+
+    /**
      * Display the specified resource.
      */
     public function show(int $id, Request $request): JsonResponse
     {
         return $this->service->show($id, $request);
+    }
+
+    /**
+     * Update the specified resource.
+     */
+    public function update(UserProfileUpdateRequest $request, int $id): JsonResponse
+    {
+        return $this->service->update($id, $request->validated());
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        return $this->service->destroy($id);
     }
 
     /**
@@ -84,4 +109,4 @@ class UserApiController extends Controller
     {
         return $this->service->getStatistics();
     }
-} 
+}

@@ -3,15 +3,13 @@
 namespace Tests;
 
 // use Hypervel\Testing\WithHypervel; // Remove missing trait import
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Artisan;
-use Livewire\Livewire;
 use App\Services\HypervelService;
+use Livewire\Livewire;
 use Mockery;
 
 /**
  * Hypervel Test Helpers
- * 
+ *
  * Helper methods for testing asynchronous code with Hypervel
  */
 class HypervelTestHelpers
@@ -22,8 +20,7 @@ class HypervelTestHelpers
     /**
      * Setup a test environment that supports Hypervel coroutines
      *
-     * @param array $additionalConfig Optional additional config for Hypervel
-     * @return void
+     * @param  array  $additionalConfig  Optional additional config for Hypervel
      */
     public static function setupHypervelTestEnv(array $additionalConfig = []): void
     {
@@ -32,9 +29,9 @@ class HypervelTestHelpers
             'hypervel.concurrency_limit' => 10,
             'hypervel.debug' => true,
             'hypervel.timeout' => 5,
-            ...$additionalConfig
+            ...$additionalConfig,
         ]);
-        
+
         // Skip Hypervel reset since the package isn't available
         // if (class_exists('Hypervel\\Facades\\Hypervel')) {
         //     \Hypervel\Facades\Hypervel::reset();
@@ -47,18 +44,18 @@ class HypervelTestHelpers
     /**
      * Run an async test and wait for all coroutines to complete
      *
-     * @param callable $callback The test callback
+     * @param  callable  $callback  The test callback
      * @return mixed The result of the callback
      */
     public static function runAsyncTest(callable $callback)
     {
         self::setupHypervelTestEnv();
-        
+
         $result = $callback();
-        
+
         // Skip running Hypervel since the package isn't available
         // (new self())->runHypervel();
-        
+
         return $result;
     }
 
@@ -74,7 +71,7 @@ class HypervelTestHelpers
     /**
      * Run multiple functions concurrently and wait for all to complete
      *
-     * @param array $functions Array of callables to run concurrently
+     * @param  array  $functions  Array of callables to run concurrently
      * @return array Results from all functions
      */
     public static function runConcurrently(array $functions): array
@@ -84,15 +81,16 @@ class HypervelTestHelpers
         foreach ($functions as $key => $fn) {
             $results[$key] = $fn();
         }
+
         return $results;
     }
 
     /**
      * Test a Livewire component with Hypervel
      *
-     * @param string $componentClass The component class to test
-     * @param array $params Component parameters
-     * @param \App\Models\User|null $user The user to authenticate as
+     * @param  string  $componentClass  The component class to test
+     * @param  array  $params  Component parameters
+     * @param  \App\Models\User|null  $user  The user to authenticate as
      * @return \Livewire\Testing\TestableLivewire
      */
     public static function testComponentWithHypervel(string $componentClass, array $params = [], $user = null)
@@ -101,23 +99,23 @@ class HypervelTestHelpers
         if ($user) {
             auth()->login($user);
         }
-        
+
         return Livewire::test($componentClass, $params);
     }
 
     /**
      * Benchmark async vs sync approaches
      *
-     * @param callable $syncFn The synchronous function to benchmark
-     * @param callable $asyncFn The asynchronous function to benchmark
-     * @param int $iterations Number of iterations to run
+     * @param  callable  $syncFn  The synchronous function to benchmark
+     * @param  callable  $asyncFn  The asynchronous function to benchmark
+     * @param  int  $iterations  Number of iterations to run
      * @return array Benchmark metrics
      */
     public static function benchmarkAsyncVsSync(callable $syncFn, callable $asyncFn, int $iterations = 3): array
     {
         $syncTimes = [];
         $asyncTimes = [];
-        
+
         for ($i = 0; $i < $iterations; $i++) {
             // Benchmark sync version
             $startSync = microtime(true);
@@ -125,29 +123,29 @@ class HypervelTestHelpers
             $endSync = microtime(true);
             $syncTime = $endSync - $startSync;
             $syncTimes[] = $syncTime;
-            
+
             // Small delay to let system stabilize
             usleep(100000); // 100ms
-            
+
             // Benchmark async version
             $startAsync = microtime(true);
             $asyncResult = $asyncFn();
             $endAsync = microtime(true);
             $asyncTime = $endAsync - $startAsync;
             $asyncTimes[] = $asyncTime;
-            
+
             // Small delay to let system stabilize
             usleep(100000); // 100ms
         }
-        
+
         // Calculate average times
         $avgSyncTime = array_sum($syncTimes) / count($syncTimes);
         $avgAsyncTime = array_sum($asyncTimes) / count($asyncTimes);
-        
+
         // Calculate improvement
         $improvement = $avgSyncTime / $avgAsyncTime;
         $percentImprovement = ($improvement - 1) * 100;
-        
+
         return [
             'sync_time' => $avgSyncTime,
             'async_time' => $avgAsyncTime,
@@ -159,11 +157,9 @@ class HypervelTestHelpers
 
     /**
      * Make a real HypervelService for testing
-     * 
-     * @return HypervelService
      */
     public static function makeRealHypervelService(): HypervelService
     {
         return app(HypervelService::class);
     }
-} 
+}

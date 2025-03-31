@@ -9,7 +9,6 @@ use App\Services\HypervelService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
-use Mockery;
 
 class HypervelDashboardTest extends TestCase
 {
@@ -148,14 +147,14 @@ class HypervelDashboardTest extends TestCase
         $user = User::factory()->create();
 
         $component = Livewire::actingAs($user)->test(HypervelDashboard::class);
-        
+
         // Set the load times manually
         $component->set('loadTime', 100);
         $component->set('comparisonTime', 400);
-        
+
         // Calculate improvement percentage (should be 75%)
         $result = $component->instance()->getImprovementPercentage();
-        
+
         $this->assertEquals(75, $result);
     }
-} 
+}

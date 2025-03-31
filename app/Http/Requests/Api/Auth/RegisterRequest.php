@@ -45,4 +45,4 @@ class RegisterRequest extends ApiRequest
             'password' => __('validation.attributes.password'),
         ];
     }
-} 
+}

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -25,6 +26,7 @@ class User extends Authenticatable
         'password',
         'profile_photo_path',
         'photo_path',
+        'role',
     ];
 
     /**
@@ -78,7 +80,7 @@ class User extends Authenticatable
     public function getPhotoUrlAttribute()
     {
         if ($this->photo_path) {
-            return asset('storage/' . $this->photo_path);
+            return asset('storage/'.$this->photo_path);
         }
 
         return null;
@@ -86,12 +88,83 @@ class User extends Authenticatable
 
     /**
      * Determine if the user is an admin.
-     * Note: This is just a placeholder method until proper role implementation.
      */
     public function isAdmin(): bool
     {
-        // For now, return false for all users.
-        // In a real application, this would check against a role or permission system.
-        return false;
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Get the completed tasks for the user.
+     */
+    public function completedTasks(): HasMany
+    {
+        return $this->tasks()->where('completed', true);
+    }
+
+    /**
+     * Get the incomplete tasks for the user.
+     */
+    public function incompleteTasks(): HasMany
+    {
+        return $this->tasks()->where('completed', false);
+    }
+
+    /**
+     * Get tasks due today.
+     */
+    public function tasksDueToday(): HasMany
+    {
+        return $this->tasks()->dueToday();
+    }
+
+    /**
+     * Get overdue tasks.
+     */
+    public function overdueTasks(): HasMany
+    {
+        return $this->tasks()->overdue();
+    }
+
+    /**
+     * Get upcoming tasks.
+     */
+    public function upcomingTasks(): HasMany
+    {
+        return $this->tasks()->upcoming();
+    }
+
+    /**
+     * Scope a query to search users by name or email.
+     */
+    public function scopeSearch(Builder $query, string $search): Builder
+    {
+        return $query->where(function ($query) use ($search) {
+            $query->where('name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%");
+        });
+    }
+
+    /**
+     * Scope a query to filter by role.
+     */
+    public function scopeWithRole(Builder $query, string $role): Builder
+    {
+        return $query->where('role', $role);
+    }
+
+    /**
+     * Get task statistics for the user.
+     */
+    public function getTaskStatistics(): array
+    {
+        return [
+            'total' => $this->tasks()->count(),
+            'completed' => $this->completedTasks()->count(),
+            'incomplete' => $this->incompleteTasks()->count(),
+            'due_today' => $this->tasksDueToday()->count(),
+            'overdue' => $this->overdueTasks()->count(),
+            'upcoming' => $this->upcomingTasks()->count(),
+        ];
     }
 }

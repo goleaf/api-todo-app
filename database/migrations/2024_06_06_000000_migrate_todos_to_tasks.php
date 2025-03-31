@@ -15,7 +15,7 @@ return new class extends Migration
         if (Schema::hasTable('todos') && Schema::hasTable('tasks')) {
             // Get all the todos
             $todos = DB::table('todos')->get();
-            
+
             foreach ($todos as $todo) {
                 // Map old priority to new priority scale
                 $priority = match ($todo->priority ?? 0) {
@@ -24,7 +24,7 @@ return new class extends Migration
                     2 => 3, // High
                     default => 1, // Default to Low
                 };
-                
+
                 // Insert into new tasks table
                 DB::table('tasks')->insert([
                     'user_id' => $todo->user_id,
@@ -52,4 +52,4 @@ return new class extends Migration
         // No reverse migration needed, as we're keeping both tables.
         // If desired, data could be moved back from tasks to todos.
     }
-}; 
+};

@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::table('todos', function (Blueprint $table) {
             // Add priority column if it doesn't exist
-            if (!Schema::hasColumn('todos', 'priority')) {
+            if (! Schema::hasColumn('todos', 'priority')) {
                 $table->integer('priority')->default(0)->after('completed');
             }
-            
+
             // Add tags column if it doesn't exist
-            if (!Schema::hasColumn('todos', 'tags')) {
+            if (! Schema::hasColumn('todos', 'tags')) {
                 $table->json('tags')->nullable()->after('progress');
             }
         });
@@ -33,7 +33,7 @@ return new class extends Migration
             if (Schema::hasColumn('todos', 'priority')) {
                 $table->dropColumn('priority');
             }
-            
+
             if (Schema::hasColumn('todos', 'tags')) {
                 $table->dropColumn('tags');
             }

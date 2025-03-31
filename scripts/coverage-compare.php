@@ -2,13 +2,13 @@
 
 /**
  * Test Coverage Comparison Tool
- * 
+ *
  * This script compares Vue.js and Livewire test coverage reports and generates a summary.
  * It helps teams track the progress of migration from Vue to Livewire.
- * 
+ *
  * Usage:
  * php scripts/coverage-compare.php [vue-coverage-path] [livewire-coverage-path]
- * 
+ *
  * Requirements:
  * - Vue.js coverage generated using Jest coverage reporter
  * - Livewire coverage generated using PHPUnit coverage reporter
@@ -27,7 +27,7 @@ if (file_exists($vueCoveragePath)) {
 } else {
     echo "Vue.js coverage file not found at: $vueCoveragePath\n";
     echo "Using placeholder data instead.\n";
-    
+
     // Use placeholder data for demonstration
     $vueCoverage = [
         'total' => [
@@ -35,7 +35,7 @@ if (file_exists($vueCoveragePath)) {
             'statements' => ['pct' => 73],
             'functions' => ['pct' => 68],
             'branches' => ['pct' => 62],
-        ]
+        ],
     ];
 }
 
@@ -45,7 +45,7 @@ if (file_exists($livewireCoveragePath)) {
 } else {
     echo "Livewire coverage file not found at: $livewireCoveragePath\n";
     echo "Using placeholder data instead.\n";
-    
+
     // Use placeholder data for demonstration
     $livewireCoverage = [
         'total' => [
@@ -53,7 +53,7 @@ if (file_exists($livewireCoveragePath)) {
             'statements' => ['pct' => 80],
             'functions' => ['pct' => 75],
             'branches' => ['pct' => 70],
-        ]
+        ],
     ];
 }
 
@@ -66,32 +66,32 @@ $componentCoverage = [
     'Authentication' => [
         'Vue' => 80,
         'Livewire' => 95,
-        'Status' => 'Completed'
+        'Status' => 'Completed',
     ],
     'Task Management' => [
         'Vue' => 75,
         'Livewire' => 90,
-        'Status' => 'Completed'
+        'Status' => 'Completed',
     ],
     'Dashboard' => [
         'Vue' => 70,
         'Livewire' => 85,
-        'Status' => 'Completed'
+        'Status' => 'Completed',
     ],
     'Profile' => [
         'Vue' => 65,
         'Livewire' => 0,
-        'Status' => 'Pending'
+        'Status' => 'Pending',
     ],
     'Calendar' => [
         'Vue' => 60,
         'Livewire' => 0,
-        'Status' => 'Pending'
+        'Status' => 'Pending',
     ],
     'Statistics' => [
         'Vue' => 55,
         'Livewire' => 0,
-        'Status' => 'Pending'
+        'Status' => 'Pending',
     ],
 ];
 
@@ -191,9 +191,9 @@ $html = '<!DOCTYPE html>
     <div class="summary-box">
         <h2>Summary</h2>
         <p>
-            <strong>Vue.js Overall Coverage:</strong> ' . ($vueTotals['lines']['pct'] ?? 'N/A') . '%<br>
-            <strong>Livewire Overall Coverage:</strong> ' . ($livewireTotals['lines']['pct'] ?? 'N/A') . '%<br>
-            <strong>Coverage Improvement:</strong> ' . (($livewireTotals['lines']['pct'] ?? 0) - ($vueTotals['lines']['pct'] ?? 0)) . '%
+            <strong>Vue.js Overall Coverage:</strong> '.($vueTotals['lines']['pct'] ?? 'N/A').'%<br>
+            <strong>Livewire Overall Coverage:</strong> '.($livewireTotals['lines']['pct'] ?? 'N/A').'%<br>
+            <strong>Coverage Improvement:</strong> '.(($livewireTotals['lines']['pct'] ?? 0) - ($vueTotals['lines']['pct'] ?? 0)).'%
         </p>
     </div>
     
@@ -210,27 +210,27 @@ $html = '<!DOCTYPE html>
         <tbody>
             <tr>
                 <td>Lines</td>
-                <td>' . ($vueTotals['lines']['pct'] ?? 'N/A') . '%</td>
-                <td>' . ($livewireTotals['lines']['pct'] ?? 'N/A') . '%</td>
-                <td>' . (($livewireTotals['lines']['pct'] ?? 0) - ($vueTotals['lines']['pct'] ?? 0)) . '%</td>
+                <td>'.($vueTotals['lines']['pct'] ?? 'N/A').'%</td>
+                <td>'.($livewireTotals['lines']['pct'] ?? 'N/A').'%</td>
+                <td>'.(($livewireTotals['lines']['pct'] ?? 0) - ($vueTotals['lines']['pct'] ?? 0)).'%</td>
             </tr>
             <tr>
                 <td>Statements</td>
-                <td>' . ($vueTotals['statements']['pct'] ?? 'N/A') . '%</td>
-                <td>' . ($livewireTotals['statements']['pct'] ?? 'N/A') . '%</td>
-                <td>' . (($livewireTotals['statements']['pct'] ?? 0) - ($vueTotals['statements']['pct'] ?? 0)) . '%</td>
+                <td>'.($vueTotals['statements']['pct'] ?? 'N/A').'%</td>
+                <td>'.($livewireTotals['statements']['pct'] ?? 'N/A').'%</td>
+                <td>'.(($livewireTotals['statements']['pct'] ?? 0) - ($vueTotals['statements']['pct'] ?? 0)).'%</td>
             </tr>
             <tr>
                 <td>Functions</td>
-                <td>' . ($vueTotals['functions']['pct'] ?? 'N/A') . '%</td>
-                <td>' . ($livewireTotals['functions']['pct'] ?? 'N/A') . '%</td>
-                <td>' . (($livewireTotals['functions']['pct'] ?? 0) - ($vueTotals['functions']['pct'] ?? 0)) . '%</td>
+                <td>'.($vueTotals['functions']['pct'] ?? 'N/A').'%</td>
+                <td>'.($livewireTotals['functions']['pct'] ?? 'N/A').'%</td>
+                <td>'.(($livewireTotals['functions']['pct'] ?? 0) - ($vueTotals['functions']['pct'] ?? 0)).'%</td>
             </tr>
             <tr>
                 <td>Branches</td>
-                <td>' . ($vueTotals['branches']['pct'] ?? 'N/A') . '%</td>
-                <td>' . ($livewireTotals['branches']['pct'] ?? 'N/A') . '%</td>
-                <td>' . (($livewireTotals['branches']['pct'] ?? 0) - ($vueTotals['branches']['pct'] ?? 0)) . '%</td>
+                <td>'.($vueTotals['branches']['pct'] ?? 'N/A').'%</td>
+                <td>'.($livewireTotals['branches']['pct'] ?? 'N/A').'%</td>
+                <td>'.(($livewireTotals['branches']['pct'] ?? 0) - ($vueTotals['branches']['pct'] ?? 0)).'%</td>
             </tr>
         </tbody>
     </table>
@@ -260,21 +260,21 @@ foreach ($componentCoverage as $component => $data) {
             $statusClass = 'status-in-progress';
             break;
     }
-    
+
     $html .= '
             <tr>
-                <td>' . htmlspecialchars($component) . '</td>
+                <td>'.htmlspecialchars($component).'</td>
                 <td>
                     <div class="progress-container">
-                        <div class="progress-bar vue-bar" style="width: ' . $data['Vue'] . '%">' . $data['Vue'] . '%</div>
+                        <div class="progress-bar vue-bar" style="width: '.$data['Vue'].'%">'.$data['Vue'].'%</div>
                     </div>
                 </td>
                 <td>
                     <div class="progress-container">
-                        <div class="progress-bar livewire-bar" style="width: ' . $data['Livewire'] . '%">' . $data['Livewire'] . '%</div>
+                        <div class="progress-bar livewire-bar" style="width: '.$data['Livewire'].'%">'.$data['Livewire'].'%</div>
                     </div>
                 </td>
-                <td class="' . $statusClass . '">' . $data['Status'] . '</td>
+                <td class="'.$statusClass.'">'.$data['Status'].'</td>
             </tr>';
 }
 
@@ -310,20 +310,20 @@ $html .= '
                     {
                         label: "Vue.js",
                         data: [
-                            ' . ($vueTotals['lines']['pct'] ?? 0) . ',
-                            ' . ($vueTotals['statements']['pct'] ?? 0) . ',
-                            ' . ($vueTotals['functions']['pct'] ?? 0) . ',
-                            ' . ($vueTotals['branches']['pct'] ?? 0) . '
+                            '.($vueTotals['lines']['pct'] ?? 0).',
+                            '.($vueTotals['statements']['pct'] ?? 0).',
+                            '.($vueTotals['functions']['pct'] ?? 0).',
+                            '.($vueTotals['branches']['pct'] ?? 0).'
                         ],
                         backgroundColor: "#42b883",
                     },
                     {
                         label: "Livewire",
                         data: [
-                            ' . ($livewireTotals['lines']['pct'] ?? 0) . ',
-                            ' . ($livewireTotals['statements']['pct'] ?? 0) . ',
-                            ' . ($livewireTotals['functions']['pct'] ?? 0) . ',
-                            ' . ($livewireTotals['branches']['pct'] ?? 0) . '
+                            '.($livewireTotals['lines']['pct'] ?? 0).',
+                            '.($livewireTotals['statements']['pct'] ?? 0).',
+                            '.($livewireTotals['functions']['pct'] ?? 0).',
+                            '.($livewireTotals['branches']['pct'] ?? 0).'
                         ],
                         backgroundColor: "#fb70a9",
                     }
@@ -351,18 +351,18 @@ $html .= '
         new Chart(ctxComponent, {
             type: "bar",
             data: {
-                labels: [' . implode(', ', array_map(function($component) {
-                    return '"' . addslashes($component) . '"';
-                }, array_keys($componentCoverage))) . '],
+                labels: ['.implode(', ', array_map(function ($component) {
+    return '"'.addslashes($component).'"';
+}, array_keys($componentCoverage))).'],
                 datasets: [
                     {
                         label: "Vue.js",
-                        data: [' . implode(', ', array_column($componentCoverage, 'Vue')) . '],
+                        data: ['.implode(', ', array_column($componentCoverage, 'Vue')).'],
                         backgroundColor: "#42b883",
                     },
                     {
                         label: "Livewire",
-                        data: [' . implode(', ', array_column($componentCoverage, 'Livewire')) . '],
+                        data: ['.implode(', ', array_column($componentCoverage, 'Livewire')).'],
                         backgroundColor: "#fb70a9",
                     }
                 ]
@@ -386,7 +386,7 @@ $html .= '
     </script>
     
     <footer>
-        <p>Generated on ' . date('Y-m-d H:i:s') . '</p>
+        <p>Generated on '.date('Y-m-d H:i:s').'</p>
     </footer>
 </body>
 </html>';
@@ -395,4 +395,4 @@ $html .= '
 file_put_contents($outputFile, $html);
 
 echo "Coverage comparison report generated: $outputFile\n";
-echo "Open this file in a browser to view the report.\n"; 
+echo "Open this file in a browser to view the report.\n";

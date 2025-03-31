@@ -45,10 +45,10 @@ class LoginTest extends TestCase
                 'password' => 'password123',
             ],
             [
-                'email' => fn($value) => filter_var($value, FILTER_VALIDATE_EMAIL),
+                'email' => fn ($value) => filter_var($value, FILTER_VALIDATE_EMAIL),
             ]
         )
-        ->assertHasErrors(['email' => 'email']);
+            ->assertHasErrors(['email' => 'email']);
     }
 
     /** @test */
@@ -69,7 +69,7 @@ class LoginTest extends TestCase
             'email' => 'test@example.com',
             'password' => Hash::make('correct-password'),
         ]);
-        
+
         // Test with invalid credentials
         Livewire::test(Login::class)
             ->set('email', 'test@example.com')
@@ -87,10 +87,10 @@ class LoginTest extends TestCase
             'email' => 'test@example.com',
             'password' => Hash::make('correct-password'),
         ]);
-        
+
         // Assert not logged in
         $this->assertFalse(Auth::check());
-        
+
         // Test login with correct credentials
         Livewire::test(Login::class)
             ->set('email', 'test@example.com')
@@ -98,7 +98,7 @@ class LoginTest extends TestCase
             ->call('login')
             ->assertHasNoErrors()
             ->assertRedirect('/dashboard');
-        
+
         // Assert now logged in
         $this->assertTrue(Auth::check());
         $this->assertEquals($user->id, Auth::id());
@@ -112,10 +112,10 @@ class LoginTest extends TestCase
             'email' => 'test@example.com',
             'password' => Hash::make('correct-password'),
         ]);
-        
+
         // Simulate accessing a protected route
         session(['url.intended' => '/tasks']);
-        
+
         // Test login with redirection
         Livewire::test(Login::class)
             ->set('email', 'test@example.com')
@@ -132,14 +132,14 @@ class LoginTest extends TestCase
             'email' => 'test@example.com',
             'password' => Hash::make('correct-password'),
         ]);
-        
+
         // Test login with remember option
         Livewire::test(Login::class)
             ->set('email', 'test@example.com')
             ->set('password', 'correct-password')
             ->set('remember', true)
             ->call('login');
-        
+
         // Check for remember token cookie
         $this->assertNotNull($user->fresh()->remember_token);
     }
@@ -160,4 +160,4 @@ class LoginTest extends TestCase
             ->call('navigateToForgotPassword')
             ->assertRedirect('/forgot-password');
     }
-} 
+}

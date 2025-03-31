@@ -96,4 +96,4 @@ return [
         'photo_deleted' => 'Profile photo deleted successfully.',
         'not_found' => 'User not found.',
     ],
-]; 
+];

@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category;
 use App\Models\Task;
 use App\Models\User;
-use App\Models\Category;
-use Illuminate\Database\Seeder;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
 
 class TaskSeeder extends Seeder
 {
@@ -21,19 +21,19 @@ class TaskSeeder extends Seeder
         foreach ($users as $user) {
             // Get user's categories
             $categories = Category::where('user_id', $user->id)->get();
-            
+
             if ($categories->isEmpty()) {
                 continue; // Skip users without categories
             }
 
             // Create predefined tasks with varied properties
             $this->createPredefinedTasksForUser($user, $categories);
-            
+
             // Create some additional random tasks
             $this->createRandomTasksForUser($user, $categories);
         }
     }
-    
+
     /**
      * Create predefined tasks for a user
      */
@@ -41,7 +41,7 @@ class TaskSeeder extends Seeder
     {
         // Get category IDs for easier use
         $categoryIds = $categories->pluck('id')->toArray();
-        
+
         // Create a set of predefined tasks
         $tasks = [
             [
@@ -108,13 +108,13 @@ class TaskSeeder extends Seeder
                 'progress' => 100,
             ],
         ];
-        
+
         // Create the tasks
         foreach ($tasks as $task) {
             Task::create(array_merge($task, ['user_id' => $user->id]));
         }
     }
-    
+
     /**
      * Create random tasks for a user
      */
@@ -122,17 +122,17 @@ class TaskSeeder extends Seeder
     {
         $priorities = [0, 1, 2]; // Low, Medium, High
         $categoryIds = $categories->pluck('id')->toArray();
-        
+
         // Create 3-6 random tasks
         $count = rand(3, 6);
         for ($i = 0; $i < $count; $i++) {
             $completed = rand(0, 1) === 1;
             $progress = $completed ? 100 : rand(0, 90);
-            
+
             // Create task with random properties
             Task::create([
                 'user_id' => $user->id,
-                'title' => 'Task ' . ($i + 1) . ' - ' . $this->getRandomTaskTitle(),
+                'title' => 'Task '.($i + 1).' - '.$this->getRandomTaskTitle(),
                 'description' => $this->getRandomTaskDescription(),
                 'due_date' => Carbon::now()->addDays(rand(-5, 14)),
                 'priority' => $priorities[array_rand($priorities)],
@@ -145,16 +145,17 @@ class TaskSeeder extends Seeder
             ]);
         }
     }
-    
+
     /**
      * Get a category ID by name
      */
     private function getCategoryByName($categories, $name)
     {
         $category = $categories->where('name', $name)->first();
+
         return $category ? $category->id : $categories->first()->id;
     }
-    
+
     /**
      * Get a random task title
      */
@@ -172,10 +173,10 @@ class TaskSeeder extends Seeder
             'Organize files',
             'Clean workspace',
         ];
-        
+
         return $titles[array_rand($titles)];
     }
-    
+
     /**
      * Get a random task description
      */
@@ -193,10 +194,10 @@ class TaskSeeder extends Seeder
             'Check resources before starting',
             'May need approval from management',
         ];
-        
+
         return $descriptions[array_rand($descriptions)];
     }
-    
+
     /**
      * Get random tags for a task
      */
@@ -206,17 +207,18 @@ class TaskSeeder extends Seeder
             'urgent', 'important', 'routine', 'follow-up', 'meeting',
             'client', 'internal', 'planning', 'review', 'documentation',
             'research', 'development', 'design', 'testing', 'deployment',
-            'admin', 'personal', 'team', 'project', 'quarterly'
+            'admin', 'personal', 'team', 'project', 'quarterly',
         ];
-        
+
         // Get 0-3 random tags
         $tagCount = rand(0, 3);
         if ($tagCount === 0) {
             return [];
         }
-        
+
         // Shuffle and take the first $tagCount elements
         shuffle($allTags);
+
         return array_slice($allTags, 0, $tagCount);
     }
 }

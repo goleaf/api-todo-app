@@ -4,9 +4,9 @@ namespace Tests\Feature\Api;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
-use Illuminate\Support\Facades\Hash;
 
 class UserTest extends TestCase
 {
@@ -190,7 +190,7 @@ class UserTest extends TestCase
                     'token',
                 ],
             ]);
-            
+
         $this->assertTrue($response->json('success'));
         $this->assertEquals('User logged in successfully', $response->json('message'));
     }
@@ -218,7 +218,7 @@ class UserTest extends TestCase
                     'email',
                 ],
             ]);
-            
+
         $this->assertFalse($response->json('success'));
         $this->assertEquals('The provided credentials are incorrect.', $response->json('message'));
     }
@@ -240,10 +240,10 @@ class UserTest extends TestCase
                 'message',
                 'data',
             ]);
-            
+
         $this->assertTrue($response->json('success'));
         $this->assertEquals('User logged out successfully', $response->json('message'));
-        
+
         // Tokens should be revoked
         $this->assertCount(0, $user->tokens);
     }

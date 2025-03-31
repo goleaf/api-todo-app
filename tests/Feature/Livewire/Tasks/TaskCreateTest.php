@@ -14,13 +14,13 @@ class TaskCreateTest extends LivewireFormTestCase
     {
         $this->assertLivewireCanSee(TaskCreate::class, 'Create Task');
     }
-    
+
     /** @test */
     public function it_requires_a_title()
     {
         $this->assertFormFieldIsRequired(TaskCreate::class, 'form.title');
     }
-    
+
     /** @test */
     public function it_validates_title_length()
     {
@@ -30,7 +30,7 @@ class TaskCreateTest extends LivewireFormTestCase
             ->call('save')
             ->assertHasErrors(['form.title' => 'max']);
     }
-    
+
     /** @test */
     public function it_validates_description_length()
     {
@@ -41,7 +41,7 @@ class TaskCreateTest extends LivewireFormTestCase
             ->call('save')
             ->assertHasErrors(['form.description' => 'max']);
     }
-    
+
     /** @test */
     public function it_can_create_a_task()
     {
@@ -51,7 +51,7 @@ class TaskCreateTest extends LivewireFormTestCase
             'form.description' => 'Test Description',
             'form.due_date' => now()->addDays(7)->format('Y-m-d'),
         ];
-        
+
         // Set up expected outcome
         $expectedOutcome = [
             'event' => 'task-created',
@@ -60,10 +60,10 @@ class TaskCreateTest extends LivewireFormTestCase
                     'title' => 'Test Task',
                     'description' => 'Test Description',
                     'user_id' => $this->user->id,
-                ]
-            ]
+                ],
+            ],
         ];
-        
+
         // Test form submission
         $this->assertFormSubmitsSuccessfully(
             TaskCreate::class,
@@ -72,7 +72,7 @@ class TaskCreateTest extends LivewireFormTestCase
             'save' // Method name to call
         );
     }
-    
+
     /** @test */
     public function it_resets_form_after_successful_submission()
     {
@@ -86,7 +86,7 @@ class TaskCreateTest extends LivewireFormTestCase
             'save'
         );
     }
-    
+
     /** @test */
     public function it_allows_creating_task_without_description()
     {
@@ -94,7 +94,7 @@ class TaskCreateTest extends LivewireFormTestCase
         $formData = [
             'form.title' => 'Test Task Without Description',
         ];
-        
+
         // Test form submission
         $component = Livewire::actingAs($this->user)
             ->test(TaskCreate::class)
@@ -102,14 +102,14 @@ class TaskCreateTest extends LivewireFormTestCase
             ->call('save')
             ->assertHasNoErrors()
             ->assertEmitted('task-created');
-            
+
         // Verify task was created
         $this->assertDatabaseHas('tasks', [
             'title' => 'Test Task Without Description',
             'user_id' => $this->user->id,
         ]);
     }
-    
+
     /** @test */
     public function it_shows_success_message_after_creation()
     {
@@ -119,20 +119,20 @@ class TaskCreateTest extends LivewireFormTestCase
             ->call('save')
             ->assertSee('Task created successfully');
     }
-    
+
     /** @test */
     public function it_prevents_unauthorized_users_from_creating_tasks()
     {
         // Log out user
         auth()->logout();
-        
+
         // Try to create task as guest
         $response = $this->get('/tasks/create');
-        
+
         // Verify redirect to login
         $response->assertRedirect('/login');
     }
-    
+
     /** @test */
     public function it_handles_validation_errors_correctly()
     {
@@ -144,4 +144,4 @@ class TaskCreateTest extends LivewireFormTestCase
             ->call('save')
             ->assertHasErrors(['form.title', 'form.description']);
     }
-} 
+}

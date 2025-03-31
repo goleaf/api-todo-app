@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use App\Livewire\TaskBulkProcessor;
 use App\Livewire\TaskMvc;
-use App\Services\HypervelService;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 

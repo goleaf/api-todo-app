@@ -11,6 +11,8 @@ abstract class ApiRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     * By default, all API requests are authorized and individual requests
+     * should override this method if authorization is needed.
      */
     public function authorize(): bool
     {
@@ -19,11 +21,13 @@ abstract class ApiRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
+     * This method must be implemented by all child classes.
      */
     abstract public function rules(): array;
 
     /**
-     * Get custom messages for validator errors.
+     * Get custom error messages for validator errors.
+     * This can be overridden by child classes for custom messages.
      */
     public function messages(): array
     {
@@ -32,6 +36,7 @@ abstract class ApiRequest extends FormRequest
 
     /**
      * Get custom attributes for validator errors.
+     * This can be overridden by child classes for custom attributes.
      */
     public function attributes(): array
     {
@@ -40,16 +45,15 @@ abstract class ApiRequest extends FormRequest
 
     /**
      * Handle a failed validation attempt.
+     * For API requests, we return a JSON response instead of redirecting.
      */
     protected function failedValidation(Validator $validator): void
     {
-        throw new HttpResponseException(
-            response()->json([
-                'success' => false,
-                'message' => __('validation.failed'),
-                'errors' => $validator->errors(),
-            ], JsonResponse::HTTP_UNPROCESSABLE_ENTITY)
-        );
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => __('messages.validation_error'),
+            'errors' => $validator->errors(),
+        ], 422));
     }
 
     /**

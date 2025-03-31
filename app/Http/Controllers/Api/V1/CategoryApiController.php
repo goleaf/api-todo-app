@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Api\Category\CategoryStoreRequest;
 use App\Http\Requests\Api\Category\CategoryUpdateRequest;
 use App\Services\Api\CategoryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class CategoryApiController extends Controller
+class CategoryApiController extends ApiController
 {
     protected CategoryService $service;
 
@@ -68,4 +68,4 @@ class CategoryApiController extends Controller
     {
         return $this->service->getTaskCounts();
     }
-} 
+}

@@ -15,7 +15,7 @@ class CategorySeeder extends Seeder
     {
         // Create sample categories for each user
         $users = User::all();
-        
+
         $categoryTemplates = [
             [
                 'name' => 'Work',
@@ -48,15 +48,15 @@ class CategorySeeder extends Seeder
             // Create categories for this user
             foreach ($categoryTemplates as $template) {
                 // Only create if it doesn't exist
-                if (!Category::where('user_id', $user->id)->where('name', $template['name'])->exists()) {
+                if (! Category::where('user_id', $user->id)->where('name', $template['name'])->exists()) {
                     Category::create([
                         'name' => $template['name'],
                         'color' => $template['color'],
                         'icon' => $template['icon'],
-                        'user_id' => $user->id
+                        'user_id' => $user->id,
                     ]);
                 }
             }
         }
     }
-} 
+}

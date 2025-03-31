@@ -18,7 +18,7 @@ class CategoryListTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->user = User::factory()->create();
     }
 
@@ -55,7 +55,7 @@ class CategoryListTest extends TestCase
     public function it_only_shows_categories_for_authenticated_user()
     {
         $otherUser = User::factory()->create();
-        
+
         Category::factory()->create([
             'user_id' => $this->user->id,
             'name' => 'My Category',
@@ -85,9 +85,9 @@ class CategoryListTest extends TestCase
             ->call('confirmDelete', $category->id)
             ->assertSet('categoryToDelete', $category->id)
             ->call('deleteCategory');
-            
+
         $this->assertDatabaseMissing('categories', [
-            'id' => $category->id
+            'id' => $category->id,
         ]);
     }
-} 
+}

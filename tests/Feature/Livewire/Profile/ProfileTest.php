@@ -121,4 +121,4 @@ class ProfileTest extends TestCase
             ->call('updateProfile')
             ->assertHasErrors(['email' => 'email']);
     }
-} 
+}

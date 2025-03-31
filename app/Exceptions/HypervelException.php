@@ -9,7 +9,7 @@ class HypervelException extends Exception
 {
     /**
      * Additional context for the exception
-     * 
+     *
      * @var array
      */
     protected $context;
@@ -17,10 +17,6 @@ class HypervelException extends Exception
     /**
      * Create a new Hypervel exception instance.
      *
-     * @param  string  $message
-     * @param  int  $code
-     * @param  \Throwable|null  $previous
-     * @param  array  $context
      * @return void
      */
     public function __construct(string $message, int $code = 0, ?Throwable $previous = null, array $context = [])
@@ -31,8 +27,6 @@ class HypervelException extends Exception
 
     /**
      * Get the additional context for the exception.
-     *
-     * @return array
      */
     public function getContext(): array
     {
@@ -42,9 +36,8 @@ class HypervelException extends Exception
     /**
      * Create an exception for a timeout error
      *
-     * @param int $timeout Timeout in seconds
-     * @param Throwable|null $previous Previous exception
-     * @return static
+     * @param  int  $timeout  Timeout in seconds
+     * @param  Throwable|null  $previous  Previous exception
      */
     public static function timeout(int $timeout, ?Throwable $previous = null): static
     {
@@ -55,13 +48,12 @@ class HypervelException extends Exception
             ['timeout' => $timeout]
         );
     }
-    
+
     /**
      * Create an exception for a concurrency limit error
      *
-     * @param int $limit Concurrency limit
-     * @param Throwable|null $previous Previous exception
-     * @return static
+     * @param  int  $limit  Concurrency limit
+     * @param  Throwable|null  $previous  Previous exception
      */
     public static function concurrencyLimitExceeded(int $limit, ?Throwable $previous = null): static
     {
@@ -72,13 +64,12 @@ class HypervelException extends Exception
             ['concurrency_limit' => $limit]
         );
     }
-    
+
     /**
      * Create an exception for an operation error
      *
-     * @param string $operation Name of the operation that failed
-     * @param Throwable $previous Previous exception
-     * @return static
+     * @param  string  $operation  Name of the operation that failed
+     * @param  Throwable  $previous  Previous exception
      */
     public static function operationFailed(string $operation, Throwable $previous): static
     {
@@ -92,8 +83,6 @@ class HypervelException extends Exception
 
     /**
      * Report the exception
-     *
-     * @return bool
      */
     public function report(): bool
     {
@@ -104,7 +93,7 @@ class HypervelException extends Exception
     /**
      * Render the exception into an HTTP response
      *
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function render($request)
@@ -118,9 +107,9 @@ class HypervelException extends Exception
 
         // For web requests, you might want to add a flash message
         if ($request->session()) {
-            $request->session()->flash('error', 'A processing error occurred: ' . $this->getMessage());
+            $request->session()->flash('error', 'A processing error occurred: '.$this->getMessage());
         }
 
         return redirect()->back()->withInput();
     }
-} 
+}

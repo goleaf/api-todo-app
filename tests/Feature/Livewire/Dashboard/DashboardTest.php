@@ -34,18 +34,18 @@ class DashboardTest extends LivewireTestCase
         // Create tasks with different statuses
         Task::factory()->count(3)->create([
             'user_id' => $this->user->id,
-            'completed' => false
+            'completed' => false,
         ]);
 
         Task::factory()->count(2)->create([
             'user_id' => $this->user->id,
-            'completed' => true
+            'completed' => true,
         ]);
 
         Livewire::actingAs($this->user)
             ->test(Dashboard::class)
             ->assertSee('5 Total Tasks')  // Total
-            ->assertSee('3 Active')       // Incomplete 
+            ->assertSee('3 Active')       // Incomplete
             ->assertSee('2 Completed');   // Completed
     }
 
@@ -55,7 +55,7 @@ class DashboardTest extends LivewireTestCase
         // Create an incomplete task
         $task = Task::factory()->create([
             'user_id' => $this->user->id,
-            'completed' => false
+            'completed' => false,
         ]);
 
         // Get the dashboard component
@@ -82,10 +82,10 @@ class DashboardTest extends LivewireTestCase
     {
         // Log out user
         auth()->logout();
-        
+
         // Try to access dashboard as guest
         $response = $this->get('/dashboard');
-        
+
         // Verify redirect to login
         $response->assertRedirect('/login');
     }
@@ -97,19 +97,19 @@ class DashboardTest extends LivewireTestCase
         $oldTask = Task::factory()->create([
             'user_id' => $this->user->id,
             'title' => 'Old task',
-            'created_at' => now()->subDays(10)
+            'created_at' => now()->subDays(10),
         ]);
 
         $recentTask1 = Task::factory()->create([
             'user_id' => $this->user->id,
             'title' => 'Recent task 1',
-            'created_at' => now()->subDay()
+            'created_at' => now()->subDay(),
         ]);
 
         $recentTask2 = Task::factory()->create([
             'user_id' => $this->user->id,
             'title' => 'Recent task 2',
-            'created_at' => now()
+            'created_at' => now(),
         ]);
 
         Livewire::actingAs($this->user)
@@ -127,21 +127,21 @@ class DashboardTest extends LivewireTestCase
             'user_id' => $this->user->id,
             'title' => 'Overdue task',
             'due_date' => now()->subDays(2),
-            'completed' => false
+            'completed' => false,
         ]);
 
         $upcomingTask = Task::factory()->create([
             'user_id' => $this->user->id,
             'title' => 'Upcoming task',
             'due_date' => now()->addDays(2),
-            'completed' => false
+            'completed' => false,
         ]);
 
         $farFutureTask = Task::factory()->create([
             'user_id' => $this->user->id,
             'title' => 'Far future task',
             'due_date' => now()->addDays(10),
-            'completed' => false
+            'completed' => false,
         ]);
 
         Livewire::actingAs($this->user)
@@ -150,4 +150,4 @@ class DashboardTest extends LivewireTestCase
             ->assertSee('Overdue task')
             ->assertSee('Upcoming task');
     }
-} 
+}

@@ -17,7 +17,7 @@ return new class extends Migration
             $dataMigration = DB::table('migrations_log')
                 ->where('migration', 'migrate_data_from_todos_to_tasks')
                 ->first();
-            
+
             if ($dataMigration && Schema::hasTable('todos')) {
                 Schema::dropIfExists('todos');
             }
@@ -34,7 +34,7 @@ return new class extends Migration
     public function down(): void
     {
         // Recreate the todos table if needed - only structure, not data
-        if (!Schema::hasTable('todos')) {
+        if (! Schema::hasTable('todos')) {
             Schema::create('todos', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
@@ -49,7 +49,7 @@ return new class extends Migration
                 $table->dateTime('reminder_at')->nullable();
                 $table->json('tags')->nullable();
                 $table->timestamps();
-                
+
                 $table->index(['user_id', 'session_id']);
             });
         }

@@ -141,7 +141,7 @@ class Task extends Model
      */
     public function scopeWithTag(Builder $query, string $tag): Builder
     {
-        return $query->where('tags', 'like', '%"' . $tag . '"%');
+        return $query->where('tags', 'like', '%"'.$tag.'"%');
     }
 
     /**
@@ -169,11 +169,24 @@ class Task extends Model
     }
 
     /**
+     * Scope a query to search tasks by keyword.
+     */
+    public function scopeSearch(Builder $query, string $search): Builder
+    {
+        return $query->where(function ($query) use ($search) {
+            $query->where('title', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%")
+                ->orWhere('notes', 'like', "%{$search}%");
+        });
+    }
+
+    /**
      * Toggle the completed status of the task.
      */
     public function toggleCompletion(): bool
     {
-        $this->completed = !$this->completed;
+        $this->completed = ! $this->completed;
+
         return $this->save();
     }
 
@@ -202,11 +215,11 @@ class Task extends Model
      */
     public function isUpcoming(int $days = 7): bool
     {
-        if (!$this->due_date || $this->completed) {
+        if (! $this->due_date || $this->completed) {
             return false;
         }
 
-        return $this->due_date->isFuture() && 
+        return $this->due_date->isFuture() &&
                $this->due_date->lte(Carbon::today()->addDays($days));
     }
 
@@ -223,7 +236,7 @@ class Task extends Model
      */
     public function getPriorityLabelAttribute(): string
     {
-        return match($this->priority) {
+        return match ($this->priority) {
             1 => 'Low',
             2 => 'Medium',
             3 => 'High',

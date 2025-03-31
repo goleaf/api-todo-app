@@ -3,36 +3,143 @@
 namespace App\Services\Api;
 
 use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
+use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
-class UserService extends ApiService
+class UserService
 {
+    use ApiResponse;
+
     /**
-     * UserService constructor.
+     * Display a listing of users (admin only).
      */
-    public function __construct(User $model)
+    public function index(Request $request): JsonResponse
     {
-        $this->model = $model;
-        $this->defaultRelations = ['tasks', 'categories'];
+        if (! Auth::user()->isAdmin()) {
+            return $this->forbiddenResponse(__('messages.unauthorized'));
+        }
+
+        $query = User::query();
+
+        // Apply filters
+        if ($request->has('search')) {
+            $query->search($request->search);
+        }
+
+        if ($request->has('role')) {
+            $query->withRole($request->role);
+        }
+
+        // Apply sorting
+        $sortBy = $request->get('sort_by', 'name');
+        $sortDir = $request->get('sort_dir', 'asc');
+        $query->orderBy($sortBy, $sortDir);
+
+        // Pagination
+        $perPage = $request->get('per_page', 15);
+        $users = $query->paginate($perPage);
+
+        return $this->successResponse($users);
     }
 
     /**
-     * Override the buildIndexQuery method to restrict access.
+     * Store a new user (admin only).
      */
-    protected function buildIndexQuery(Request $request): Builder
+    public function store(array $data): JsonResponse
     {
-        $query = parent::buildIndexQuery($request);
-        
-        // Only admins should see all users, regular users just see themselves
-        if (!auth()->user()->isAdmin()) {
-            $query->where('id', auth()->id());
+        if (! Auth::user()->isAdmin()) {
+            return $this->forbiddenResponse(__('messages.unauthorized'));
         }
-        
-        return $query;
+
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'role' => $data['role'] ?? 'user',
+        ]);
+
+        return $this->createdResponse($user, __('messages.user.created'));
+    }
+
+    /**
+     * Display a specific user.
+     */
+    public function show(int $id, Request $request): JsonResponse
+    {
+        $currentUser = Auth::user();
+        $user = User::find($id);
+
+        if (! $user) {
+            return $this->errorResponse(__('validation.user.not_found'), 404);
+        }
+
+        // Only admin or the user themselves can see user details
+        if (! $currentUser->isAdmin() && $currentUser->id !== $user->id) {
+            return $this->forbiddenResponse(__('messages.unauthorized'));
+        }
+
+        return $this->successResponse($user);
+    }
+
+    /**
+     * Update a user.
+     */
+    public function update(int $id, array $data): JsonResponse
+    {
+        $currentUser = Auth::user();
+        $user = User::find($id);
+
+        if (! $user) {
+            return $this->errorResponse(__('validation.user.not_found'), 404);
+        }
+
+        // Only admin or the user themselves can update
+        if (! $currentUser->isAdmin() && $currentUser->id !== $user->id) {
+            return $this->forbiddenResponse(__('messages.unauthorized'));
+        }
+
+        // Non-admin users can't change their role
+        if (! $currentUser->isAdmin() && isset($data['role'])) {
+            unset($data['role']);
+        }
+
+        $user->update($data);
+
+        return $this->successResponse($user, __('messages.user.updated'));
+    }
+
+    /**
+     * Delete a user.
+     */
+    public function destroy(int $id): JsonResponse
+    {
+        $currentUser = Auth::user();
+        $user = User::find($id);
+
+        if (! $user) {
+            return $this->errorResponse(__('validation.user.not_found'), 404);
+        }
+
+        // Only admin or the user themselves can delete
+        if (! $currentUser->isAdmin() && $currentUser->id !== $user->id) {
+            return $this->forbiddenResponse(__('messages.unauthorized'));
+        }
+
+        // Users can't delete themselves if they're admins and the last admin
+        if ($currentUser->id === $user->id && $user->isAdmin()) {
+            $adminCount = User::where('role', 'admin')->count();
+            if ($adminCount <= 1) {
+                return $this->errorResponse(__('messages.user.last_admin'), 422);
+            }
+        }
+
+        $user->delete();
+
+        return $this->noContentResponse(__('messages.user.deleted'));
     }
 
     /**
@@ -40,41 +147,40 @@ class UserService extends ApiService
      */
     public function getProfile(): JsonResponse
     {
-        $user = auth()->user();
-        
-        if (!empty($this->defaultRelations)) {
-            $user->load($this->defaultRelations);
-        }
-        
+        $user = Auth::user();
+
         return $this->successResponse($user);
     }
 
     /**
      * Update the authenticated user's profile.
      */
-    public function updateProfile(array $validatedData): JsonResponse
+    public function updateProfile(array $data): JsonResponse
     {
-        $user = auth()->user();
-        $user->update($validatedData);
-        
-        if (!empty($this->defaultRelations)) {
-            $user->load($this->defaultRelations);
-        }
-        
+        $user = Auth::user();
+
+        $user->update($data);
+
         return $this->successResponse($user, __('messages.user.profile_updated'));
     }
 
     /**
      * Update the user's password.
      */
-    public function updatePassword(array $validatedData): JsonResponse
+    public function updatePassword(array $data): JsonResponse
     {
-        $user = auth()->user();
-        
-        $user->password = Hash::make($validatedData['password']);
-        $user->save();
-        
-        return $this->successResponse(null, __('messages.user.password_updated'));
+        $user = Auth::user();
+
+        // Check current password
+        if (! Hash::check($data['current_password'], $user->password)) {
+            return $this->errorResponse(__('validation.user.current_password_invalid'), 422);
+        }
+
+        $user->update([
+            'password' => Hash::make($data['password']),
+        ]);
+
+        return $this->successResponse([], __('messages.user.password_updated'));
     }
 
     /**
@@ -82,23 +188,25 @@ class UserService extends ApiService
      */
     public function uploadPhoto(Request $request): JsonResponse
     {
-        $user = auth()->user();
-        
-        if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
-            // Delete previous photo if exists
-            if ($user->photo_path && Storage::disk('public')->exists($user->photo_path)) {
+        $user = Auth::user();
+
+        if ($request->hasFile('photo')) {
+            // Delete old photo if exists
+            if ($user->photo_path) {
                 Storage::disk('public')->delete($user->photo_path);
             }
-            
+
             // Store new photo
             $path = $request->file('photo')->store('profile-photos', 'public');
-            $user->photo_path = $path;
-            $user->save();
-            
-            return $this->successResponse(['photo_url' => Storage::url($path)], __('messages.user.photo_uploaded'));
+
+            $user->update([
+                'photo_path' => $path,
+            ]);
+
+            return $this->successResponse(['photo_url' => $user->photo_url], __('messages.user.photo_uploaded'));
         }
-        
-        return $this->errorResponse('No valid photo was uploaded.', 422);
+
+        return $this->errorResponse(__('validation.user.photo_required'), 422);
     }
 
     /**
@@ -106,43 +214,49 @@ class UserService extends ApiService
      */
     public function deletePhoto(): JsonResponse
     {
-        $user = auth()->user();
-        
-        if ($user->photo_path && Storage::disk('public')->exists($user->photo_path)) {
+        $user = Auth::user();
+
+        if ($user->photo_path) {
             Storage::disk('public')->delete($user->photo_path);
-            $user->photo_path = null;
-            $user->save();
-            
-            return $this->successResponse(null, __('messages.user.photo_deleted'));
+
+            $user->update([
+                'photo_path' => null,
+            ]);
+
+            return $this->successResponse([], __('messages.user.photo_deleted'));
         }
-        
-        return $this->notFoundResponse('No profile photo found.');
+
+        return $this->errorResponse(__('messages.user.no_photo'), 422);
     }
 
     /**
-     * Get the user's task statistics.
+     * Get user statistics.
      */
-    public function getStatistics(): JsonResponse
+    public function statistics(): JsonResponse
     {
-        $userId = auth()->id();
-        
-        $taskStats = app(TaskService::class)->getStatistics();
-        $categoryStats = app(CategoryService::class)->getTaskCounts();
-        
-        // Combine the statistics
-        $stats = [
-            'tasks' => $taskStats->original['data'],
-            'categories' => $categoryStats->original['data'],
-        ];
-        
-        return $this->successResponse($stats);
-    }
+        $user = Auth::user();
 
-    /**
-     * Get the allowed relations for this service.
-     */
-    protected function getAllowedRelations(): array
-    {
-        return ['tasks', 'categories'];
+        if (! $user->isAdmin()) {
+            // For regular users, just return their own stats
+            return $this->successResponse([
+                'user' => $user->only('id', 'name', 'email'),
+                'tasks' => $user->getTaskStatistics(),
+            ]);
+        }
+
+        // For admins, return system-wide stats
+        $totalUsers = User::count();
+        $activeUsers = User::whereHas('tasks', function ($query) {
+            $query->where('created_at', '>=', now()->subDays(30));
+        })->count();
+
+        return $this->successResponse([
+            'total_users' => $totalUsers,
+            'active_users' => $activeUsers,
+            'admin_count' => User::where('role', 'admin')->count(),
+            'user_count' => User::where('role', 'user')->count(),
+            'users_with_tasks' => User::whereHas('tasks')->count(),
+            'users_with_categories' => User::whereHas('categories')->count(),
+        ]);
     }
-} 
+}

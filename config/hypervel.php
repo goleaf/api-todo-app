@@ -76,7 +76,7 @@ return [
      * Enable debug logging for Hypervel operations
      */
     'debug' => env('HYPERVEL_DEBUG', false),
-    
+
     /**
      * Enable performance metrics collection
      */
@@ -190,4 +190,4 @@ return [
      * When true, operations will be executed sequentially during tests.
      */
     'disable_concurrency_in_testing' => env('HYPERVEL_DISABLE_CONCURRENCY_IN_TESTING', true),
-]; 
+];

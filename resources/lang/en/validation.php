@@ -250,4 +250,4 @@ return [
     |--------------------------------------------------------------------------
     */
     'failed' => 'Validation failed due to some invalid fields.',
-]; 
+];

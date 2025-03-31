@@ -4,30 +4,29 @@ namespace Tests\Feature\Livewire;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Livewire;
 use Tests\TestCase;
 
 abstract class LivewireTestCase extends TestCase
 {
     use RefreshDatabase;
-    
+
     /**
      * The currently authenticated user
      */
     protected ?User $user = null;
-    
+
     /**
      * Set up the test environment
      */
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create a default user if needed
         $this->user = $this->createUser();
     }
-    
+
     /**
      * Create and authenticate a user
      */
@@ -35,10 +34,10 @@ abstract class LivewireTestCase extends TestCase
     {
         $this->user = $this->createUser($attributes);
         $this->actingAs($this->user);
-        
+
         return $this->user;
     }
-    
+
     /**
      * Create a user with optional attributes
      */
@@ -46,7 +45,7 @@ abstract class LivewireTestCase extends TestCase
     {
         return User::factory()->create($attributes);
     }
-    
+
     /**
      * Test a Livewire component as an authenticated user
      */
@@ -56,7 +55,7 @@ abstract class LivewireTestCase extends TestCase
             ->test($componentClass, $params)
             ->assertSee($text);
     }
-    
+
     /**
      * Test a Livewire component doesn't show content
      */
@@ -66,23 +65,22 @@ abstract class LivewireTestCase extends TestCase
             ->test($componentClass, $params)
             ->assertDontSee($text);
     }
-    
+
     /**
      * Test a component property gets updated
      */
     protected function assertLivewirePropertyUpdates(
-        string $componentClass, 
-        string $propertyName, 
-        mixed $value, 
+        string $componentClass,
+        string $propertyName,
+        mixed $value,
         array $params = []
-    ): void
-    {
+    ): void {
         Livewire::actingAs($this->user)
             ->test($componentClass, $params)
             ->set($propertyName, $value)
             ->assertSet($propertyName, $value);
     }
-    
+
     /**
      * Test a component method works and returns expected result
      */
@@ -92,17 +90,16 @@ abstract class LivewireTestCase extends TestCase
         array $expectedChanges = [],
         array $params = [],
         array $methodParams = []
-    ): void
-    {
+    ): void {
         $component = Livewire::actingAs($this->user)
             ->test($componentClass, $params)
             ->call($methodName, ...$methodParams);
-            
+
         foreach ($expectedChanges as $property => $value) {
             $component->assertSet($property, $value);
         }
     }
-    
+
     /**
      * Test a form submission works
      */
@@ -112,26 +109,25 @@ abstract class LivewireTestCase extends TestCase
         array $formData,
         array $expectedOutcome = [],
         bool $expectErrors = false
-    ): void
-    {
+    ): void {
         $component = Livewire::actingAs($this->user)
             ->test($componentClass);
-            
+
         // Set form values
         foreach ($formData as $field => $value) {
             $component->set($field, $value);
         }
-        
+
         // Call the submit method
         $component = $component->call($submitMethod);
-        
+
         // Assert errors or no errors
         if ($expectErrors) {
             $component->assertHasErrors(array_keys($formData));
         } else {
             $component->assertHasNoErrors();
         }
-        
+
         // Check for redirects, events, or property changes
         foreach ($expectedOutcome as $type => $value) {
             if ($type === 'redirect') {
@@ -147,17 +143,17 @@ abstract class LivewireTestCase extends TestCase
             }
         }
     }
-    
+
     /**
      * Assert that a Livewire component can be rendered
      */
     protected function assertLivewireCanRender(string $componentClass, array $params = []): void
     {
         $this->actingAs($this->user);
-        
+
         // Mock the component render method to return an empty view
         // This prevents view-not-found errors in tests
         Livewire::test($componentClass, $params)
             ->assertStatus(200);
     }
-} 
+}

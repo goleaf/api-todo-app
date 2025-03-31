@@ -3,7 +3,6 @@
 namespace Tests\Feature\Livewire;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 
@@ -17,7 +16,7 @@ abstract class LivewireAuthTestCase extends LivewireFormTestCase
         $this->get($route)
             ->assertSuccessful();
     }
-    
+
     /**
      * Test that an authenticated user is redirected away from a page
      */
@@ -27,7 +26,7 @@ abstract class LivewireAuthTestCase extends LivewireFormTestCase
             ->get($route)
             ->assertRedirect($redirectTo);
     }
-    
+
     /**
      * Test login functionality
      */
@@ -36,28 +35,27 @@ abstract class LivewireAuthTestCase extends LivewireFormTestCase
         string $email = 'test@example.com',
         string $password = 'password',
         string $redirectTo = '/dashboard'
-    ): void
-    {
+    ): void {
         // Create user with known credentials
         User::factory()->create([
             'email' => $email,
             'password' => Hash::make($password),
         ]);
-        
+
         // Assert initially not logged in
         $this->assertGuest();
-        
+
         // Login
         Livewire::test($componentClass)
             ->set('email', $email)
             ->set('password', $password)
             ->call('login')
             ->assertRedirect($redirectTo);
-        
+
         // Assert now logged in
         $this->assertAuthenticated();
     }
-    
+
     /**
      * Test login validation
      */
@@ -68,14 +66,14 @@ abstract class LivewireAuthTestCase extends LivewireFormTestCase
             ->set('password', '')
             ->call('login')
             ->assertHasErrors(['email' => 'required', 'password' => 'required']);
-            
+
         Livewire::test($componentClass)
             ->set('email', 'not-an-email')
             ->set('password', 'password')
             ->call('login')
             ->assertHasErrors(['email' => 'email']);
     }
-    
+
     /**
      * Test login with incorrect credentials
      */
@@ -83,33 +81,32 @@ abstract class LivewireAuthTestCase extends LivewireFormTestCase
         string $componentClass,
         string $email = 'test@example.com',
         string $password = 'password'
-    ): void
-    {
+    ): void {
         // Create user with known credentials
         User::factory()->create([
             'email' => $email,
             'password' => Hash::make($password),
         ]);
-        
+
         // Try login with wrong password
         Livewire::test($componentClass)
             ->set('email', $email)
             ->set('password', 'wrong-password')
             ->call('login')
             ->assertHasErrors('email');
-        
+
         $this->assertGuest();
-        
+
         // Try login with non-existent email
         Livewire::test($componentClass)
             ->set('email', 'nonexistent@example.com')
             ->set('password', $password)
             ->call('login')
             ->assertHasErrors('email');
-        
+
         $this->assertGuest();
     }
-    
+
     /**
      * Test user registration functionality
      */
@@ -117,37 +114,36 @@ abstract class LivewireAuthTestCase extends LivewireFormTestCase
         string $componentClass,
         array $userData,
         string $redirectTo = '/dashboard'
-    ): void
-    {
+    ): void {
         // Check initial user count
         $initialCount = User::count();
-        
+
         // Register
         $component = Livewire::test($componentClass);
-        
+
         foreach ($userData as $field => $value) {
             $component->set($field, $value);
         }
-        
+
         $component->call('register')
             ->assertHasNoErrors();
-        
+
         // Don't check for redirects in tests as they may not be properly propagated
         // in the test environment
-        
+
         // Assert user was created
         $this->assertDatabaseHas('users', [
             'email' => $userData['email'],
             'name' => $userData['name'] ?? null,
         ]);
-        
+
         // Assert user count increased
         $this->assertEquals($initialCount + 1, User::count());
-        
+
         // Assert now logged in
         $this->assertAuthenticated();
     }
-    
+
     /**
      * Test logout functionality
      */
@@ -156,17 +152,17 @@ abstract class LivewireAuthTestCase extends LivewireFormTestCase
         // Login
         $this->actingAs($this->user);
         $this->assertAuthenticated();
-        
+
         // Logout
         Livewire::actingAs($this->user)
             ->test($componentClass)
             ->call('logout')
             ->assertRedirect($redirectTo);
-        
+
         // Assert logged out
         $this->assertGuest();
     }
-    
+
     /**
      * Test remember me functionality
      */
@@ -177,15 +173,15 @@ abstract class LivewireAuthTestCase extends LivewireFormTestCase
             'email' => 'test@example.com',
             'password' => Hash::make('password'),
         ]);
-        
+
         // Login with remember me
         Livewire::test($componentClass)
             ->set('email', 'test@example.com')
             ->set('password', 'password')
             ->set('remember', true)
             ->call('login');
-        
+
         // User should have a remember token
         $this->assertNotNull($user->fresh()->remember_token);
     }
-} 
+}

@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Api\Task;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\ApiRequest;
 use Illuminate\Validation\Rule;
 
-class TaskStoreRequest extends FormRequest
+class TaskStoreRequest extends ApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -61,4 +61,4 @@ class TaskStoreRequest extends FormRequest
             'category_id.exists' => __('messages.category.not_found'),
         ];
     }
-} 
+}

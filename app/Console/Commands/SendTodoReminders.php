@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Task;
 use App\Models\User;
 use App\Notifications\TodoReminderNotification;
 use Carbon\Carbon;
@@ -31,13 +30,13 @@ class SendTodoReminders extends Command
     public function handle()
     {
         $this->info('Starting to send todo reminders...');
-        
+
         $dueToday = $this->option('due-today');
         $overdue = $this->option('overdue');
-        
+
         $usersWithTodos = User::whereHas('tasks', function ($query) use ($dueToday, $overdue) {
             $query->where('completed', false);
-            
+
             if ($dueToday) {
                 $query->whereDate('due_date', Carbon::today());
             } elseif ($overdue) {
@@ -46,16 +45,16 @@ class SendTodoReminders extends Command
                 // Either due today, or with an active reminder
                 $query->where(function ($subquery) {
                     $subquery->whereDate('due_date', Carbon::today())
-                            ->orWhere(function ($remind) {
-                                $remind->whereNotNull('reminder_at')
-                                      ->where('reminder_at', '<=', now());
-                            });
+                        ->orWhere(function ($remind) {
+                            $remind->whereNotNull('reminder_at')
+                                ->where('reminder_at', '<=', now());
+                        });
                 });
             }
         })->get();
-        
+
         $count = 0;
-        
+
         foreach ($usersWithTodos as $user) {
             $todos = $user->tasks()
                 ->where('completed', false)
@@ -67,25 +66,25 @@ class SendTodoReminders extends Command
                     } else {
                         // Either due today, or with an active reminder
                         $query->whereDate('due_date', Carbon::today())
-                              ->orWhere(function ($remind) {
-                                  $remind->whereNotNull('reminder_at')
-                                        ->where('reminder_at', '<=', now());
-                              });
+                            ->orWhere(function ($remind) {
+                                $remind->whereNotNull('reminder_at')
+                                    ->where('reminder_at', '<=', now());
+                            });
                     }
                 })
                 ->get();
-            
+
             foreach ($todos as $todo) {
                 try {
                     $user->notify(new TodoReminderNotification($todo));
                     $count++;
-                    
+
                     // Reset the reminder time to avoid repeated notifications
                     if ($todo->reminder_at && $todo->reminder_at->isPast()) {
                         $todo->reminder_at = null;
                         $todo->save();
                     }
-                    
+
                     $this->info("Reminder sent for todo: {$todo->title} to {$user->email}");
                 } catch (\Exception $e) {
                     Log::error("Error sending reminder for todo {$todo->id}: {$e->getMessage()}");
@@ -93,7 +92,7 @@ class SendTodoReminders extends Command
                 }
             }
         }
-        
+
         $this->info("Sent {$count} todo reminders");
     }
 }

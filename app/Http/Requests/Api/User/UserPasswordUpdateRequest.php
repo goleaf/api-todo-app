@@ -14,7 +14,7 @@ class UserPasswordUpdateRequest extends ApiRequest
     {
         return [
             'current_password' => ['required', 'string', function ($attribute, $value, $fail) {
-                if (!Hash::check($value, auth()->user()->password)) {
+                if (! Hash::check($value, auth()->user()->password)) {
                     $fail(__('validation.user.current_password_invalid'));
                 }
             }],
@@ -46,4 +46,4 @@ class UserPasswordUpdateRequest extends ApiRequest
             'password' => __('validation.attributes.password'),
         ];
     }
-} 
+}

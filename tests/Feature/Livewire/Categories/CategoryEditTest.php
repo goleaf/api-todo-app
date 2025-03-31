@@ -14,17 +14,18 @@ class CategoryEditTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private Category $category;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->user = User::factory()->create();
         $this->category = Category::factory()->create([
             'user_id' => $this->user->id,
             'name' => 'Original Name',
-            'color' => '#000000'
+            'color' => '#000000',
         ]);
     }
 
@@ -46,14 +47,14 @@ class CategoryEditTest extends TestCase
             ->set('name', 'Updated Name')
             ->set('color', '#ff0000')
             ->call('updateCategory');
-            
+
         $this->assertDatabaseHas('categories', [
             'id' => $this->category->id,
             'name' => 'Updated Name',
-            'color' => '#ff0000'
+            'color' => '#ff0000',
         ]);
     }
-    
+
     /** @test */
     public function it_validates_required_fields()
     {
@@ -64,7 +65,7 @@ class CategoryEditTest extends TestCase
             ->call('updateCategory')
             ->assertHasErrors(['name', 'color']);
     }
-    
+
     /** @test */
     public function it_validates_unique_name_per_user()
     {
@@ -72,14 +73,14 @@ class CategoryEditTest extends TestCase
             'user_id' => $this->user->id,
             'name' => 'Existing Category',
         ]);
-        
+
         Livewire::actingAs($this->user)
             ->test(CategoryEdit::class, ['categoryId' => $this->category->id])
             ->set('name', 'Existing Category')
             ->call('updateCategory')
             ->assertHasErrors(['name' => 'unique']);
     }
-    
+
     /** @test */
     public function it_does_not_trigger_unique_validation_when_name_is_unchanged()
     {
@@ -89,7 +90,7 @@ class CategoryEditTest extends TestCase
             ->call('updateCategory')
             ->assertHasNoErrors('name');
     }
-    
+
     /** @test */
     public function it_prevents_editing_another_users_category()
     {
@@ -97,10 +98,10 @@ class CategoryEditTest extends TestCase
         $otherCategory = Category::factory()->create([
             'user_id' => $otherUser->id,
         ]);
-        
+
         $this->actingAs($this->user);
-        
+
         $this->get(route('categories.edit', ['id' => $otherCategory->id]))
             ->assertStatus(403);
     }
-} 
+}

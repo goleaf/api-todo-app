@@ -18,11 +18,11 @@ class ProfileTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->user = User::factory()->create([
             'name' => 'Original Name',
             'email' => 'original@example.com',
-            'password' => Hash::make('password')
+            'password' => Hash::make('password'),
         ]);
     }
 
@@ -45,9 +45,9 @@ class ProfileTest extends TestCase
             ->set('name', 'Updated Name')
             ->set('email', 'updated@example.com')
             ->call('updateProfile');
-            
+
         $this->user->refresh();
-        
+
         $this->assertEquals('Updated Name', $this->user->name);
         $this->assertEquals('updated@example.com', $this->user->email);
     }
@@ -68,9 +68,9 @@ class ProfileTest extends TestCase
     {
         // Create another user
         User::factory()->create([
-            'email' => 'existing@example.com'
+            'email' => 'existing@example.com',
         ]);
-        
+
         Livewire::actingAs($this->user)
             ->test(Profile::class)
             ->set('name', 'Updated Name')
@@ -88,9 +88,9 @@ class ProfileTest extends TestCase
             ->set('password', 'new-password')
             ->set('password_confirmation', 'new-password')
             ->call('updatePassword');
-            
+
         $this->user->refresh();
-        
+
         $this->assertTrue(Hash::check('new-password', $this->user->password));
     }
 

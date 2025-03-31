@@ -4,7 +4,6 @@ namespace Tests\Feature\Livewire\Auth;
 
 use App\Livewire\Auth\Register;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 use Tests\Feature\Livewire\LivewireAuthTestCase;
 
@@ -16,13 +15,13 @@ class RegisterTest extends LivewireAuthTestCase
         $this->assertGuestCanAccess('/register');
         $this->get('/register')->assertSeeLivewire('auth.register');
     }
-    
+
     /** @test */
     public function authenticated_users_are_redirected_from_register_page()
     {
         $this->assertAuthUserRedirectedFrom('/register', '/dashboard');
     }
-    
+
     /** @test */
     public function register_component_validates_required_fields()
     {
@@ -34,7 +33,7 @@ class RegisterTest extends LivewireAuthTestCase
             ->call('register')
             ->assertHasErrors(['name' => 'required', 'email' => 'required', 'password' => 'required']);
     }
-    
+
     /** @test */
     public function register_component_validates_email_format()
     {
@@ -46,7 +45,7 @@ class RegisterTest extends LivewireAuthTestCase
             ->call('register')
             ->assertHasErrors(['email' => 'email']);
     }
-    
+
     /** @test */
     public function register_component_validates_password_confirmation()
     {
@@ -58,7 +57,7 @@ class RegisterTest extends LivewireAuthTestCase
             ->call('register')
             ->assertHasErrors(['password' => 'confirmed']);
     }
-    
+
     /** @test */
     public function register_component_validates_password_length()
     {
@@ -70,7 +69,7 @@ class RegisterTest extends LivewireAuthTestCase
             ->call('register')
             ->assertHasErrors(['password' => 'min']);
     }
-    
+
     /** @test */
     public function user_can_register_with_valid_information()
     {
@@ -85,7 +84,7 @@ class RegisterTest extends LivewireAuthTestCase
             ]
         );
     }
-    
+
     /** @test */
     public function cannot_register_with_existing_email()
     {
@@ -93,7 +92,7 @@ class RegisterTest extends LivewireAuthTestCase
         User::factory()->create([
             'email' => 'existing@example.com',
         ]);
-        
+
         // Try to register with the same email
         Livewire::test(Register::class)
             ->set('name', 'Another User')
@@ -103,13 +102,13 @@ class RegisterTest extends LivewireAuthTestCase
             ->call('register')
             ->assertHasErrors(['email' => 'unique']);
     }
-    
+
     /** @test */
     public function register_dispatches_registered_event_on_success()
     {
         // Create a unique email to avoid conflicts
-        $email = 'unique' . uniqid() . '@example.com';
-        
+        $email = 'unique'.uniqid().'@example.com';
+
         Livewire::test(Register::class)
             ->set('name', 'Test User')
             ->set('email', $email)
@@ -118,11 +117,11 @@ class RegisterTest extends LivewireAuthTestCase
             ->set('terms', true)
             ->call('register')
             ->assertDispatched('registered');
-        
+
         $this->assertDatabaseHas('users', [
-            'email' => $email
+            'email' => $email,
         ]);
-        
+
         $this->assertAuthenticated();
     }
-} 
+}

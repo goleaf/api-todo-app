@@ -43,4 +43,4 @@ class CategoryStoreRequest extends ApiRequest
             'icon' => __('validation.attributes.icon'),
         ];
     }
-} 
+}

@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -15,10 +15,10 @@ return new class extends Migration
         Schema::table('todos', function (Blueprint $table) {
             $table->integer('position')->nullable()->after('due_date');
         });
-        
+
         // Set initial positions for existing todos
         $todos = DB::table('todos')->orderBy('created_at')->get();
-        
+
         $position = 1;
         foreach ($todos as $todo) {
             DB::table('todos')->where('id', $todo->id)->update(['position' => $position]);

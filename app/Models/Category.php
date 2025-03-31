@@ -92,7 +92,7 @@ class Category extends Model
         if ($total === 0) {
             return 0;
         }
-        
+
         return ($this->completed_task_count / $total) * 100;
     }
 
@@ -136,7 +136,15 @@ class Category extends Model
     public function scopeWithTag(Builder $query, string $tag): Builder
     {
         return $query->whereHas('tasks', function ($query) use ($tag) {
-            $query->where('tags', 'like', '%"' . $tag . '"%');
+            $query->where('tags', 'like', '%"'.$tag.'"%');
         });
+    }
+
+    /**
+     * Scope a query to search categories by name.
+     */
+    public function scopeSearch(Builder $query, string $search): Builder
+    {
+        return $query->where('name', 'like', "%{$search}%");
     }
 }

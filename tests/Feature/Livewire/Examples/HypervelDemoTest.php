@@ -3,7 +3,6 @@
 namespace Tests\Feature\Livewire\Examples;
 
 use App\Http\Livewire\Examples\HypervelDemo;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -112,14 +111,14 @@ class HypervelDemoTest extends TestCase
         $component = Livewire::test(HypervelDemo::class)
             ->set('filterText', 'Build')
             ->set('showCompleted', false);
-            
+
         // Should see "Build awesome app" (matches text filter and is not completed)
         $component->assertSeeHtml('Build awesome app');
-        
+
         // Make the item completed
         $component->call('toggleComplete', 4);
-        
+
         // Now it should not be visible due to the completed filter
         $component->assertDontSeeHtml('Build awesome app');
     }
-} 
+}

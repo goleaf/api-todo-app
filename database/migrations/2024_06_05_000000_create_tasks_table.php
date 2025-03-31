@@ -24,7 +24,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->json('attachments')->nullable();
             $table->timestamps();
-            
+
             // Add indexes for common query patterns
             $table->index(['user_id', 'completed']);
             $table->index(['user_id', 'due_date']);
@@ -40,4 +40,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('tasks');
     }
-}; 
+};

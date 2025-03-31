@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 // Dashboard route
 Route::middleware(['auth'])->prefix('dashboard')->group(function () {
     Route::get('/', Dashboard::class)->name('dashboard');
-    
+
     Route::get('/hypervel', function () {
         return view('dashboard.hypervel');
     })->name('dashboard.hypervel');
@@ -32,4 +32,4 @@ Route::middleware(['auth'])->prefix('todos')->group(function () {
 
 // Register Livewire components
 Livewire::component('dashboard.hypervel-dashboard', HypervelDashboard::class);
-Livewire::component('todo-bulk-processor', TodoBulkProcessor::class); 
+Livewire::component('todo-bulk-processor', TodoBulkProcessor::class);

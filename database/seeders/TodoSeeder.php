@@ -2,12 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
+use App\Models\Category;
 use App\Models\Task;
 use App\Models\User;
-use App\Models\Category;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
 
 class TodoSeeder extends Seeder
 {
@@ -18,26 +17,26 @@ class TodoSeeder extends Seeder
     {
         // Get the first user (or create one if none exists)
         $user = User::first() ?? User::factory()->create();
-        
+
         // Get categories for this user
         $categories = Category::where('user_id', $user->id)->get();
-        
+
         // If no categories exist, create a default one
         if ($categories->isEmpty()) {
             $defaultCategory = Category::create([
                 'name' => 'General',
                 'color' => '#6366f1',
                 'icon' => 'list',
-                'user_id' => $user->id
+                'user_id' => $user->id,
             ]);
             $categories = collect([$defaultCategory]);
         }
-        
+
         // Skip if tasks already exist for this user
         if (Task::where('user_id', $user->id)->exists()) {
             return;
         }
-        
+
         // Sample tasks with different categories
         $tasks = [
             [
@@ -48,7 +47,7 @@ class TodoSeeder extends Seeder
                 'completed' => false,
                 'category_id' => $categories->random()->id,
                 'progress' => 25,
-                'tags' => ['development', 'learning']
+                'tags' => ['development', 'learning'],
             ],
             [
                 'title' => 'Build a Task Manager',
@@ -58,7 +57,7 @@ class TodoSeeder extends Seeder
                 'completed' => false,
                 'category_id' => $categories->random()->id,
                 'progress' => 50,
-                'tags' => ['project', 'development']
+                'tags' => ['project', 'development'],
             ],
             [
                 'title' => 'Write Tests',
@@ -68,7 +67,7 @@ class TodoSeeder extends Seeder
                 'completed' => false,
                 'category_id' => $categories->random()->id,
                 'progress' => 10,
-                'tags' => ['testing', 'quality']
+                'tags' => ['testing', 'quality'],
             ],
             [
                 'title' => 'Setup CI/CD',
@@ -78,7 +77,7 @@ class TodoSeeder extends Seeder
                 'completed' => false,
                 'category_id' => $categories->random()->id,
                 'progress' => 0,
-                'tags' => ['devops', 'deployment']
+                'tags' => ['devops', 'deployment'],
             ],
             [
                 'title' => 'Deploy to Production',
@@ -88,7 +87,7 @@ class TodoSeeder extends Seeder
                 'completed' => false,
                 'category_id' => $categories->random()->id,
                 'progress' => 0,
-                'reminder_at' => Carbon::now()->addDays(28)
+                'reminder_at' => Carbon::now()->addDays(28),
             ],
             [
                 'title' => 'Completed Task Example',
@@ -98,10 +97,10 @@ class TodoSeeder extends Seeder
                 'completed' => true,
                 'completed_at' => Carbon::now(),
                 'category_id' => $categories->random()->id,
-                'progress' => 100
+                'progress' => 100,
             ],
         ];
-        
+
         // Create the tasks
         foreach ($tasks as $task) {
             Task::create(array_merge($task, ['user_id' => $user->id]));

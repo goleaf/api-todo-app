@@ -23,18 +23,18 @@ class AsyncApiControllerTest extends TestCase
     {
         $user = User::factory()->create();
         $otherUser = User::factory()->create();
-        
+
         // Create tasks for both users
         $userTasks = Task::factory()->count(3)->create([
-            'user_id' => $user->id
+            'user_id' => $user->id,
         ]);
-        
+
         $otherUserTasks = Task::factory()->count(2)->create([
-            'user_id' => $otherUser->id
+            'user_id' => $otherUser->id,
         ]);
-        
+
         $response = $this->actingAs($user)->getJson('/api/tasks');
-        
+
         $response->assertStatus(200)
             ->assertJsonCount(3, 'data')
             ->assertJsonStructure([
@@ -47,46 +47,46 @@ class AsyncApiControllerTest extends TestCase
                         'due_date',
                         'priority',
                         'created_at',
-                        'updated_at'
-                    ]
+                        'updated_at',
+                    ],
                 ],
                 'meta' => [
                     'total_incomplete',
                     'total_completed',
                     'total_overdue',
-                    'total_due_today'
-                ]
+                    'total_due_today',
+                ],
             ]);
-        
+
         // Verify we only see our own tasks
         foreach ($userTasks as $task) {
             $response->assertJsonFragment(['id' => $task->id]);
         }
-        
+
         foreach ($otherUserTasks as $task) {
             $response->assertJsonMissing(['id' => $task->id]);
         }
     }
-    
+
     /** @test */
     public function it_paginates_tasks()
     {
         $user = User::factory()->create();
-        
+
         // Create 25 tasks
         $tasks = Task::factory()->count(25)->create([
-            'user_id' => $user->id
+            'user_id' => $user->id,
         ]);
-        
+
         // Default is 10 per page
         $response = $this->actingAs($user)->getJson('/api/tasks');
-        
+
         $response->assertStatus(200)
             ->assertJsonCount(10, 'data')
             ->assertJsonStructure([
                 'data',
                 'links' => [
-                    'first', 'last', 'prev', 'next'
+                    'first', 'last', 'prev', 'next',
                 ],
                 'meta' => [
                     'current_page',
@@ -100,131 +100,131 @@ class AsyncApiControllerTest extends TestCase
                     'total_incomplete',
                     'total_completed',
                     'total_overdue',
-                    'total_due_today'
-                ]
+                    'total_due_today',
+                ],
             ]);
-        
+
         // Test page 2
         $page2Response = $this->actingAs($user)->getJson('/api/tasks?page=2');
         $page2Response->assertStatus(200)
             ->assertJsonCount(10, 'data')
             ->assertJsonPath('meta.current_page', 2);
-            
+
         // Ensure page 1 and page 2 have different tasks
         $page1Ids = collect($response->json('data'))->pluck('id');
         $page2Ids = collect($page2Response->json('data'))->pluck('id');
-        
+
         $this->assertEmpty($page1Ids->intersect($page2Ids));
     }
-    
+
     /** @test */
     public function it_can_filter_tasks_by_status()
     {
         $user = User::factory()->create();
-        
+
         // Create mix of completed and incomplete tasks
         $completedTasks = Task::factory()->count(3)->create([
             'user_id' => $user->id,
-            'completed' => true
+            'completed' => true,
         ]);
-        
+
         $incompleteTasks = Task::factory()->count(4)->create([
             'user_id' => $user->id,
-            'completed' => false
+            'completed' => false,
         ]);
-        
+
         // Test completed filter
         $completedResponse = $this->actingAs($user)->getJson('/api/tasks?status=completed');
         $completedResponse->assertStatus(200)
             ->assertJsonCount(3, 'data');
-            
+
         foreach ($completedTasks as $task) {
             $completedResponse->assertJsonFragment(['id' => $task->id]);
         }
-        
+
         // Test active filter
         $activeResponse = $this->actingAs($user)->getJson('/api/tasks?status=active');
         $activeResponse->assertStatus(200)
             ->assertJsonCount(4, 'data');
-            
+
         foreach ($incompleteTasks as $task) {
             $activeResponse->assertJsonFragment(['id' => $task->id]);
         }
     }
-    
+
     /** @test */
     public function it_can_filter_tasks_by_due_date()
     {
         $user = User::factory()->create();
-        
+
         // Create tasks with different due dates
         $todayTasks = Task::factory()->count(2)->create([
             'user_id' => $user->id,
             'due_date' => now()->format('Y-m-d'),
-            'completed' => false
+            'completed' => false,
         ]);
-        
+
         $tomorrowTasks = Task::factory()->count(2)->create([
             'user_id' => $user->id,
             'due_date' => now()->addDay()->format('Y-m-d'),
-            'completed' => false
+            'completed' => false,
         ]);
-        
+
         $yesterdayTasks = Task::factory()->count(3)->create([
             'user_id' => $user->id,
             'due_date' => now()->subDay()->format('Y-m-d'),
-            'completed' => false
+            'completed' => false,
         ]);
-        
+
         // Test due-today filter
         $todayResponse = $this->actingAs($user)->getJson('/api/tasks?due=today');
         $todayResponse->assertStatus(200)
             ->assertJsonCount(2, 'data');
-        
+
         foreach ($todayTasks as $task) {
             $todayResponse->assertJsonFragment(['id' => $task->id]);
         }
-        
+
         // Test overdue filter
         $overdueResponse = $this->actingAs($user)->getJson('/api/tasks?due=overdue');
         $overdueResponse->assertStatus(200)
             ->assertJsonCount(3, 'data');
-        
+
         foreach ($yesterdayTasks as $task) {
             $overdueResponse->assertJsonFragment(['id' => $task->id]);
         }
-        
+
         // Test upcoming filter
         $upcomingResponse = $this->actingAs($user)->getJson('/api/tasks?due=upcoming');
         $upcomingResponse->assertStatus(200)
             ->assertJsonCount(2, 'data');
-        
+
         foreach ($tomorrowTasks as $task) {
             $upcomingResponse->assertJsonFragment(['id' => $task->id]);
         }
     }
-    
+
     /** @test */
     public function it_can_search_tasks_by_title()
     {
         $user = User::factory()->create();
-        
+
         // Create tasks with different titles
         $task1 = Task::factory()->create([
             'user_id' => $user->id,
-            'title' => 'Buy groceries'
+            'title' => 'Buy groceries',
         ]);
-        
+
         $task2 = Task::factory()->create([
             'user_id' => $user->id,
-            'title' => 'Call mom'
+            'title' => 'Call mom',
         ]);
-        
+
         $task3 = Task::factory()->create([
             'user_id' => $user->id,
-            'title' => 'Buy birthday gift'
+            'title' => 'Buy birthday gift',
         ]);
-        
+
         // Search for 'buy'
         $response = $this->actingAs($user)->getJson('/api/tasks?search=buy');
         $response->assertStatus(200)
@@ -233,7 +233,7 @@ class AsyncApiControllerTest extends TestCase
             ->assertJsonFragment(['id' => $task3->id])
             ->assertJsonMissing(['id' => $task2->id]);
     }
-    
+
     /** @test */
     public function unauthenticated_users_cannot_access_tasks()
     {
@@ -257,7 +257,7 @@ class AsyncApiControllerTest extends TestCase
         // Set 1 task as overdue
         $tasks[2]->update([
             'completed' => false,
-            'due_date' => now()->subDays(2)
+            'due_date' => now()->subDays(2),
         ]);
 
         // Authenticate as the user
@@ -276,7 +276,7 @@ class AsyncApiControllerTest extends TestCase
                     'pending_count',
                     'overdue_count',
                     'recent_tasks',
-                ]
+                ],
             ])
             ->assertJson([
                 'success' => true,
@@ -285,7 +285,7 @@ class AsyncApiControllerTest extends TestCase
                     'completed_count' => 2,
                     'pending_count' => 3,
                     'overdue_count' => 1,
-                ]
+                ],
             ]);
 
         // Assert recent tasks contains the right count
@@ -356,13 +356,14 @@ class AsyncApiControllerTest extends TestCase
     {
         // Access route without authentication
         $response = $this->getJson('/api/async/dashboard-stats');
-        
+
         // Assert it returns 401 Unauthorized
         $response->assertStatus(401);
     }
 
     /**
      * @test
+     *
      * @group external-api
      */
     public function it_fetches_external_apis_concurrently()
@@ -390,7 +391,7 @@ class AsyncApiControllerTest extends TestCase
                     'weather',
                     'github',
                     'quotes',
-                ]
+                ],
             ]);
     }
-} 
+}

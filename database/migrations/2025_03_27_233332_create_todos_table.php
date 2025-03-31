@@ -20,7 +20,7 @@ return new class extends Migration
             $table->boolean('completed')->default(false);
             $table->date('due_date')->nullable();
             $table->timestamps();
-            
+
             // Each todo belongs to either a user or a session
             $table->index(['user_id', 'session_id']);
         });

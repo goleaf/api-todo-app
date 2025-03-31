@@ -1,16 +1,12 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AsyncApiController;
 use App\Http\Controllers\Api\V1\AuthApiController;
 use App\Http\Controllers\Api\V1\CategoryApiController;
 use App\Http\Controllers\Api\V1\DashboardApiController;
-use App\Http\Controllers\Api\V1\DeviceTokenController;
-use App\Http\Controllers\Api\V1\DocumentationController;
 use App\Http\Controllers\Api\V1\ProfileApiController;
 use App\Http\Controllers\Api\V1\TaskApiController;
 use App\Http\Controllers\Api\V1\UserApiController;
-use App\Services\OneSignalNotificationService;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,20 +20,24 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Swagger Documentation JSON
-Route::get('/docs/api-docs.json', function () {
-    $filePath = storage_path('api-docs/api-docs.json');
-    if (File::exists($filePath)) {
-        return response()->file($filePath, ['Content-Type' => 'application/json']);
-    }
-
-    return response()->json(['error' => 'Documentation not found'], 404);
+// Documentation route
+Route::get('/documentation', function () {
+    return response()->json([
+        'success' => true,
+        'message' => 'API documentation available at /api/docs',
+        'data' => [
+            'version' => '1.0',
+            'endpoints' => [
+                'auth' => ['/register', '/login', '/logout', '/me', '/refresh'],
+                'users' => ['/users', '/users/{id}', '/users/statistics'],
+                'tasks' => ['/tasks', '/tasks/{id}', '/tasks/statistics'],
+                'categories' => ['/categories', '/categories/{id}', '/categories/task-counts'],
+                'profile' => ['/profile', '/profile/password', '/profile/photo'],
+                'dashboard' => ['/dashboard'],
+            ],
+        ],
+    ]);
 });
-
-// Swagger OAuth2 callback
-Route::get('/oauth2-callback', function () {
-    return view('vendor.l5-swagger.oauth2-callback', ['documentation' => 'default']);
-})->name('l5-swagger.default.oauth2_callback');
 
 // Public routes
 Route::post('/register', [AuthApiController::class, 'register']);
@@ -49,13 +49,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthApiController::class, 'logout']);
     Route::post('/refresh', [AuthApiController::class, 'refresh']);
     Route::get('/me', [AuthApiController::class, 'me']);
-    
-    // User routes
+
+    // User routes - full CRUD
     Route::prefix('users')->group(function () {
         Route::get('/', [UserApiController::class, 'index']);
+        Route::post('/', [UserApiController::class, 'store']);
+        Route::get('/statistics', [UserApiController::class, 'statistics']);
         Route::get('/{id}', [UserApiController::class, 'show']);
+        Route::put('/{id}', [UserApiController::class, 'update']);
+        Route::delete('/{id}', [UserApiController::class, 'destroy']);
     });
-    
+
     // Profile routes
     Route::prefix('profile')->group(function () {
         Route::get('/', [ProfileApiController::class, 'show']);
@@ -64,7 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/photo', [ProfileApiController::class, 'uploadPhoto']);
         Route::delete('/photo', [ProfileApiController::class, 'deletePhoto']);
     });
-    
+
     // Task routes
     Route::prefix('tasks')->group(function () {
         Route::get('/', [TaskApiController::class, 'index']);
@@ -78,7 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [TaskApiController::class, 'destroy']);
         Route::patch('/{id}/toggle', [TaskApiController::class, 'toggleCompletion']);
     });
-    
+
     // Category routes
     Route::prefix('categories')->group(function () {
         Route::get('/', [CategoryApiController::class, 'index']);
@@ -88,80 +92,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [CategoryApiController::class, 'update']);
         Route::delete('/{id}', [CategoryApiController::class, 'destroy']);
     });
-    
+
     // Dashboard routes
     Route::get('/dashboard', [DashboardApiController::class, 'index']);
 });
 
-// API Version 1
-Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
-    // Documentation routes (public)
-    Route::get('/docs', [DocumentationController::class, 'index']);
-    Route::get('/docs/info', [DocumentationController::class, 'info']);
-
-    // Public routes
-    Route::post('/auth/login', [AuthApiController::class, 'login']);
-    Route::post('/auth/register', [AuthApiController::class, 'register']);
-
-    // Routes that require authentication
-    Route::middleware('auth:sanctum')->group(function () {
-        // Auth routes
-        Route::post('/auth/logout', [AuthApiController::class, 'logout']);
-        Route::post('/auth/refresh', [AuthApiController::class, 'refresh']);
-        Route::get('/auth/me', [AuthApiController::class, 'me']);
-
-        // Dashboard routes
-        Route::get('/dashboard', [DashboardApiController::class, 'index']);
-
-        // User and Profile routes
-        Route::get('/users', [UserApiController::class, 'index']);
-        Route::get('/users/{user}', [UserApiController::class, 'show']);
-        Route::get('/users/statistics', [UserApiController::class, 'statistics']);
-        
-        Route::get('/profile', [ProfileApiController::class, 'show']);
-        Route::put('/profile', [ProfileApiController::class, 'update']);
-        Route::put('/profile/password', [ProfileApiController::class, 'updatePassword']);
-        Route::post('/profile/photo', [ProfileApiController::class, 'uploadPhoto']);
-        Route::delete('/profile/photo', [ProfileApiController::class, 'deletePhoto']);
-
-        // Tasks routes
-        Route::apiResource('tasks', TaskApiController::class);
-        Route::patch('/tasks/{task}/toggle', [TaskApiController::class, 'toggleComplete']);
-        Route::get('/tasks/statistics', [TaskApiController::class, 'statistics']);
-
-        // Category routes
-        Route::apiResource('categories', CategoryApiController::class);
-        Route::get('/categories/task-counts', [CategoryApiController::class, 'taskCounts']);
-
-        // Device token for push notifications
-        Route::post('/device-token', [DeviceTokenController::class, 'store']);
-
-        // Test push notification
-        Route::post('/test-notification', function (Request $request) {
-            $notificationService = new OneSignalNotificationService;
-
-            return $notificationService->sendToUser(
-                auth()->id(),
-                'Test Notification',
-                'This is a test notification from the Todo App',
-                ['type' => 'test']
-            );
-        });
-    });
-});
-
-// Redirect routes for documentation
-Route::get('/documentation', function () {
-    return redirect('/api/documentation');
-});
-
-// Default to latest version for backward compatibility
+// API fallback - 404 for invalid routes
 Route::fallback(function () {
     return response()->json([
         'success' => false,
-        'status_code' => 404,
-        'message' => 'API endpoint not found. Please check the documentation at /api/documentation',
-        'data' => null,
+        'message' => 'API endpoint not found',
+        'errors' => ['endpoint' => 'The requested endpoint does not exist'],
     ], 404);
 });
 
@@ -177,7 +118,7 @@ Route::fallback(function () {
 */
 
 Route::middleware('auth:sanctum')->prefix('async')->group(function () {
-    Route::get('/dashboard-stats', [App\Http\Controllers\AsyncApiController::class, 'getDashboardStats']);
-    Route::get('/external-apis', [App\Http\Controllers\AsyncApiController::class, 'fetchExternalApis']);
-    Route::post('/process-tasks', [App\Http\Controllers\AsyncApiController::class, 'bulkProcessTasks']);
+    Route::get('/dashboard-stats', [AsyncApiController::class, 'getDashboardStats']);
+    Route::get('/external-apis', [AsyncApiController::class, 'fetchExternalApis']);
+    Route::post('/process-tasks', [AsyncApiController::class, 'bulkProcessTasks']);
 });

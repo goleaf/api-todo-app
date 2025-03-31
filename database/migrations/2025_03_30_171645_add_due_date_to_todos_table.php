@@ -13,18 +13,18 @@ return new class extends Migration
     {
         Schema::table('todos', function (Blueprint $table) {
             // Skip due_date as it's added in previous migrations
-            
-            if (!Schema::hasColumn('todos', 'session_id')) {
+
+            if (! Schema::hasColumn('todos', 'session_id')) {
                 $table->string('session_id')->nullable();
             }
-            
+
             // Make user_id nullable if it's not already
             if (Schema::hasColumn('todos', 'user_id')) {
                 $table->foreignId('user_id')->nullable()->change();
             }
-            
+
             // Add combined index for user_id and session_id if not exists
-            if (!Schema::hasIndex('todos', ['user_id', 'session_id'])) {
+            if (! Schema::hasIndex('todos', ['user_id', 'session_id'])) {
                 $table->index(['user_id', 'session_id']);
             }
         });
@@ -39,7 +39,7 @@ return new class extends Migration
             // Don't drop due_date as it was not added in this migration
             $table->dropColumn('session_id');
             $table->dropIndex(['user_id', 'session_id']);
-            
+
             // Make user_id required again
             $table->foreignId('user_id')->nullable(false)->change();
         });

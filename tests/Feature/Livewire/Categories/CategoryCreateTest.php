@@ -18,7 +18,7 @@ class CategoryCreateTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->user = User::factory()->create();
     }
 
@@ -38,14 +38,14 @@ class CategoryCreateTest extends TestCase
             ->set('name', 'New Category')
             ->set('color', '#ff0000')
             ->call('createCategory');
-            
+
         $this->assertDatabaseHas('categories', [
             'user_id' => $this->user->id,
             'name' => 'New Category',
-            'color' => '#ff0000'
+            'color' => '#ff0000',
         ]);
     }
-    
+
     /** @test */
     public function it_validates_required_fields()
     {
@@ -56,7 +56,7 @@ class CategoryCreateTest extends TestCase
             ->call('createCategory')
             ->assertHasErrors(['name', 'color']);
     }
-    
+
     /** @test */
     public function it_validates_unique_name_per_user()
     {
@@ -64,7 +64,7 @@ class CategoryCreateTest extends TestCase
             'user_id' => $this->user->id,
             'name' => 'Existing Category',
         ]);
-        
+
         Livewire::actingAs($this->user)
             ->test(CategoryCreate::class)
             ->set('name', 'Existing Category')
@@ -72,26 +72,26 @@ class CategoryCreateTest extends TestCase
             ->call('createCategory')
             ->assertHasErrors(['name' => 'unique']);
     }
-    
+
     /** @test */
     public function it_allows_same_name_for_different_users()
     {
         $otherUser = User::factory()->create();
-        
+
         Category::factory()->create([
             'user_id' => $otherUser->id,
             'name' => 'Shared Name',
         ]);
-        
+
         Livewire::actingAs($this->user)
             ->test(CategoryCreate::class)
             ->set('name', 'Shared Name')
             ->set('color', '#ff0000')
             ->call('createCategory');
-            
+
         $this->assertDatabaseHas('categories', [
             'user_id' => $this->user->id,
             'name' => 'Shared Name',
         ]);
     }
-} 
+}

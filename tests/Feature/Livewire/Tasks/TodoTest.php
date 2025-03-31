@@ -15,12 +15,13 @@ class TodoTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private Category $category;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->user = User::factory()->create();
         $this->category = Category::factory()->create([
             'user_id' => $this->user->id,
@@ -58,7 +59,7 @@ class TodoTest extends TestCase
             'title' => 'Task 1',
             'completed' => true,
         ]);
-        
+
         $task2 = Task::factory()->create([
             'user_id' => $this->user->id,
             'category_id' => $this->category->id,
@@ -86,7 +87,7 @@ class TodoTest extends TestCase
             'category_id' => $this->category->id,
             'title' => 'Shopping List',
         ]);
-        
+
         Task::factory()->create([
             'user_id' => $this->user->id,
             'category_id' => $this->category->id,
@@ -113,7 +114,7 @@ class TodoTest extends TestCase
         Livewire::actingAs($this->user)
             ->test(Todo::class)
             ->call('toggleComplete', $task->id);
-            
+
         $this->assertTrue($task->fresh()->completed);
     }
-} 
+}

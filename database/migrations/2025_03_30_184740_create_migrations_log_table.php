@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('migrations_log')) {
+        if (! Schema::hasTable('migrations_log')) {
             Schema::create('migrations_log', function (Blueprint $table) {
                 $table->id();
                 $table->string('migration');
@@ -19,7 +19,7 @@ return new class extends Migration
                 $table->timestamp('migrated_at');
                 $table->json('metadata')->nullable();
                 $table->timestamps();
-                
+
                 $table->index('migration');
             });
         }

@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ApiController;
 use App\Services\Api\DashboardService;
 use Illuminate\Http\JsonResponse;
 
-class DashboardApiController extends Controller
+class DashboardApiController extends ApiController
 {
     protected DashboardService $service;
 
@@ -25,4 +25,4 @@ class DashboardApiController extends Controller
     {
         return $this->service->getDashboardData();
     }
-} 
+}

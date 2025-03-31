@@ -2,10 +2,9 @@
 
 namespace Tests\Feature\Commands;
 
-use App\Services\HypervelService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Mockery;
+use Tests\TestCase;
 
 class HypervelBenchmarkCommandTest extends TestCase
 {
@@ -22,9 +21,9 @@ class HypervelBenchmarkCommandTest extends TestCase
         $this->artisan('hypervel:benchmark', [
             '--todos' => 2,
             '--iterations' => 1,
-            '--delay' => 10
+            '--delay' => 10,
         ])
-        ->assertExitCode(0);
+            ->assertExitCode(0);
     }
 
     /**
@@ -39,11 +38,11 @@ class HypervelBenchmarkCommandTest extends TestCase
             '--todos' => 2,
             '--iterations' => 1,
             '--delay' => 10,
-            '--feature' => 'dashboard'
+            '--feature' => 'dashboard',
         ])
-        ->expectsOutput('Benchmarking dashboard data loading...')
-        ->doesntExpectOutput('Benchmarking batch processing...')
-        ->assertExitCode(0);
+            ->expectsOutput('Benchmarking dashboard data loading...')
+            ->doesntExpectOutput('Benchmarking batch processing...')
+            ->assertExitCode(0);
     }
 
     /**
@@ -58,15 +57,15 @@ class HypervelBenchmarkCommandTest extends TestCase
             '--todos' => 2,
             '--iterations' => 1,
             '--delay' => 10,
-            '--feature' => 'dashboard'
+            '--feature' => 'dashboard',
         ])
-        ->expectsOutput('Benchmark Results:')
-        ->expectsTable(
-            ['Feature', 'Regular (ms)', 'Hypervel (ms)', 'Improvement', 'Recommendation'],
-            // The actual values will vary, so we can't check them specifically
-            Mockery::any()
-        )
-        ->assertExitCode(0);
+            ->expectsOutput('Benchmark Results:')
+            ->expectsTable(
+                ['Feature', 'Regular (ms)', 'Hypervel (ms)', 'Improvement', 'Recommendation'],
+                // The actual values will vary, so we can't check them specifically
+                Mockery::any()
+            )
+            ->assertExitCode(0);
     }
 
     /**
@@ -80,14 +79,14 @@ class HypervelBenchmarkCommandTest extends TestCase
         $this->artisan('hypervel:benchmark', [
             '--todos' => 2,
             '--iterations' => 1,
-            '--delay' => 10
+            '--delay' => 10,
         ])
-        ->assertExitCode(0);
-        
+            ->assertExitCode(0);
+
         // Check that test data was cleaned up
         $this->assertDatabaseCount('tasks', 0);
         $this->assertDatabaseMissing('users', [
-            'name' => 'Benchmark Test User'
+            'name' => 'Benchmark Test User',
         ]);
     }
 
@@ -103,14 +102,14 @@ class HypervelBenchmarkCommandTest extends TestCase
             '--todos' => 3,
             '--iterations' => 2,
             '--delay' => 50,
-            '--feature' => 'dashboard'
+            '--feature' => 'dashboard',
         ]);
-        
+
         // Command should complete successfully
         $result->assertExitCode(0);
-        
+
         // We can't assert on the specific improvement percentage since it will vary,
         // but we can verify the command ran to completion
         $this->assertTrue(true);
     }
-} 
+}

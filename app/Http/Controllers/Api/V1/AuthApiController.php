@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Api\Auth\LoginRequest;
 use App\Http\Requests\Api\Auth\RegisterRequest;
 use App\Services\Api\AuthService;
 use Illuminate\Http\JsonResponse;
 
-class AuthApiController extends Controller
+class AuthApiController extends ApiController
 {
     protected AuthService $service;
 
@@ -59,4 +59,4 @@ class AuthApiController extends Controller
     {
         return $this->service->me();
     }
-} 
+}

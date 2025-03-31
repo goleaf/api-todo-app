@@ -29,4 +29,4 @@ return [
     'password_reset_sent' => 'A password reset link has been sent to your email address.',
     'password_reset_token_invalid' => 'Invalid password reset token.',
     'password_reset_token_expired' => 'Password reset token has expired.',
-]; 
+];

@@ -15,12 +15,13 @@ class AuthService
     /**
      * Register a new user.
      */
-    public function register(array $validatedData): JsonResponse
+    public function register(array $data): JsonResponse
     {
         $user = User::create([
-            'name' => $validatedData['name'],
-            'email' => $validatedData['email'],
-            'password' => Hash::make($validatedData['password']),
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'role' => $data['role'] ?? 'user',
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -32,34 +33,31 @@ class AuthService
     }
 
     /**
-     * Log in a user.
+     * Login a user and issue a token.
      */
-    public function login(array $validatedData): JsonResponse
+    public function login(array $credentials): JsonResponse
     {
-        if (!Auth::attempt($validatedData)) {
-            return $this->errorResponse(
-                __('messages.auth.invalid_credentials'),
-                401
-            );
+        if (! Auth::attempt($credentials)) {
+            return $this->errorResponse(__('validation.auth.invalid_credentials'), 401);
         }
 
-        $user = User::where('email', $validatedData['email'])->firstOrFail();
+        $user = Auth::user();
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return $this->successResponse([
             'user' => $user,
             'token' => $token,
-        ], __('messages.auth.login_success'));
+        ], __('messages.auth.logged_in'));
     }
 
     /**
-     * Log out a user.
+     * Logout the authenticated user.
      */
     public function logout(): JsonResponse
     {
-        auth()->user()->tokens()->delete();
+        Auth::user()->tokens()->delete();
 
-        return $this->successResponse(null, __('messages.auth.logout_success'));
+        return $this->successResponse([], __('messages.auth.logged_out'));
     }
 
     /**
@@ -67,12 +65,8 @@ class AuthService
      */
     public function refresh(): JsonResponse
     {
-        $user = auth()->user();
-        
-        // Delete existing tokens
+        $user = Auth::user();
         $user->tokens()->delete();
-        
-        // Create a new token
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return $this->successResponse([
@@ -85,12 +79,8 @@ class AuthService
      */
     public function me(): JsonResponse
     {
-        $user = auth()->user();
-        
-        $user->load(['tasks' => function ($query) {
-            $query->latest()->limit(5);
-        }, 'categories']);
-        
+        $user = Auth::user();
+
         return $this->successResponse($user);
     }
-} 
+}

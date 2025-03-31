@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\ApiController;
 use App\Http\Requests\Api\Task\TaskStoreRequest;
 use App\Http\Requests\Api\Task\TaskUpdateRequest;
 use App\Services\Api\TaskService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class TaskApiController extends Controller
+class TaskApiController extends ApiController
 {
     protected TaskService $service;
 
@@ -91,6 +91,7 @@ class TaskApiController extends Controller
     public function upcoming(Request $request): JsonResponse
     {
         $days = $request->get('days', 7);
+
         return $this->service->getUpcoming($days);
     }
 
@@ -101,4 +102,4 @@ class TaskApiController extends Controller
     {
         return $this->service->getStatistics();
     }
-} 
+}

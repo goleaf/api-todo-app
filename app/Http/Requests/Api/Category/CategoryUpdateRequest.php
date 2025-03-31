@@ -43,4 +43,4 @@ class CategoryUpdateRequest extends ApiRequest
             'icon' => __('validation.attributes.icon'),
         ];
     }
-} 
+}

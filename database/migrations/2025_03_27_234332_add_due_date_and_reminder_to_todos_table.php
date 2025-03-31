@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('todos', function (Blueprint $table) {
-            if (!Schema::hasColumn('todos', 'due_date')) {
+            if (! Schema::hasColumn('todos', 'due_date')) {
                 $table->datetime('due_date')->nullable();
             }
-            
-            if (!Schema::hasColumn('todos', 'reminder_at')) {
+
+            if (! Schema::hasColumn('todos', 'reminder_at')) {
                 $table->datetime('reminder_at')->nullable();
             }
         });
@@ -31,7 +31,7 @@ return new class extends Migration
             if (Schema::hasColumn('todos', 'due_date')) {
                 $table->dropColumn('due_date');
             }
-            
+
             if (Schema::hasColumn('todos', 'reminder_at')) {
                 $table->dropColumn('reminder_at');
             }

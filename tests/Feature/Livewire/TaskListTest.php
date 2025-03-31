@@ -16,12 +16,13 @@ class TaskListTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Category $category;
-    
+
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->user = User::factory()->create();
         $this->category = Category::factory()->create(['user_id' => $this->user->id]);
     }
@@ -40,12 +41,12 @@ class TaskListTest extends TestCase
         $task = Task::factory()->create([
             'user_id' => $this->user->id,
             'category_id' => $this->category->id,
-            'title' => 'Test Task'
+            'title' => 'Test Task',
         ]);
-        
+
         // Create a task for another user that shouldn't be visible
         Task::factory()->create(['title' => 'Other User Task']);
-        
+
         Livewire::actingAs($this->user)
             ->test(TaskList::class)
             ->assertSee('Test Task')
@@ -59,26 +60,26 @@ class TaskListTest extends TestCase
             'user_id' => $this->user->id,
             'category_id' => $this->category->id,
             'title' => 'Incomplete Task',
-            'completed' => false
+            'completed' => false,
         ]);
-        
+
         Task::factory()->create([
             'user_id' => $this->user->id,
             'category_id' => $this->category->id,
             'title' => 'Completed Task',
-            'completed' => true
+            'completed' => true,
         ]);
-        
+
         Livewire::actingAs($this->user)
             ->test(TaskList::class)
             ->assertSee('Incomplete Task')
             ->assertSee('Completed Task')
-            
+
             // Filter by completed
             ->set('filter', 'completed')
             ->assertSee('Completed Task')
             ->assertDontSee('Incomplete Task')
-            
+
             // Filter by incomplete
             ->set('filter', 'incomplete')
             ->assertSee('Incomplete Task')
@@ -90,31 +91,31 @@ class TaskListTest extends TestCase
     {
         $category1 = Category::factory()->create([
             'user_id' => $this->user->id,
-            'name' => 'Category 1'
+            'name' => 'Category 1',
         ]);
-        
+
         $category2 = Category::factory()->create([
             'user_id' => $this->user->id,
-            'name' => 'Category 2'
+            'name' => 'Category 2',
         ]);
-        
+
         Task::factory()->create([
             'user_id' => $this->user->id,
             'category_id' => $category1->id,
-            'title' => 'Task in Category 1'
+            'title' => 'Task in Category 1',
         ]);
-        
+
         Task::factory()->create([
             'user_id' => $this->user->id,
             'category_id' => $category2->id,
-            'title' => 'Task in Category 2'
+            'title' => 'Task in Category 2',
         ]);
-        
+
         Livewire::actingAs($this->user)
             ->test(TaskList::class)
             ->assertSee('Task in Category 1')
             ->assertSee('Task in Category 2')
-            
+
             // Filter by category 1
             ->set('selectedCategory', $category1->id)
             ->assertSee('Task in Category 1')
@@ -127,20 +128,20 @@ class TaskListTest extends TestCase
         Task::factory()->create([
             'user_id' => $this->user->id,
             'category_id' => $this->category->id,
-            'title' => 'First Task'
+            'title' => 'First Task',
         ]);
-        
+
         Task::factory()->create([
             'user_id' => $this->user->id,
             'category_id' => $this->category->id,
-            'title' => 'Second Task'
+            'title' => 'Second Task',
         ]);
-        
+
         Livewire::actingAs($this->user)
             ->test(TaskList::class)
             ->assertSee('First Task')
             ->assertSee('Second Task')
-            
+
             // Search for "First"
             ->set('search', 'First')
             ->assertSee('First Task')
@@ -152,32 +153,32 @@ class TaskListTest extends TestCase
     {
         $yesterday = Carbon::yesterday();
         $tomorrow = Carbon::tomorrow();
-        
+
         Task::factory()->create([
             'user_id' => $this->user->id,
             'category_id' => $this->category->id,
             'title' => 'A Task',
             'due_date' => $tomorrow,
-            'priority' => 1
+            'priority' => 1,
         ]);
-        
+
         Task::factory()->create([
             'user_id' => $this->user->id,
             'category_id' => $this->category->id,
             'title' => 'Z Task',
             'due_date' => $yesterday,
-            'priority' => 2
+            'priority' => 2,
         ]);
-        
+
         Livewire::actingAs($this->user)
             ->test(TaskList::class)
             ->assertSeeInOrder(['A Task', 'Z Task'])
-            
+
             // Sort by title in descending order
             ->call('sortBy', 'title')
             ->call('sortBy', 'title') // Call twice to toggle direction
             ->assertSeeInOrder(['Z Task', 'A Task'])
-            
+
             // Sort by priority
             ->call('sortBy', 'priority')
             ->assertSeeInOrder(['Z Task', 'A Task']);
@@ -190,14 +191,14 @@ class TaskListTest extends TestCase
             'user_id' => $this->user->id,
             'category_id' => $this->category->id,
             'title' => 'Test Task',
-            'completed' => false
+            'completed' => false,
         ]);
-        
+
         Livewire::actingAs($this->user)
             ->test(TaskList::class)
             ->call('toggleComplete', $task->id)
             ->assertEmitted('task-updated');
-            
+
         $this->assertTrue($task->fresh()->completed);
     }
 
@@ -209,14 +210,14 @@ class TaskListTest extends TestCase
             'category_id' => $this->category->id,
             'title' => 'Test Task',
             'completed' => true,
-            'completed_at' => now()
+            'completed_at' => now(),
         ]);
-        
+
         Livewire::actingAs($this->user)
             ->test(TaskList::class)
             ->call('toggleComplete', $task->id)
             ->assertEmitted('task-updated');
-            
+
         $this->assertFalse($task->fresh()->completed);
         $this->assertNull($task->fresh()->completed_at);
     }
@@ -227,16 +228,16 @@ class TaskListTest extends TestCase
         $task = Task::factory()->create([
             'user_id' => $this->user->id,
             'category_id' => $this->category->id,
-            'title' => 'Task to Delete'
+            'title' => 'Task to Delete',
         ]);
-        
+
         Livewire::actingAs($this->user)
             ->test(TaskList::class)
             ->call('confirmTaskDeletion', $task->id)
             ->assertSet('taskIdToDelete', $task->id)
             ->call('deleteTask')
             ->assertEmitted('task-deleted');
-            
+
         $this->assertDatabaseMissing('tasks', ['id' => $task->id]);
     }
-} 
+}

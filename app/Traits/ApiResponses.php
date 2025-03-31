@@ -130,7 +130,7 @@ trait ApiResponses
     {
         return $this->errorResponse(
             message: $message ?? 'Validation failed',
-            statusCode: 422, 
+            statusCode: 422,
             errors: $errors
         );
     }

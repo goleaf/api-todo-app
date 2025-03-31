@@ -67,7 +67,7 @@ class UpdateTaskRequest extends FormRequest
             'progress.max' => 'Progress cannot be more than :max.',
         ];
     }
-    
+
     /**
      * Prepare the data for validation.
      */
@@ -76,21 +76,21 @@ class UpdateTaskRequest extends FormRequest
         // Convert string tag input to array if needed
         if ($this->has('tags') && is_string($this->tags)) {
             $this->merge([
-                'tags' => array_map('trim', explode(',', $this->tags))
+                'tags' => array_map('trim', explode(',', $this->tags)),
             ]);
         }
-        
+
         // Convert priority from string to integer if needed
         if ($this->has('priority') && is_numeric($this->priority)) {
             $this->merge([
-                'priority' => (int) $this->priority
+                'priority' => (int) $this->priority,
             ]);
         }
-        
+
         // Auto-set progress to 100 if completing a task
         if ($this->has('completed') && $this->completed) {
             $this->merge([
-                'progress' => 100
+                'progress' => 100,
             ]);
         }
     }

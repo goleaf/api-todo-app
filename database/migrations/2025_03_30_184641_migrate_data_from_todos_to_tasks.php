@@ -12,27 +12,27 @@ return new class extends Migration
     public function up(): void
     {
         // Create migrations_log table if it doesn't exist
-        if (!Schema::hasTable('migrations_log')) {
+        if (! Schema::hasTable('migrations_log')) {
             Schema::create('migrations_log', function ($table) {
                 $table->id();
                 $table->string('migration');
                 $table->timestamp('migrated_at');
             });
         }
-        
+
         // Only execute if both tables exist
         if (Schema::hasTable('todos') && Schema::hasTable('tasks')) {
             // Get all todos
             $todos = DB::table('todos')->get();
-            
+
             foreach ($todos as $todo) {
                 // Check if a task with the same title and user_id already exists
                 $existingTask = DB::table('tasks')
                     ->where('title', $todo->title)
                     ->where('user_id', $todo->user_id)
                     ->first();
-                
-                if (!$existingTask) {
+
+                if (! $existingTask) {
                     // Map todo data to task structure
                     $taskData = [
                         'user_id' => $todo->user_id,
@@ -45,37 +45,37 @@ return new class extends Migration
                         'created_at' => $todo->created_at,
                         'updated_at' => $todo->updated_at,
                     ];
-                    
+
                     // Add extra fields if they exist in both tables
                     if (Schema::hasColumn('todos', 'category_id') && Schema::hasColumn('tasks', 'category_id')) {
                         $taskData['category_id'] = $todo->category_id ?? null;
                     }
-                    
+
                     if (Schema::hasColumn('todos', 'priority') && Schema::hasColumn('tasks', 'priority')) {
                         $taskData['priority'] = $todo->priority ?? 0;
                     }
-                    
+
                     if (Schema::hasColumn('todos', 'progress') && Schema::hasColumn('tasks', 'progress')) {
                         $taskData['progress'] = $todo->progress ?? 0;
                     }
-                    
+
                     if (Schema::hasColumn('todos', 'reminder_at') && Schema::hasColumn('tasks', 'reminder_at')) {
                         $taskData['reminder_at'] = $todo->reminder_at ?? null;
                     }
-                    
+
                     if (Schema::hasColumn('todos', 'tags') && Schema::hasColumn('tasks', 'tags')) {
                         $taskData['tags'] = $todo->tags ?? '[]';
                     }
-                    
+
                     // Insert the task
                     DB::table('tasks')->insert($taskData);
                 }
             }
-            
+
             // Log migration completion
             DB::table('migrations_log')->insert([
                 'migration' => 'migrate_data_from_todos_to_tasks',
-                'migrated_at' => now()
+                'migrated_at' => now(),
             ]);
         }
     }
