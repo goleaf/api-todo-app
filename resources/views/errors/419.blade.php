@@ -10,14 +10,17 @@
                     <h1 class="mt-4 text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Page Expired</h1>
                     <p class="mt-4 text-base text-gray-500 dark:text-gray-400">Sorry, your session has expired. Please refresh the page and try again.</p>
                     <div class="mt-6">
-                        <a href="{{ url()->previous() }}" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-                            <i class="fas fa-sync-alt mr-2"></i>
-                            Refresh Page
-                        </a>
-                        <a href="{{ route('dashboard') }}" class="ml-4 inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-base font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-                            <i class="fas fa-home mr-2"></i>
-                            Back to Home
-                        </a>
+                        <form method="POST" action="{{ url()->current() }}">
+                            @csrf
+                            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                                <i class="fas fa-redo mr-2"></i>
+                                Try Again
+                            </button>
+                            <a href="{{ url('/') }}" class="ml-4 inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-base font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                                <i class="fas fa-home mr-2"></i>
+                                Back to Home
+                            </a>
+                        </form>
                     </div>
                 </div>
             </div>

@@ -10,7 +10,7 @@
                     <h1 class="mt-4 text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">Unauthorized</h1>
                     <p class="mt-4 text-base text-gray-500 dark:text-gray-400">Sorry, you need to be authenticated to access this page.</p>
                     <div class="mt-6">
-                        <a href="{{ route('login') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                        <a href="{{ route('admin.login') }}" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
                             <i class="fas fa-sign-in-alt mr-2"></i>
                             Log In
                         </a>
