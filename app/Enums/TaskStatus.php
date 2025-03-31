@@ -72,12 +72,13 @@ enum TaskStatus: bool
      * @param bool|null $value
      * @return static
      */
-    public static function tryFrom($value): ?self
+    public static function fromValueOrDefault($value): self
     {
         if ($value === null) {
             return self::INCOMPLETE;
         }
 
-        return parent::tryFrom($value) ?? self::INCOMPLETE;
+        // Manually check the bool value
+        return $value === true ? self::COMPLETE : self::INCOMPLETE;
     }
 } 

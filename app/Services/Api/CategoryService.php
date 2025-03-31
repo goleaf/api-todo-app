@@ -2,6 +2,7 @@
 
 namespace App\Services\Api;
 
+use App\Enums\CategoryType;
 use App\Models\Category;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -23,6 +24,11 @@ class CategoryService
         // Apply filters
         if ($request->has('search')) {
             $query->search($request->search);
+        }
+
+        if ($request->has('type')) {
+            $type = CategoryType::fromValueOrDefault($request->type);
+            $query->where('type', $type ? $type->value : CategoryType::OTHER->value);
         }
 
         if ($request->has('has_tasks')) {
@@ -53,6 +59,11 @@ class CategoryService
             $query->orderBy($sortBy, $sortDir);
         }
 
+        // Add task counts
+        $query->withCount(['tasks', 'tasks as completed_task_count' => function ($query) {
+            $query->where('completed', true);
+        }]);
+
         // Pagination
         $perPage = $request->get('per_page', 15);
         $categories = $query->paginate($perPage);
@@ -66,6 +77,11 @@ class CategoryService
     public function store(array $data): JsonResponse
     {
         $data['user_id'] = Auth::id();
+
+        // Ensure type is set
+        if (!isset($data['type'])) {
+            $data['type'] = CategoryType::OTHER->value;
+        }
 
         $category = Category::create($data);
 

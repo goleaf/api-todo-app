@@ -90,12 +90,19 @@ enum CategoryType: string
      * @param string|null $value
      * @return static
      */
-    public static function tryFrom($value): ?self
+    public static function fromValueOrDefault($value): self
     {
         if ($value === null) {
             return self::OTHER;
         }
 
-        return parent::tryFrom($value) ?? self::OTHER;
+        // Manually check against known values
+        foreach (self::cases() as $type) {
+            if ($type->value === (string) $value) {
+                return $type;
+            }
+        }
+        
+        return self::OTHER; // Default fallback
     }
 } 

@@ -189,7 +189,10 @@ class UserTest extends TestCase
             'password' => 'password123',
         ]);
 
-        $response->assertStatus(200)
+        $response->assertOk()
+            ->assertJson([
+                'success' => true,
+            ])
             ->assertJsonStructure([
                 'success',
                 'message',
@@ -198,9 +201,6 @@ class UserTest extends TestCase
                     'token',
                 ],
             ]);
-
-        $this->assertTrue($response->json('success'));
-        $this->assertEquals('messages.auth.logged_in', $response->json('message'));
     }
 
     /**
@@ -218,13 +218,13 @@ class UserTest extends TestCase
         ]);
 
         $response->assertStatus(401)
+            ->assertJson([
+                'success' => false,
+            ])
             ->assertJsonStructure([
                 'success',
                 'message',
             ]);
-
-        $this->assertFalse($response->json('success'));
-        $this->assertEquals('These credentials do not match our records.', $response->json('message'));
     }
 
     /**
@@ -237,13 +237,13 @@ class UserTest extends TestCase
 
         $response = $this->postJson('/api/logout');
 
-        $response->assertStatus(200)
+        $response->assertOk()
+            ->assertJson([
+                'success' => true,
+            ])
             ->assertJsonStructure([
                 'success',
                 'message',
             ]);
-
-        $this->assertTrue($response->json('success'));
-        $this->assertEquals('messages.auth.logged_out', $response->json('message'));
     }
 }

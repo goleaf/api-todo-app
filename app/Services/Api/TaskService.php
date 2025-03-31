@@ -2,6 +2,9 @@
 
 namespace App\Services\Api;
 
+use App\Enums\TaskPriority;
+use App\Enums\TaskProgressStatus;
+use App\Enums\TaskStatus;
 use App\Models\Task;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -31,7 +34,8 @@ class TaskService
         }
 
         if ($request->has('priority')) {
-            $query->withPriority($request->priority);
+            $priority = TaskPriority::fromValueOrDefault((int) $request->priority);
+            $query->withPriority($priority->value);
         }
 
         if ($request->has('search')) {
@@ -82,6 +86,16 @@ class TaskService
         // Ensure 'completed' is set to false by default if not provided
         if (!isset($data['completed'])) {
             $data['completed'] = false;
+        }
+
+        // Set default priority if not provided
+        if (isset($data['priority']) && is_numeric($data['priority'])) {
+            $data['priority'] = (int)$data['priority'];
+        }
+
+        // Set default progress
+        if (!isset($data['progress'])) {
+            $data['progress'] = 0;
         }
 
         $task = Task::create($data);

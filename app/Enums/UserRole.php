@@ -86,12 +86,19 @@ enum UserRole: string
      * @param string|null $value
      * @return static
      */
-    public static function tryFrom($value): ?self
+    public static function fromValueOrDefault($value): self
     {
         if ($value === null) {
             return self::USER;
         }
 
-        return parent::tryFrom($value) ?? self::USER;
+        // Manually check against known values
+        foreach ([self::ADMIN, self::USER, self::GUEST] as $role) {
+            if ($role->value === $value) {
+                return $role;
+            }
+        }
+        
+        return self::USER; // Default fallback
     }
 } 

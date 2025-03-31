@@ -39,20 +39,25 @@ class CategoryApiTest extends TestCase
                 'success',
                 'message',
                 'data' => [
-                    '*' => [
-                        'id',
-                        'name',
-                        'color',
-                        'icon',
-                        'user_id',
-                        'created_at',
-                        'updated_at',
-                        'task_count',
-                        'completed_task_count',
+                    'data' => [
+                        '*' => [
+                            'id',
+                            'name',
+                            'color',
+                            'icon',
+                            'user_id',
+                            'created_at',
+                            'updated_at',
+                            'tasks_count',
+                            'completed_task_count',
+                        ],
                     ],
+                    'current_page',
+                    'per_page',
+                    'total',
                 ],
             ])
-            ->assertJsonCount(3, 'data')
+            ->assertJsonCount(3, 'data.data')
             ->assertJson([
                 'success' => true,
             ]);

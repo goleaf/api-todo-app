@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('tasks', function (Blueprint $table) {
-            $table->integer('priority')->default(0)->after('status')->comment('0: Low, 1: Medium, 2: High');
+            if (!Schema::hasColumn('tasks', 'priority')) {
+                $table->integer('priority')->default(0)->after('status')->comment('0: Low, 1: Medium, 2: High');
+            }
         });
     }
 

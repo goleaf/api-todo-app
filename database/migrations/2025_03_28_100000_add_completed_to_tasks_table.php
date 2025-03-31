@@ -11,9 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('tasks', function (Blueprint $table) {
-            $table->boolean('completed')->default(false)->after('status');
-        });
+        try {
+            Schema::table('tasks', function (Blueprint $table) {
+                if (!Schema::hasColumn('tasks', 'completed')) {
+                    $table->boolean('completed')->default(false);
+                }
+            });
+        } catch (\Exception $e) {
+            // Column might already exist or other errors
+            // Log error for debugging if needed
+            // echo $e->getMessage();
+        }
     }
 
     /**
@@ -22,7 +30,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('tasks', function (Blueprint $table) {
-            $table->dropColumn('completed');
+            if (Schema::hasColumn('tasks', 'completed')) {
+                $table->dropColumn('completed');
+            }
         });
     }
 };

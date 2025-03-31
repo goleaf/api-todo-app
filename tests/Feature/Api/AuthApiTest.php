@@ -25,7 +25,7 @@ class AuthApiTest extends TestCase
             'password_confirmation' => 'Password123!',
         ];
 
-        $response = $this->postJson('/api/auth/register', $userData);
+        $response = $this->postJson('/api/register', $userData);
 
         $response->assertStatus(201)
             ->assertJsonStructure([
@@ -43,7 +43,7 @@ class AuthApiTest extends TestCase
             ])
             ->assertJson([
                 'success' => true,
-                'message' => 'User registered successfully',
+                'message' => 'User registered successfully.',
                 'data' => [
                     'user' => [
                         'name' => $userData['name'],
@@ -74,7 +74,7 @@ class AuthApiTest extends TestCase
             'password' => 'Password123!',
         ];
 
-        $response = $this->postJson('/api/auth/login', $loginData);
+        $response = $this->postJson('/api/login', $loginData);
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -91,7 +91,7 @@ class AuthApiTest extends TestCase
             ])
             ->assertJson([
                 'success' => true,
-                'message' => 'Login successful',
+                'message' => 'messages.auth.logged_in',
                 'data' => [
                     'user' => [
                         'id' => $user->id,
@@ -120,12 +120,12 @@ class AuthApiTest extends TestCase
             'password' => 'WrongPassword123!',
         ];
 
-        $response = $this->postJson('/api/auth/login', $loginData);
+        $response = $this->postJson('/api/login', $loginData);
 
         $response->assertStatus(401)
             ->assertJson([
                 'success' => false,
-                'message' => 'Invalid credentials',
+                'message' => 'These credentials do not match our records.',
             ]);
     }
 
@@ -141,12 +141,12 @@ class AuthApiTest extends TestCase
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token,
-        ])->postJson('/api/auth/logout');
+        ])->postJson('/api/logout');
 
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => 'Logged out successfully',
+                'message' => 'messages.auth.logged_out',
             ]);
 
         // Check that the token was deleted
@@ -161,7 +161,7 @@ class AuthApiTest extends TestCase
         $user = User::factory()->create();
         Sanctum::actingAs($user);
 
-        $response = $this->getJson('/api/auth/user');
+        $response = $this->getJson('/api/me');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -191,7 +191,7 @@ class AuthApiTest extends TestCase
     public function test_unauthenticated_access_to_protected_routes(): void
     {
         // Try to access user profile without authentication
-        $response = $this->getJson('/api/auth/user');
+        $response = $this->getJson('/api/me');
 
         $response->assertStatus(401)
             ->assertJson([
@@ -205,7 +205,7 @@ class AuthApiTest extends TestCase
     public function test_validation_errors_during_registration(): void
     {
         // Test email validation
-        $response = $this->postJson('/api/auth/register', [
+        $response = $this->postJson('/api/register', [
             'name' => 'Test User',
             'email' => 'invalid-email',
             'password' => 'Password123!',
@@ -216,7 +216,7 @@ class AuthApiTest extends TestCase
             ->assertJsonValidationErrors('email');
 
         // Test password length validation
-        $response = $this->postJson('/api/auth/register', [
+        $response = $this->postJson('/api/register', [
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => 'short',
@@ -227,7 +227,7 @@ class AuthApiTest extends TestCase
             ->assertJsonValidationErrors('password');
 
         // Test password confirmation validation
-        $response = $this->postJson('/api/auth/register', [
+        $response = $this->postJson('/api/register', [
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => 'Password123!',
@@ -242,7 +242,7 @@ class AuthApiTest extends TestCase
             'email' => 'existing@example.com',
         ]);
 
-        $response = $this->postJson('/api/auth/register', [
+        $response = $this->postJson('/api/register', [
             'name' => 'Test User',
             'email' => 'existing@example.com',
             'password' => 'Password123!',
@@ -259,13 +259,13 @@ class AuthApiTest extends TestCase
     public function test_validation_errors_during_login(): void
     {
         // Test required fields
-        $response = $this->postJson('/api/auth/login', []);
+        $response = $this->postJson('/api/login', []);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['email', 'password']);
 
         // Test email format
-        $response = $this->postJson('/api/auth/login', [
+        $response = $this->postJson('/api/login', [
             'email' => 'invalid-email',
             'password' => 'Password123!',
         ]);
@@ -282,7 +282,7 @@ class AuthApiTest extends TestCase
         $user = User::factory()->create();
         Sanctum::actingAs($user);
 
-        $response = $this->postJson('/api/auth/refresh');
+        $response = $this->postJson('/api/refresh');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -294,7 +294,7 @@ class AuthApiTest extends TestCase
             ])
             ->assertJson([
                 'success' => true,
-                'message' => 'Token refreshed successfully',
+                'message' => 'Token refreshed successfully.',
             ]);
 
         // Ensure the response has a token

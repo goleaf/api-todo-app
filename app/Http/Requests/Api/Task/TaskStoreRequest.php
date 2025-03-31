@@ -32,7 +32,7 @@ class TaskStoreRequest extends ApiRequest
             ],
             'description' => 'nullable|string',
             'due_date' => 'nullable|date|date_format:Y-m-d',
-            'priority' => 'nullable|integer|between:1,4',
+            'priority' => 'nullable|integer|between:0,2',
             'category_id' => [
                 'nullable',
                 'integer',

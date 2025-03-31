@@ -33,7 +33,7 @@ class TaskUpdateRequest extends ApiRequest
             ],
             'description' => 'sometimes|nullable|string',
             'due_date' => 'sometimes|nullable|date|date_format:Y-m-d',
-            'priority' => 'sometimes|nullable|integer|between:1,4',
+            'priority' => 'sometimes|nullable|integer|between:0,2',
             'completed' => 'sometimes|boolean',
             'category_id' => [
                 'sometimes',

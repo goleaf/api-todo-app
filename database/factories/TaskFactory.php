@@ -31,7 +31,7 @@ class TaskFactory extends Factory
             'title' => $this->faker->sentence(),
             'description' => $this->faker->paragraph(),
             'due_date' => $this->faker->dateTimeBetween('-1 week', '+2 weeks'),
-            'priority' => $this->faker->randomElement([1, 2, 3, 4]),
+            'priority' => $this->faker->randomElement([0, 1, 2]), // Low, Medium, High
             'completed' => $this->faker->boolean(20), // 20% chance of being completed
             'user_id' => User::factory(),
             'category_id' => Category::factory(),

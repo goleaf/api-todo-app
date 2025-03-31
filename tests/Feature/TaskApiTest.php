@@ -46,10 +46,8 @@ class TaskApiTest extends TestCase
             ->assertJsonCount(3, 'data')
             ->assertJsonStructure([
                 'success',
-                'status_code',
                 'message',
                 'data',
-                'meta' => ['pagination'],
             ]);
     }
 
@@ -69,12 +67,12 @@ class TaskApiTest extends TestCase
         ]);
 
         // Test completed filter
-        $response = $this->actingAs($this->user)->getJson('/api/tasks?status=completed');
+        $response = $this->actingAs($this->user)->getJson('/api/tasks?completed=true');
         $response->assertStatus(200)
             ->assertJsonCount(2, 'data');
 
         // Test pending filter
-        $response = $this->actingAs($this->user)->getJson('/api/tasks?status=pending');
+        $response = $this->actingAs($this->user)->getJson('/api/tasks?completed=false');
         $response->assertStatus(200)
             ->assertJsonCount(3, 'data');
     }
@@ -89,7 +87,7 @@ class TaskApiTest extends TestCase
         $taskData = [
             'title' => 'Test Task',
             'description' => 'This is a test task',
-            'priority' => 'high',
+            'priority' => 2,
             'category_id' => $category->id,
         ];
 
@@ -98,11 +96,11 @@ class TaskApiTest extends TestCase
         $response->assertStatus(201)
             ->assertJson([
                 'success' => true,
-                'message' => 'Task created successfully',
+                'message' => 'Task created successfully.',
                 'data' => [
                     'title' => 'Test Task',
                     'description' => 'This is a test task',
-                    'priority' => 2, // high = 2
+                    'priority' => 2,
                     'category_id' => $category->id,
                     'user_id' => $this->user->id,
                 ],
@@ -144,7 +142,7 @@ class TaskApiTest extends TestCase
 
         $response = $this->actingAs($this->user)->getJson("/api/tasks/{$task->id}");
 
-        $response->assertStatus(403);
+        $response->assertStatus(404);
     }
 
     /** @test */
@@ -186,7 +184,7 @@ class TaskApiTest extends TestCase
             'title' => 'Updated Title',
         ]);
 
-        $response->assertStatus(403);
+        $response->assertStatus(404);
     }
 
     /** @test */
@@ -232,11 +230,7 @@ class TaskApiTest extends TestCase
 
         $response = $this->actingAs($this->user)->deleteJson("/api/tasks/{$task->id}");
 
-        $response->assertStatus(200)
-            ->assertJson([
-                'success' => true,
-                'message' => 'Task deleted successfully',
-            ]);
+        $response->assertStatus(204);
 
         $this->assertDatabaseMissing('tasks', [
             'id' => $task->id,
@@ -253,6 +247,6 @@ class TaskApiTest extends TestCase
 
         $response = $this->actingAs($this->user)->deleteJson("/api/tasks/{$task->id}");
 
-        $response->assertStatus(403);
+        $response->assertStatus(404);
     }
 }

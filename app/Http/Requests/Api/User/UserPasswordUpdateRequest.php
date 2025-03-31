@@ -18,7 +18,8 @@ class UserPasswordUpdateRequest extends ApiRequest
                     $fail(__('validation.user.current_password_invalid'));
                 }
             }],
-            'password' => 'required|string|min:8|confirmed|different:current_password',
+            'password' => 'required|string|min:8|confirmed|different:current_password|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/',
+            'password_confirmation' => 'required|string|min:8',
         ];
     }
 
@@ -33,6 +34,8 @@ class UserPasswordUpdateRequest extends ApiRequest
             'password.min' => __('validation.user.password_min'),
             'password.confirmed' => __('validation.user.password_confirmed'),
             'password.different' => __('validation.user.password_different'),
+            'password.regex' => __('validation.user.password_regex', ['min' => 8]),
+            'password_confirmation.required' => __('validation.user.password_confirmation_required'),
         ];
     }
 

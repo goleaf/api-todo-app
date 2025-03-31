@@ -2,6 +2,7 @@
 
 namespace App\Services\Api;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -59,7 +60,7 @@ class UserService
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'role' => $data['role'] ?? 'user',
+            'role' => $data['role'] ?? UserRole::USER->value,
         ]);
 
         return $this->createdResponse($user, __('messages.user.created'));
@@ -131,7 +132,7 @@ class UserService
 
         // Users can't delete themselves if they're admins and the last admin
         if ($currentUser->id === $user->id && $user->isAdmin()) {
-            $adminCount = User::where('role', 'admin')->count();
+            $adminCount = User::where('role', UserRole::ADMIN)->count();
             if ($adminCount <= 1) {
                 return $this->errorResponse(__('messages.user.last_admin'), 422);
             }
@@ -253,8 +254,8 @@ class UserService
         return $this->successResponse([
             'total_users' => $totalUsers,
             'active_users' => $activeUsers,
-            'admin_count' => User::where('role', 'admin')->count(),
-            'user_count' => User::where('role', 'user')->count(),
+            'admin_count' => User::where('role', UserRole::ADMIN)->count(),
+            'user_count' => User::where('role', UserRole::USER->value)->count(),
             'users_with_tasks' => User::whereHas('tasks')->count(),
             'users_with_categories' => User::whereHas('categories')->count(),
         ]);
