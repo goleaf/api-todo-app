@@ -374,7 +374,7 @@ class TagsApiTest extends TestCase
         $tasks[0]->save();
         
         $response = $this->getJson("/api/tasks/by-tag/work-tag?completed=true");
-        
+
         $response->assertStatus(200);
         
         // Instead of counting, verify the completed task ID is in the response
