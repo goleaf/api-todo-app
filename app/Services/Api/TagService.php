@@ -55,7 +55,7 @@ class TagService
         
         // Set default color if not provided
         if (!isset($data['color'])) {
-            $data['color'] = '#6B7280';
+            $data['color'] = Tag::generateDefaultColor($data['name']);
         }
         
         $tag = Tag::create($data);
@@ -221,6 +221,8 @@ class TagService
                 if (!$task->tags()->where('tag_id', $targetTag->id)->exists()) {
                     // Add the target tag to the task
                     $task->tags()->attach($targetTag->id);
+                    // Increment target tag usage
+                    $targetTag->incrementUsage();
                 }
                 
                 // Remove the source tag from the task
@@ -229,10 +231,6 @@ class TagService
             
             // Delete the source tag
             $sourceTag->delete();
-            
-            // Update usage count for target tag
-            $targetTag->usage_count = $targetTag->tasks()->count();
-            $targetTag->save();
             
             DB::commit();
             
@@ -257,11 +255,7 @@ class TagService
     {
         $user = Auth::user();
         
-        $tags = Tag::forUser($user->id)
-            ->where('name', 'like', "%{$query}%")
-            ->orderByUsage()
-            ->limit($limit)
-            ->get(['id', 'name', 'color', 'usage_count']);
+        $tags = Tag::getMatchingForUser($query, $user->id, $limit)->get(['id', 'name', 'color', 'usage_count']);
             
         return $this->successResponse($tags);
     }
@@ -282,27 +276,19 @@ class TagService
         try {
             foreach ($tagsData as $tagData) {
                 // Check if tag already exists for this user
-                $existingTag = Tag::where('name', $tagData['name'])
-                    ->where('user_id', $userId)
-                    ->first();
-                    
-                if ($existingTag) {
+                if (Tag::existsForUser($tagData['name'], $userId)) {
+                    $existingTag = Tag::where('name', $tagData['name'])
+                        ->where('user_id', $userId)
+                        ->first();
                     $existingTags[] = $existingTag;
                     continue;
                 }
                 
-                // Set defaults if not provided
-                if (!isset($tagData['color']) || empty($tagData['color'])) {
-                    $tagData['color'] = '#' . substr(md5($tagData['name']), 0, 6);
-                }
+                // Set color if provided, otherwise use default
+                $color = $tagData['color'] ?? null;
                 
-                // Create the tag
-                $tag = new Tag();
-                $tag->name = $tagData['name'];
-                $tag->color = $tagData['color'];
-                $tag->user_id = $userId;
-                $tag->save();
-                
+                // Create the tag using the model helper method
+                $tag = Tag::findOrCreateForUser($tagData['name'], $userId, $color);
                 $createdTags[] = $tag;
             }
             

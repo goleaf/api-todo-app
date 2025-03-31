@@ -25,6 +25,15 @@ class Tag extends Model
     ];
 
     /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'usage_count' => 'integer',
+    ];
+
+    /**
      * Get the user that owns the tag.
      */
     public function user(): BelongsTo
@@ -73,6 +82,14 @@ class Tag extends Model
     }
 
     /**
+     * Scope a query to find tags by partial name match.
+     */
+    public function scopeNameLike(Builder $query, string $partialName): Builder
+    {
+        return $query->where('name', 'like', "%{$partialName}%");
+    }
+
+    /**
      * Increment the usage count for the tag.
      */
     public function incrementUsage(): bool
@@ -92,5 +109,55 @@ class Tag extends Model
         }
         
         return false;
+    }
+
+    /**
+     * Check if a tag with the given name exists for the user.
+     */
+    public static function existsForUser(string $name, int $userId): bool
+    {
+        return static::where('name', $name)
+            ->where('user_id', $userId)
+            ->exists();
+    }
+
+    /**
+     * Find or create a tag with the given name for the user.
+     */
+    public static function findOrCreateForUser(string $name, int $userId, ?string $color = null): self
+    {
+        $tag = static::where('name', $name)
+            ->where('user_id', $userId)
+            ->first();
+            
+        if (!$tag) {
+            $tag = static::create([
+                'name' => $name,
+                'user_id' => $userId,
+                'color' => $color ?? self::generateDefaultColor($name),
+                'usage_count' => 0,
+            ]);
+        }
+        
+        return $tag;
+    }
+
+    /**
+     * Get tags matching a partial name for a user.
+     */
+    public static function getMatchingForUser(string $partialName, int $userId, int $limit = 10): Builder
+    {
+        return static::forUser($userId)
+            ->namelike($partialName)
+            ->orderByUsage()
+            ->limit($limit);
+    }
+
+    /**
+     * Generate a default color based on the tag name.
+     */
+    public static function generateDefaultColor(string $name): string
+    {
+        return '#' . substr(md5($name), 0, 6);
     }
 }
