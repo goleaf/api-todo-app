@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -21,7 +22,7 @@ class DatabaseSeeder extends Seeder
         \App\Models\Category::truncate();
         \App\Models\Tag::truncate();
         \App\Models\Task::truncate();
-        \DB::table('task_tag')->truncate();
+        DB::table('task_tag')->truncate();
         
         // Enable foreign key constraints
         Schema::enableForeignKeyConstraints();

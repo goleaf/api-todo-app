@@ -63,30 +63,32 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User routes - full CRUD (using REST API controllers)
     Route::prefix('users')->group(function () {
-        Route::get('/', function() {
-            return app()->make(UsersController::class)->details();
+        Route::get('/', function(Illuminate\Http\Request $request) {
+            return app()->make(UsersController::class)->handleDetails($request);
         })->name('api.users.index');
         
         Route::post('/', function(Illuminate\Http\Request $request) {
-            return app()->make(UsersController::class)->mutate($request);
+            return app()->make(UsersController::class)->handleMutate($request);
         })->name('api.users.store');
         
-        Route::get('/statistics', function() {
+        Route::get('/statistics', function(Illuminate\Http\Request $request) {
             // Special route, kept from original implementation
-            return app()->make(UsersController::class)->operation('statistics');
+            return app()->make(UsersController::class)->handleOperation('statistics', $request);
         })->name('api.users.statistics');
         
-        Route::get('/{id}', function($id) {
-            return app()->make(UsersController::class)->details(['id' => $id]);
+        Route::get('/{id}', function(Illuminate\Http\Request $request, $id) {
+            $request->merge(['id' => $id]);
+            return app()->make(UsersController::class)->handleDetails($request);
         })->name('api.users.show');
         
         Route::put('/{id}', function(Illuminate\Http\Request $request, $id) {
             $request->merge(['update' => [['id' => $id] + $request->all()]]);
-            return app()->make(UsersController::class)->mutate($request);
+            return app()->make(UsersController::class)->handleMutate($request);
         })->name('api.users.update');
         
-        Route::delete('/{id}', function($id) {
-            return app()->make(UsersController::class)->destroy(['primaryKeys' => [$id]]);
+        Route::delete('/{id}', function(Illuminate\Http\Request $request, $id) {
+            $request->merge(['primaryKeys' => [$id]]);
+            return app()->make(UsersController::class)->handleDestroy($request);
         })->name('api.users.destroy');
     });
 
@@ -101,143 +103,154 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Task routes - full CRUD (using REST API controllers)
     Route::prefix('tasks')->group(function () {
-        Route::get('/', function() {
-            return app()->make(TasksController::class)->details();
+        Route::get('/', function(Illuminate\Http\Request $request) {
+            return app()->make(TasksController::class)->handleDetails($request);
         })->name('api.tasks.index');
         
         Route::post('/', function(Illuminate\Http\Request $request) {
-            return app()->make(TasksController::class)->mutate($request);
+            return app()->make(TasksController::class)->handleMutate($request);
         })->name('api.tasks.store');
         
-        Route::get('/statistics', function() {
+        Route::get('/statistics', function(Illuminate\Http\Request $request) {
             // Special route, kept from original implementation
-            return app()->make(TasksController::class)->operation('statistics');
+            return app()->make(TasksController::class)->handleOperation('statistics', $request);
         })->name('api.tasks.statistics');
         
         Route::get('/due-today', function(Illuminate\Http\Request $request) {
             $request->merge(['scopes' => [['name' => 'dueToday']]]);
-            return app()->make(TasksController::class)->search($request);
+            return app()->make(TasksController::class)->handleSearch($request);
         })->name('api.tasks.due-today');
         
         Route::get('/overdue', function(Illuminate\Http\Request $request) {
             $request->merge(['scopes' => [['name' => 'overdue']]]);
-            return app()->make(TasksController::class)->search($request);
+            return app()->make(TasksController::class)->handleSearch($request);
         })->name('api.tasks.overdue');
         
         Route::get('/upcoming', function(Illuminate\Http\Request $request) {
             $request->merge(['scopes' => [['name' => 'upcoming']]]);
-            return app()->make(TasksController::class)->search($request);
+            return app()->make(TasksController::class)->handleSearch($request);
         })->name('api.tasks.upcoming');
         
         Route::get('/by-tag/{tagName}', function(Illuminate\Http\Request $request, $tagName) {
             $request->merge(['scopes' => [['name' => 'withTag', 'parameters' => [$tagName]]]]);
-            return app()->make(TasksController::class)->search($request);
+            return app()->make(TasksController::class)->handleSearch($request);
         })->name('api.tasks.by-tag');
         
-        Route::get('/{id}', function($id) {
-            return app()->make(TasksController::class)->details(['id' => $id]);
+        Route::get('/{id}', function(Illuminate\Http\Request $request, $id) {
+            $request->merge(['id' => $id]);
+            return app()->make(TasksController::class)->handleDetails($request);
         })->name('api.tasks.show');
         
         Route::put('/{id}', function(Illuminate\Http\Request $request, $id) {
             $request->merge(['update' => [['id' => $id] + $request->all()]]);
-            return app()->make(TasksController::class)->mutate($request);
+            return app()->make(TasksController::class)->handleMutate($request);
         })->name('api.tasks.update');
         
-        Route::delete('/{id}', function($id) {
-            return app()->make(TasksController::class)->destroy(['primaryKeys' => [$id]]);
+        Route::delete('/{id}', function(Illuminate\Http\Request $request, $id) {
+            $request->merge(['primaryKeys' => [$id]]);
+            return app()->make(TasksController::class)->handleDestroy($request);
         })->name('api.tasks.destroy');
         
-        Route::patch('/{id}/toggle', function($id) {
-            return app()->make(TasksController::class)->operation('toggle', ['id' => $id]);
+        Route::patch('/{id}/toggle', function(Illuminate\Http\Request $request, $id) {
+            $request->merge(['id' => $id]);
+            return app()->make(TasksController::class)->handleOperation('toggle', $request);
         })->name('api.tasks.toggle');
         
-        Route::get('/{id}/tags', function($id) {
-            return app()->make(TasksController::class)->relation('tags', ['id' => $id]);
+        Route::get('/{id}/tags', function(Illuminate\Http\Request $request, $id) {
+            $request->merge(['id' => $id]);
+            return app()->make(TasksController::class)->handleRelation('tags', $request);
         })->name('api.tasks.tags');
         
         Route::put('/{id}/tags', function(Illuminate\Http\Request $request, $id) {
-            return app()->make(TasksController::class)->operation('updateTags', ['id' => $id, 'tags' => $request->all()]);
+            $request->merge(['id' => $id, 'tags' => $request->all()]);
+            return app()->make(TasksController::class)->handleOperation('updateTags', $request);
         })->name('api.tasks.update-tags');
         
         Route::post('/{id}/tags', function(Illuminate\Http\Request $request, $id) {
-            return app()->make(TasksController::class)->operation('bulkTagOperation', ['id' => $id] + $request->all());
+            $request->merge(['id' => $id]);
+            return app()->make(TasksController::class)->handleOperation('bulkTagOperation', $request);
         })->name('api.tasks.bulk-tag-operation');
     });
 
     // Category routes - full CRUD (using REST API controllers)
     Route::prefix('categories')->group(function () {
-        Route::get('/', function() {
-            return app()->make(CategoriesController::class)->details();
+        Route::get('/', function(Illuminate\Http\Request $request) {
+            return app()->make(CategoriesController::class)->handleDetails($request);
         })->name('api.categories.index');
         
         Route::post('/', function(Illuminate\Http\Request $request) {
-            return app()->make(CategoriesController::class)->mutate($request);
+            return app()->make(CategoriesController::class)->handleMutate($request);
         })->name('api.categories.store');
         
-        Route::get('/task-counts', function() {
-            return app()->make(CategoriesController::class)->operation('taskCounts');
+        Route::get('/task-counts', function(Illuminate\Http\Request $request) {
+            return app()->make(CategoriesController::class)->handleOperation('taskCounts', $request);
         })->name('api.categories.task-counts');
         
-        Route::get('/{id}', function($id) {
-            return app()->make(CategoriesController::class)->details(['id' => $id]);
+        Route::get('/{id}', function(Illuminate\Http\Request $request, $id) {
+            $request->merge(['id' => $id]);
+            return app()->make(CategoriesController::class)->handleDetails($request);
         })->name('api.categories.show');
         
         Route::put('/{id}', function(Illuminate\Http\Request $request, $id) {
             $request->merge(['update' => [['id' => $id] + $request->all()]]);
-            return app()->make(CategoriesController::class)->mutate($request);
+            return app()->make(CategoriesController::class)->handleMutate($request);
         })->name('api.categories.update');
         
-        Route::delete('/{id}', function($id) {
-            return app()->make(CategoriesController::class)->destroy(['primaryKeys' => [$id]]);
+        Route::delete('/{id}', function(Illuminate\Http\Request $request, $id) {
+            $request->merge(['primaryKeys' => [$id]]);
+            return app()->make(CategoriesController::class)->handleDestroy($request);
         })->name('api.categories.destroy');
     });
 
     // Tag routes - full CRUD (using REST API controllers)
     Route::prefix('tags')->group(function () {
-        Route::get('/', function() {
-            return app()->make(TagsController::class)->details();
+        Route::get('/', function(Illuminate\Http\Request $request) {
+            return app()->make(TagsController::class)->handleDetails($request);
         })->name('api.tags.index');
         
         Route::post('/', function(Illuminate\Http\Request $request) {
-            return app()->make(TagsController::class)->mutate($request);
+            return app()->make(TagsController::class)->handleMutate($request);
         })->name('api.tags.store');
         
         Route::get('/popular', function(Illuminate\Http\Request $request) {
             $request->merge(['sorts' => [['field' => 'usage_count', 'direction' => 'desc']], 'limit' => 10]);
-            return app()->make(TagsController::class)->search($request);
+            return app()->make(TagsController::class)->handleSearch($request);
         })->name('api.tags.popular');
         
-        Route::get('/task-counts', function() {
-            return app()->make(TagsController::class)->operation('taskCounts');
+        Route::get('/task-counts', function(Illuminate\Http\Request $request) {
+            return app()->make(TagsController::class)->handleOperation('taskCounts', $request);
         })->name('api.tags.task-counts');
         
         Route::post('/merge', function(Illuminate\Http\Request $request) {
-            return app()->make(TagsController::class)->operation('merge', $request->all());
+            return app()->make(TagsController::class)->handleOperation('merge', $request);
         })->name('api.tags.merge');
         
         Route::get('/suggestions', function(Illuminate\Http\Request $request) {
-            return app()->make(TagsController::class)->operation('suggestions', ['query' => $request->get('query')]);
+            return app()->make(TagsController::class)->handleOperation('suggestions', $request);
         })->name('api.tags.suggestions');
         
         Route::post('/batch', function(Illuminate\Http\Request $request) {
-            return app()->make(TagsController::class)->operation('batchCreate', $request->all());
+            return app()->make(TagsController::class)->handleOperation('batchCreate', $request);
         })->name('api.tags.batch-create');
         
-        Route::get('/{id}', function($id) {
-            return app()->make(TagsController::class)->details(['id' => $id]);
+        Route::get('/{id}', function(Illuminate\Http\Request $request, $id) {
+            $request->merge(['id' => $id]);
+            return app()->make(TagsController::class)->handleDetails($request);
         })->name('api.tags.show');
         
         Route::put('/{id}', function(Illuminate\Http\Request $request, $id) {
             $request->merge(['update' => [['id' => $id] + $request->all()]]);
-            return app()->make(TagsController::class)->mutate($request);
+            return app()->make(TagsController::class)->handleMutate($request);
         })->name('api.tags.update');
         
-        Route::delete('/{id}', function($id) {
-            return app()->make(TagsController::class)->destroy(['primaryKeys' => [$id]]);
+        Route::delete('/{id}', function(Illuminate\Http\Request $request, $id) {
+            $request->merge(['primaryKeys' => [$id]]);
+            return app()->make(TagsController::class)->handleDestroy($request);
         })->name('api.tags.destroy');
         
-        Route::get('/{id}/tasks', function($id) {
-            return app()->make(TagsController::class)->relation('tasks', ['id' => $id]);
+        Route::get('/{id}/tasks', function(Illuminate\Http\Request $request, $id) {
+            $request->merge(['id' => $id]);
+            return app()->make(TagsController::class)->handleRelation('tasks', $request);
         })->name('api.tags.tasks');
     });
 

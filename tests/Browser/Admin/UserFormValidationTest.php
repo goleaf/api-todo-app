@@ -23,7 +23,7 @@ class UserFormValidationTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)
-                    ->visit('/admin/users/create')
+                    ->visit(route('admin.users.create'))
                     ->press('Save')
                     ->assertSee('The name field is required')
                     ->assertSee('The email field is required')
@@ -46,7 +46,7 @@ class UserFormValidationTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)
-                    ->visit('/admin/users/create')
+                    ->visit(route('admin.users.create'))
                     ->type('name', 'Test User')
                     ->type('email', 'invalid-email')
                     ->type('password', 'password')
@@ -71,7 +71,7 @@ class UserFormValidationTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)
-                    ->visit('/admin/users/create')
+                    ->visit(route('admin.users.create'))
                     ->type('name', 'Test User')
                     ->type('email', 'test@example.com')
                     ->type('password', 'password')
@@ -96,7 +96,7 @@ class UserFormValidationTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)
-                    ->visit('/admin/users/create')
+                    ->visit(route('admin.users.create'))
                     ->type('name', 'Test User')
                     ->type('email', $admin->email) // Use an existing email
                     ->type('password', 'password')

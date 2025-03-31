@@ -42,14 +42,14 @@ class UserResource extends RestResource
     public function relations(\Lomkit\Rest\Http\Requests\RestRequest $request): array
     {
         return [
-            'tasks' => \App\Rest\Resources\TaskResource::class,
-            'categories' => \App\Rest\Resources\CategoryResource::class,
-            'tags' => \App\Rest\Resources\TagResource::class,
-            'completedTasks' => \App\Rest\Resources\TaskResource::class,
-            'incompleteTasks' => \App\Rest\Resources\TaskResource::class,
-            'tasksDueToday' => \App\Rest\Resources\TaskResource::class,
-            'overdueTasks' => \App\Rest\Resources\TaskResource::class,
-            'upcomingTasks' => \App\Rest\Resources\TaskResource::class,
+            'tasks' => new \Lomkit\Rest\Relations\Relation('tasks', \Lomkit\Rest\Http\Relations\HasMany::class),
+            'categories' => new \Lomkit\Rest\Relations\Relation('categories', \Lomkit\Rest\Http\Relations\HasMany::class),
+            'tags' => new \Lomkit\Rest\Relations\Relation('tags', \Lomkit\Rest\Http\Relations\HasMany::class),
+            'completedTasks' => new \Lomkit\Rest\Relations\Relation('completedTasks', \Lomkit\Rest\Http\Relations\HasMany::class),
+            'incompleteTasks' => new \Lomkit\Rest\Relations\Relation('incompleteTasks', \Lomkit\Rest\Http\Relations\HasMany::class),
+            'tasksDueToday' => new \Lomkit\Rest\Relations\Relation('tasksDueToday', \Lomkit\Rest\Http\Relations\HasMany::class),
+            'overdueTasks' => new \Lomkit\Rest\Relations\Relation('overdueTasks', \Lomkit\Rest\Http\Relations\HasMany::class),
+            'upcomingTasks' => new \Lomkit\Rest\Relations\Relation('upcomingTasks', \Lomkit\Rest\Http\Relations\HasMany::class),
         ];
     }
 
@@ -97,5 +97,49 @@ class UserResource extends RestResource
      */
     public function instructions(\Lomkit\Rest\Http\Requests\RestRequest $request): array {
         return [];
+    }
+
+    /**
+     * Handle authorization for the request
+     *
+     * @param mixed $request
+     * @return bool
+     */
+    public function authorizeRequest($request): bool
+    {
+        return true;
+    }
+
+    /**
+     * Handle authorization for details operation
+     * 
+     * @param mixed $request
+     * @return bool
+     */
+    public function authorizeDetails($request): bool
+    {
+        return true;
+    }
+
+    /**
+     * Handle authorization for mutation operation
+     * 
+     * @param mixed $request
+     * @return bool
+     */
+    public function authorizeMutate($request): bool
+    {
+        return true;
+    }
+
+    /**
+     * Handle authorization for deletion operation
+     * 
+     * @param mixed $request
+     * @return bool
+     */
+    public function authorizeDestroy($request): bool
+    {
+        return true;
     }
 }

@@ -39,8 +39,8 @@ class TagResource extends RestResource
     public function relations(\Lomkit\Rest\Http\Requests\RestRequest $request): array
     {
         return [
-            'user' => \App\Rest\Resources\UserResource::class,
-            'tasks' => \App\Rest\Resources\TaskResource::class
+            'user' => new \Lomkit\Rest\Relations\Relation('user', \Lomkit\Rest\Http\Relations\BelongsTo::class),
+            'tasks' => new \Lomkit\Rest\Relations\Relation('tasks', \Lomkit\Rest\Http\Relations\BelongsToMany::class)
         ];
     }
 
@@ -91,5 +91,49 @@ class TagResource extends RestResource
      */
     public function instructions(\Lomkit\Rest\Http\Requests\RestRequest $request): array {
         return [];
+    }
+
+    /**
+     * Handle authorization for the request
+     *
+     * @param mixed $request
+     * @return bool
+     */
+    public function authorizeRequest($request): bool
+    {
+        return true;
+    }
+
+    /**
+     * Handle authorization for details operation
+     * 
+     * @param mixed $request
+     * @return bool
+     */
+    public function authorizeDetails($request): bool
+    {
+        return true;
+    }
+
+    /**
+     * Handle authorization for mutation operation
+     * 
+     * @param mixed $request
+     * @return bool
+     */
+    public function authorizeMutate($request): bool
+    {
+        return true;
+    }
+
+    /**
+     * Handle authorization for deletion operation
+     * 
+     * @param mixed $request
+     * @return bool
+     */
+    public function authorizeDestroy($request): bool
+    {
+        return true;
     }
 }

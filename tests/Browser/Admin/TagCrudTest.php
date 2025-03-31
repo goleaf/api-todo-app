@@ -23,7 +23,7 @@ class TagCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)
-                    ->visit('/admin/tags')
+                    ->visit(route('admin.tags.index'))
                     ->assertSee('Tags')
                     ->assertSee('Add Tag')
                     ->assertSee('ID')
@@ -48,9 +48,9 @@ class TagCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)
-                    ->visit('/admin/tags')
+                    ->visit(route('admin.tags.index'))
                     ->clickLink('Add Tag')
-                    ->assertPathIs('/admin/tags/create')
+                    ->assertPathIs(route('admin.tags.create', [], false))
                     ->assertSee('Create New Tag')
                     ->assertSee('Name')
                     ->assertSee('User')
@@ -74,12 +74,12 @@ class TagCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin, $user, $tagName) {
             $browser->loginAs($admin)
-                    ->visit('/admin/tags/create')
+                    ->visit(route('admin.tags.create'))
                     ->type('name', $tagName)
                     ->select('user_id', $user->id)
                     ->type('color', '#FF5733')
                     ->press('Save')
-                    ->waitForLocation('/admin/tags')
+                    ->waitForLocation(route('admin.tags.index'))
                     ->assertSee('Tag created successfully')
                     ->assertSee($tagName);
         });
@@ -109,9 +109,9 @@ class TagCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin, $tag) {
             $browser->loginAs($admin)
-                    ->visit('/admin/tags')
+                    ->visit(route('admin.tags.index'))
                     ->click('@edit-tag-' . $tag->id)
-                    ->assertPathIs('/admin/tags/' . $tag->id . '/edit')
+                    ->assertPathIs(route('admin.tags.edit', $tag->id, false))
                     ->assertSee('Edit Tag')
                     ->assertInputValue('name', $tag->name)
                     ->assertSelected('user_id', $tag->user_id)
@@ -145,12 +145,12 @@ class TagCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin, $tag, $newName) {
             $browser->loginAs($admin)
-                    ->visit('/admin/tags/' . $tag->id . '/edit')
+                    ->visit(route('admin.tags.edit', $tag->id))
                     ->clear('name')
                     ->type('name', $newName)
                     ->type('color', '#33FF57')
                     ->press('Save')
-                    ->waitForLocation('/admin/tags')
+                    ->waitForLocation(route('admin.tags.index'))
                     ->assertSee('Tag updated successfully')
                     ->assertSee($newName);
         });
@@ -180,7 +180,7 @@ class TagCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin, $tag) {
             $browser->loginAs($admin)
-                    ->visit('/admin/tags')
+                    ->visit(route('admin.tags.index'))
                     ->assertSee($tag->name)
                     ->click('@delete-tag-' . $tag->id)
                     ->waitForDialog()

@@ -23,7 +23,7 @@ class CategoryCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)
-                    ->visit('/admin/categories')
+                    ->visit(route('admin.categories.index'))
                     ->assertSee('Categories')
                     ->assertSee('Add Category')
                     ->assertSee('ID')
@@ -49,9 +49,9 @@ class CategoryCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)
-                    ->visit('/admin/categories')
+                    ->visit(route('admin.categories.index'))
                     ->clickLink('Add Category')
-                    ->assertPathIs('/admin/categories/create')
+                    ->assertPathIs(route('admin.categories.create', [], false))
                     ->assertSee('Create New Category')
                     ->assertSee('Name')
                     ->assertSee('User')
@@ -76,13 +76,13 @@ class CategoryCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin, $user, $categoryName) {
             $browser->loginAs($admin)
-                    ->visit('/admin/categories/create')
+                    ->visit(route('admin.categories.create'))
                     ->type('name', $categoryName)
                     ->select('user_id', $user->id)
                     ->select('type', 'work')
                     ->type('color', '#3355FF')
                     ->press('Save')
-                    ->waitForLocation('/admin/categories')
+                    ->waitForLocation(route('admin.categories.index'))
                     ->assertSee('Category created successfully')
                     ->assertSee($categoryName);
         });
@@ -113,9 +113,9 @@ class CategoryCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin, $category) {
             $browser->loginAs($admin)
-                    ->visit('/admin/categories')
+                    ->visit(route('admin.categories.index'))
                     ->click('@edit-category-' . $category->id)
-                    ->assertPathIs('/admin/categories/' . $category->id . '/edit')
+                    ->assertPathIs(route('admin.categories.edit', $category->id, false))
                     ->assertSee('Edit Category')
                     ->assertInputValue('name', $category->name)
                     ->assertSelected('user_id', $category->user_id)
@@ -151,13 +151,13 @@ class CategoryCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin, $category, $newName) {
             $browser->loginAs($admin)
-                    ->visit('/admin/categories/' . $category->id . '/edit')
+                    ->visit(route('admin.categories.edit', $category->id))
                     ->clear('name')
                     ->type('name', $newName)
                     ->select('type', 'personal')
                     ->type('color', '#FF5733')
                     ->press('Save')
-                    ->waitForLocation('/admin/categories')
+                    ->waitForLocation(route('admin.categories.index'))
                     ->assertSee('Category updated successfully')
                     ->assertSee($newName);
         });
@@ -188,7 +188,7 @@ class CategoryCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin, $category) {
             $browser->loginAs($admin)
-                    ->visit('/admin/categories')
+                    ->visit(route('admin.categories.index'))
                     ->assertSee($category->name)
                     ->click('@delete-category-' . $category->id)
                     ->waitForDialog()

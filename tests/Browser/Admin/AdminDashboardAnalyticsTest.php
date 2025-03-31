@@ -47,7 +47,7 @@ class AdminDashboardAnalyticsTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)
-                    ->visit('/admin/dashboard/chart-data')
+                    ->visit(route('admin.dashboard.chart-data'))
                     ->assertSee('tasksByStatus')
                     ->assertSee('tasksByPriority')
                     ->assertSee('taskCreation')
@@ -71,19 +71,19 @@ class AdminDashboardAnalyticsTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($admin) {
             // Test with week period
             $browser->loginAs($admin)
-                    ->visit('/admin/dashboard/chart-data?period=week')
+                    ->visit(route('admin.dashboard.chart-data') . '?period=week')
                     ->assertSee('tasksByStatus')
                     ->assertSee('taskCreation')
                     ->assertSee('labels');
 
             // Test with month period
-            $browser->visit('/admin/dashboard/chart-data?period=month')
+            $browser->visit(route('admin.dashboard.chart-data') . '?period=month')
                     ->assertSee('tasksByStatus')
                     ->assertSee('taskCreation')
                     ->assertSee('labels');
 
             // Test with year period
-            $browser->visit('/admin/dashboard/chart-data?period=year')
+            $browser->visit(route('admin.dashboard.chart-data') . '?period=year')
                     ->assertSee('tasksByStatus')
                     ->assertSee('taskCreation')
                     ->assertSee('labels');

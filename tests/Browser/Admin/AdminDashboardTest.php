@@ -44,7 +44,7 @@ class AdminDashboardTest extends DuskTestCase
                     ->loginAsAdmin($admin->email, 'password')
                     ->visit(new DashboardPage)
                     ->navigateToUsers()
-                    ->assertPathIs('/admin/users')
+                    ->assertPathIs(route('admin.users.index', [], false))
                     ->assertSee('Users');
         });
     }
@@ -63,7 +63,7 @@ class AdminDashboardTest extends DuskTestCase
                     ->loginAsAdmin($admin->email, 'password')
                     ->visit(new DashboardPage)
                     ->navigateToCategories()
-                    ->assertPathIs('/admin/categories')
+                    ->assertPathIs(route('admin.categories.index', [], false))
                     ->assertSee('Categories');
         });
     }
@@ -82,7 +82,7 @@ class AdminDashboardTest extends DuskTestCase
                     ->loginAsAdmin($admin->email, 'password')
                     ->visit(new DashboardPage)
                     ->navigateToTags()
-                    ->assertPathIs('/admin/tags')
+                    ->assertPathIs(route('admin.tags.index', [], false))
                     ->assertSee('Tags');
         });
     }
@@ -101,7 +101,7 @@ class AdminDashboardTest extends DuskTestCase
                     ->loginAsAdmin($admin->email, 'password')
                     ->visit(new DashboardPage)
                     ->navigateToTasks()
-                    ->assertPathIs('/admin/tasks')
+                    ->assertPathIs(route('admin.tasks.index', [], false))
                     ->assertSee('Tasks');
         });
     }
@@ -120,7 +120,7 @@ class AdminDashboardTest extends DuskTestCase
                     ->loginAsAdmin($admin->email, 'password')
                     ->visit(new DashboardPage)
                     ->logout()
-                    ->assertPathIs('/admin/login');
+                    ->assertPathIs(route('admin.login', [], false));
         });
     }
     
@@ -134,11 +134,11 @@ class AdminDashboardTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->visit(new LoginPage)
                     ->loginAsAdmin($admin->email, 'password')
-                    ->visit('/admin/dashboard')
+                    ->visit(route('admin.dashboard'))
                     ->pause(1000) // Wait for any JavaScript to load
                     
                     // Directly test the API endpoint
-                    ->visit('/admin/dashboard/chart-data')
+                    ->visit(route('admin.dashboard.chart-data'))
                     ->assertSee('tasksByStatus')
                     ->assertSee('tasksByPriority')
                     ->assertSee('taskCreation')

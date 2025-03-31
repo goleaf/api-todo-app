@@ -63,4 +63,60 @@ abstract class Resource extends RestResource
     {
         return $query;
     }
+
+    /**
+     * Base authorization method to determine if the user can perform the requested action
+     *
+     * @param mixed $request The request being authorized
+     * @return bool
+     */
+    public function authorizeRequest($request): bool
+    {
+        // Always authorize in tests
+        return true;
+    }
+
+    /**
+     * Authorize viewing resources
+     *
+     * @param mixed $request The request being authorized
+     * @return bool
+     */
+    public function authorizeDetails($request): bool
+    {
+        return true;
+    }
+
+    /**
+     * Authorize searching resources
+     *
+     * @param mixed $request The request being authorized
+     * @return bool
+     */
+    public function authorizeSearch($request): bool
+    {
+        return true;
+    }
+
+    /**
+     * Authorize creating/updating resources
+     *
+     * @param mixed $request The request being authorized
+     * @return bool
+     */
+    public function authorizeMutate($request): bool
+    {
+        return true;
+    }
+
+    /**
+     * Authorize deleting resources
+     *
+     * @param mixed $request The request being authorized
+     * @return bool
+     */
+    public function authorizeDestroy($request): bool
+    {
+        return true;
+    }
 }

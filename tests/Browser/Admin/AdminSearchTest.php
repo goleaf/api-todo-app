@@ -37,14 +37,14 @@ class AdminSearchTest extends DuskTestCase
             $this->browse(function (Browser $browser) use ($admin, $testUser) {
                 // Search for the test user
                 $browser->loginAs($admin)
-                        ->visit('/admin/users')
+                        ->visit(route('admin.users.index'))
                         ->type('search', $testUser->name)
                         ->press('Search')
                         ->assertSee($testUser->name)
                         ->assertSee($testUser->email);
 
                 // Search with no results
-                $browser->visit('/admin/users')
+                $browser->visit(route('admin.users.index'))
                         ->type('search', 'NonExistentUser' . time())
                         ->press('Search')
                         ->assertSee('No users found');
@@ -81,13 +81,13 @@ class AdminSearchTest extends DuskTestCase
             $this->browse(function (Browser $browser) use ($admin, $testCategory) {
                 // Search for the test category
                 $browser->loginAs($admin)
-                        ->visit('/admin/categories')
+                        ->visit(route('admin.categories.index'))
                         ->type('search', $testCategory->name)
                         ->press('Search')
                         ->assertSee($testCategory->name);
 
                 // Test filter by user
-                $browser->visit('/admin/categories')
+                $browser->visit(route('admin.categories.index'))
                         ->select('user_id', $testCategory->user_id)
                         ->waitForReload()
                         ->assertSee($testCategory->name);
@@ -123,13 +123,13 @@ class AdminSearchTest extends DuskTestCase
             $this->browse(function (Browser $browser) use ($admin, $testTag) {
                 // Search for the test tag
                 $browser->loginAs($admin)
-                        ->visit('/admin/tags')
+                        ->visit(route('admin.tags.index'))
                         ->type('search', $testTag->name)
                         ->press('Search')
                         ->assertSee($testTag->name);
 
                 // Test filter by user
-                $browser->visit('/admin/tags')
+                $browser->visit(route('admin.tags.index'))
                         ->select('user_id', $testTag->user_id)
                         ->waitForReload()
                         ->assertSee($testTag->name);
@@ -168,25 +168,25 @@ class AdminSearchTest extends DuskTestCase
             $this->browse(function (Browser $browser) use ($admin, $testTask, $user) {
                 // Search for the test task by title
                 $browser->loginAs($admin)
-                        ->visit('/admin/tasks')
+                        ->visit(route('admin.tasks.index'))
                         ->type('search', $testTask->title)
                         ->press('Search')
                         ->assertSee($testTask->title);
 
                 // Filter by user
-                $browser->visit('/admin/tasks')
+                $browser->visit(route('admin.tasks.index'))
                         ->select('user_id', $user->id)
                         ->waitForReload()
                         ->assertSee($testTask->title);
 
                 // Filter by status (incomplete)
-                $browser->visit('/admin/tasks')
+                $browser->visit(route('admin.tasks.index'))
                         ->select('status', 'incomplete')
                         ->waitForReload()
                         ->assertSee($testTask->title);
 
                 // Filter by priority
-                $browser->visit('/admin/tasks')
+                $browser->visit(route('admin.tasks.index'))
                         ->select('priority', 'medium')
                         ->waitForReload()
                         ->assertSee($testTask->title);

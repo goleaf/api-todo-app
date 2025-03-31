@@ -25,7 +25,7 @@ class TaskCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)
-                    ->visit('/admin/tasks')
+                    ->visit(route('admin.tasks.index'))
                     ->assertSee('Tasks')
                     ->assertSee('Add Task')
                     ->assertSee('ID')
@@ -53,9 +53,9 @@ class TaskCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)
-                    ->visit('/admin/tasks')
+                    ->visit(route('admin.tasks.index'))
                     ->clickLink('Add Task')
-                    ->assertPathIs('/admin/tasks/create')
+                    ->assertPathIs(route('admin.tasks.create', [], false))
                     ->assertSee('Create New Task')
                     ->assertSee('Title')
                     ->assertSee('Description')
@@ -85,7 +85,7 @@ class TaskCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin, $user, $category, $taskTitle, $dueDate) {
             $browser->loginAs($admin)
-                    ->visit('/admin/tasks/create')
+                    ->visit(route('admin.tasks.create'))
                     ->type('title', $taskTitle)
                     ->type('description', 'This is a test task description')
                     ->select('user_id', $user->id)
@@ -94,7 +94,7 @@ class TaskCrudTest extends DuskTestCase
                     ->type('due_date', $dueDate)
                     ->type('progress', '50')
                     ->press('Save')
-                    ->waitForLocation('/admin/tasks')
+                    ->waitForLocation(route('admin.tasks.index', [], false))
                     ->assertSee('Task created successfully')
                     ->assertSee($taskTitle);
         });
@@ -129,9 +129,9 @@ class TaskCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin, $task) {
             $browser->loginAs($admin)
-                    ->visit('/admin/tasks')
+                    ->visit(route('admin.tasks.index'))
                     ->click('@edit-task-' . $task->id)
-                    ->assertPathIs('/admin/tasks/' . $task->id . '/edit')
+                    ->assertPathIs(route('admin.tasks.edit', $task->id, false))
                     ->assertSee('Edit Task')
                     ->assertInputValue('title', $task->title)
                     ->assertInputValue('description', $task->description)
@@ -173,13 +173,13 @@ class TaskCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin, $task, $newTitle) {
             $browser->loginAs($admin)
-                    ->visit('/admin/tasks/' . $task->id . '/edit')
+                    ->visit(route('admin.tasks.edit', $task->id))
                     ->clear('title')
                     ->type('title', $newTitle)
                     ->select('priority', 'high')
                     ->type('progress', '75')
                     ->press('Save')
-                    ->waitForLocation('/admin/tasks')
+                    ->waitForLocation(route('admin.tasks.index', [], false))
                     ->assertSee('Task updated successfully')
                     ->assertSee($newTitle);
         });
@@ -215,7 +215,7 @@ class TaskCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin, $task) {
             $browser->loginAs($admin)
-                    ->visit('/admin/tasks')
+                    ->visit(route('admin.tasks.index'))
                     ->assertSee($task->title)
                     ->click('@toggle-task-' . $task->id)
                     ->waitForText('Task status updated successfully')
@@ -261,7 +261,7 @@ class TaskCrudTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin, $task) {
             $browser->loginAs($admin)
-                    ->visit('/admin/tasks')
+                    ->visit(route('admin.tasks.index'))
                     ->assertSee($task->title)
                     ->click('@delete-task-' . $task->id)
                     ->waitForDialog()

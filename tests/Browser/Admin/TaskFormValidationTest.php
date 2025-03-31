@@ -23,7 +23,7 @@ class TaskFormValidationTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin) {
             $browser->loginAs($admin)
-                    ->visit('/admin/tasks/create')
+                    ->visit(route('admin.tasks.create'))
                     ->press('Save')
                     ->assertSee('The title field is required')
                     ->assertSee('The user id field is required');
@@ -46,7 +46,7 @@ class TaskFormValidationTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin, $user) {
             $browser->loginAs($admin)
-                    ->visit('/admin/tasks/create')
+                    ->visit(route('admin.tasks.create'))
                     ->type('title', 'Test Task')
                     ->select('user_id', $user->id)
                     ->type('due_date', 'invalid-date')
@@ -72,7 +72,7 @@ class TaskFormValidationTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($admin, $user) {
             // Test value below minimum
             $browser->loginAs($admin)
-                    ->visit('/admin/tasks/create')
+                    ->visit(route('admin.tasks.create'))
                     ->type('title', 'Test Task')
                     ->select('user_id', $user->id)
                     ->type('progress', '-10')
@@ -80,7 +80,7 @@ class TaskFormValidationTest extends DuskTestCase
                     ->assertSee('The progress must be at least 0');
 
             // Test value above maximum
-            $browser->visit('/admin/tasks/create')
+            $browser->visit(route('admin.tasks.create'))
                     ->type('title', 'Test Task')
                     ->select('user_id', $user->id)
                     ->type('progress', '110')
@@ -105,7 +105,7 @@ class TaskFormValidationTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($admin, $user) {
             $browser->loginAs($admin)
-                    ->visit('/admin/tasks/create')
+                    ->visit(route('admin.tasks.create'))
                     ->type('title', 'Test Task')
                     ->select('user_id', $user->id)
                     ->select('priority', 'invalid-priority')
