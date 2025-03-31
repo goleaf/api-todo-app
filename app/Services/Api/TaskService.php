@@ -329,11 +329,8 @@ class TaskService
                 continue;
             }
             
-            // Find or create the tag
-            $tag = \App\Models\Tag::firstOrCreate(
-                ['name' => $name, 'user_id' => $userId],
-                ['color' => '#' . substr(md5($name), 0, 6)]
-            );
+            // Find or create the tag using the enhanced model method
+            $tag = \App\Models\Tag::findOrCreateForUser($name, $userId);
             
             $tagIds[] = $tag->id;
         }
@@ -364,7 +361,7 @@ class TaskService
     protected function updateTagUsageCount(int $userId): void
     {
         // Get all user tags
-        $tags = \App\Models\Tag::where('user_id', $userId)->get();
+        $tags = \App\Models\Tag::forUser($userId)->get();
         
         foreach ($tags as $tag) {
             // Count tasks with this tag
@@ -387,7 +384,7 @@ class TaskService
         
         // Try to find the tag
         $tag = \App\Models\Tag::where('name', $tagName)
-            ->where('user_id', $userId)
+            ->forUser($userId)
             ->first();
             
         if (!$tag) {
