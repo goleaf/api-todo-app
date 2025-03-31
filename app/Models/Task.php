@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Cache;
+use Kyslik\ColumnSortable\Sortable;
 use Tonysm\RichTextLaravel\Models\Traits\HasRichText;
 use App\Traits\HasComments;
 use Illuminate\Database\Eloquent\Relations\HasManyDeep;
@@ -29,6 +30,24 @@ class Task extends Model
     use HasRichText;
     use HasComments;
     use HasRelationships;
+    use Sortable;
+
+    /**
+     * The columns that can be sorted.
+     *
+     * @var array<int, string>
+     */
+    public $sortable = [
+        'id',
+        'title',
+        'due_date',
+        'priority',
+        'completed',
+        'created_at',
+        'updated_at',
+        'category_id',
+        'user_id'
+    ];
 
     /**
      * The attributes that are mass assignable.

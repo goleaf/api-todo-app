@@ -38,10 +38,10 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>User</th>
+                        <th>@sortablelink('id', 'ID')</th>
+                        <th>@sortablelink('name', 'Name')</th>
+                        <th>@sortablelink('type', 'Type')</th>
+                        <th>@sortablelink('user.name', 'User')</th>
                         <th>Color</th>
                         <th>Tasks</th>
                         <th>Actions</th>

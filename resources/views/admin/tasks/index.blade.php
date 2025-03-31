@@ -65,14 +65,14 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Title</th>
-                        <th>User</th>
-                        <th>Category</th>
-                        <th>Priority</th>
-                        <th>Due Date</th>
-                        <th>Status</th>
-                        <th>Progress</th>
+                        <th>@sortablelink('id', 'ID')</th>
+                        <th>@sortablelink('title', 'Title')</th>
+                        <th>@sortablelink('user.name', 'User')</th>
+                        <th>@sortablelink('category.name', 'Category')</th>
+                        <th>@sortablelink('priority', 'Priority')</th>
+                        <th>@sortablelink('due_date', 'Due Date')</th>
+                        <th>@sortablelink('completed', 'Status')</th>
+                        <th>@sortablelink('progress', 'Progress')</th>
                         <th>Actions</th>
                     </tr>
                 </thead>

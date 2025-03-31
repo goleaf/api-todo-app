@@ -21,7 +21,15 @@ class UserController extends AdminController
             $query->search($search);
         }
         
-        $users = $query->latest()->fastPaginate(10);
+        // Apply sorting using the Sortable trait
+        if ($request->has('sort') || $request->has('direction')) {
+            $query = $query->sortable($request->only(['sort', 'direction']));
+        } else {
+            // Default sorting if no sort parameters
+            $query->latest();
+        }
+        
+        $users = $query->fastPaginate(10);
         
         return view('admin.users.index', compact('users'));
     }

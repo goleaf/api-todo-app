@@ -28,10 +28,10 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Registered</th>
+                        <th>@sortablelink('id', 'ID')</th>
+                        <th>@sortablelink('name', 'Name')</th>
+                        <th>@sortablelink('email', 'Email')</th>
+                        <th>@sortablelink('created_at', 'Registered')</th>
                         <th>Tasks</th>
                         <th>Actions</th>
                     </tr>

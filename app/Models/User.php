@@ -12,6 +12,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Kyslik\ColumnSortable\Sortable;
 use Spatie\Onboard\Concerns\GetsOnboarded;
 use Spatie\Onboard\Concerns\Onboardable;
 use Staudenmeir\EloquentHasManyDeep\HasRelationships;
@@ -19,7 +20,22 @@ use Staudenmeir\EloquentHasManyDeep\HasRelationships;
 class User extends Authenticatable implements Onboardable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, GetsOnboarded, HasRelationships;
+    use HasApiTokens, HasFactory, Notifiable, GetsOnboarded, HasRelationships, Sortable;
+
+    /**
+     * The columns that can be sorted.
+     *
+     * @var array<int, string>
+     */
+    public $sortable = [
+        'id',
+        'name',
+        'email',
+        'created_at',
+        'updated_at',
+        'role',
+        'active'
+    ];
 
     /**
      * The attributes that are mass assignable.

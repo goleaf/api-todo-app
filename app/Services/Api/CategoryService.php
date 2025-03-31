@@ -49,14 +49,21 @@ class CategoryService
             $query->withTag($request->tag);
         }
 
-        // Apply sorting
-        $sortBy = $request->get('sort_by', 'name');
-        $sortDir = $request->get('sort_dir', 'asc');
-
-        if ($sortBy === 'name') {
-            $query->orderByName();
+        // Apply sorting - using column-sortable if sort parameters are present
+        // or fallback to default sorting
+        if ($request->has('sort') || $request->has('direction')) {
+            // The sortable() method comes from the Sortable trait
+            $query = $query->sortable($request->only(['sort', 'direction']));
         } else {
-            $query->orderBy($sortBy, $sortDir);
+            // Default sorting if no sort parameters
+            $sortBy = $request->get('sort_by', 'name');
+            $sortDir = $request->get('sort_dir', 'asc');
+
+            if ($sortBy === 'name') {
+                $query->orderByName();
+            } else {
+                $query->orderBy($sortBy, $sortDir);
+            }
         }
 
         // Add task counts

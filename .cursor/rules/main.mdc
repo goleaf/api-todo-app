@@ -1434,3 +1434,93 @@ The following API endpoints are available for interacting with SOAP services:
 - `GET /api/soap/mock`: Get a mock SOAP response for testing
 
 For more information, refer to the detailed documentation in `docs/laravel-soap.md`.
+
+# Laravel Column Sortable Integration
+
+## Overview
+
+The application integrates Laravel Column Sortable, a package that provides an intuitive way to sort data tables by column headers in both backend queries and frontend UI. This integration enhances the user experience by allowing easy sorting of data lists with visual indicators.
+
+## Features
+
+- **Sortable Table Columns**: All data tables in the application support column sorting
+- **Direction Indicators**: Visual indicators show current sort direction (ascending/descending)
+- **Model Integration**: Models use the `Sortable` trait for sorting capabilities
+- **Query Parameter Management**: Automatically handles URL query parameters
+- **Relationship Column Sorting**: Support for sorting by relationship columns
+- **Customizable Icons**: FontAwesome icons indicate sort direction
+
+## Implementation Details
+
+The Column Sortable integration is implemented in several key components:
+
+1. **Models**: The `Sortable` trait is added to models that require sorting functionality (Task, User, Category)
+2. **Controllers/Services**: Query builders use the `sortable()` method to apply sorting
+3. **Views**: Table headers use the `@sortablelink` Blade directive to create sortable column links
+4. **Configuration**: Custom configuration in `config/columnsortable.php` defines appearance and behavior
+
+## Example Usage
+
+Below is an example of how the Column Sortable integration is used in the application:
+
+### Model Implementation
+
+```php
+use Kyslik\ColumnSortable\Sortable;
+
+class Task extends Model
+{
+    use Sortable;
+
+    public $sortable = [
+        'id',
+        'title',
+        'due_date',
+        'priority',
+        'completed',
+        'created_at',
+        'updated_at'
+    ];
+}
+```
+
+### Controller/Service Implementation
+
+```php
+public function index(Request $request)
+{
+    $query = Task::query();
+    
+    // Apply filters
+    if ($request->has('search')) {
+        $query->search($request->search);
+    }
+    
+    // Apply sorting using the Sortable trait
+    if ($request->has('sort') || $request->has('direction')) {
+        $query = $query->sortable($request->only(['sort', 'direction']));
+    } else {
+        // Default sorting
+        $query->orderBy('created_at', 'desc');
+    }
+    
+    $tasks = $query->paginate(15);
+    
+    return view('tasks.index', compact('tasks'));
+}
+```
+
+### View Implementation
+
+```blade
+<th>@sortablelink('id', 'ID')</th>
+<th>@sortablelink('title', 'Task Title')</th>
+<th>@sortablelink('due_date', 'Due Date')</th>
+<th>@sortablelink('priority', 'Priority')</th>
+<th>@sortablelink('completed', 'Status')</th>
+<th>@sortablelink('created_at', 'Created')</th>
+```
+
+The pagination links include all current query parameters to maintain sort state across pages.
+
+For more information, see the full documentation in `docs/column-sortable.md`.

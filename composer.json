@@ -14,6 +14,7 @@
         "inertiajs/inertia-laravel": "^2.0",
         "intervention/image": "^3.11",
         "intervention/validation": "^4.5",
+        "kyslik/column-sortable": "*",
         "laravel/framework": "^11.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",

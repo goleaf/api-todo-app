@@ -50,16 +50,23 @@ class TaskService
             $query->withTag($request->tag);
         }
 
-        // Apply sorting
-        $sortBy = $request->get('sort_by', 'created_at');
-        $sortDir = $request->get('sort_dir', 'desc');
-
-        if ($sortBy === 'priority') {
-            $query->orderByPriority();
-        } elseif ($sortBy === 'due_date') {
-            $query->orderByDueDate();
+        // Apply sorting - using column-sortable if sort parameters are present
+        // or fallback to default sorting
+        if ($request->has('sort') || $request->has('direction')) {
+            // The sortable() method comes from the Sortable trait
+            $query = $query->sortable($request->only(['sort', 'direction']));
         } else {
-            $query->orderBy($sortBy, $sortDir);
+            // Default sorting if no sort parameters
+            $sortBy = $request->get('sort_by', 'created_at');
+            $sortDir = $request->get('sort_dir', 'desc');
+
+            if ($sortBy === 'priority') {
+                $query->orderByPriority();
+            } elseif ($sortBy === 'due_date') {
+                $query->orderByDueDate();
+            } else {
+                $query->orderBy($sortBy, $sortDir);
+            }
         }
 
         // For tests, if we're not paginating, just get all tasks

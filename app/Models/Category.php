@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyDeep;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\DB;
+use Kyslik\ColumnSortable\Sortable;
 use Staudenmeir\EloquentHasManyDeep\HasRelationships;
 use Tonysm\RichTextLaravel\Models\Traits\HasRichText;
 
@@ -23,6 +24,21 @@ class Category extends Model
     use HasFactory;
     use HasRichText;
     use HasRelationships;
+    use Sortable;
+
+    /**
+     * The columns that can be sorted.
+     *
+     * @var array<int, string>
+     */
+    public $sortable = [
+        'id',
+        'name',
+        'created_at',
+        'updated_at',
+        'user_id',
+        'type'
+    ];
 
     /**
      * The attributes that are mass assignable.

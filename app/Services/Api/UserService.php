@@ -35,10 +35,17 @@ class UserService
             $query->withRole($request->role);
         }
 
-        // Apply sorting
-        $sortBy = $request->get('sort_by', 'name');
-        $sortDir = $request->get('sort_dir', 'asc');
-        $query->orderBy($sortBy, $sortDir);
+        // Apply sorting - using column-sortable if sort parameters are present
+        // or fallback to default sorting
+        if ($request->has('sort') || $request->has('direction')) {
+            // The sortable() method comes from the Sortable trait
+            $query = $query->sortable($request->only(['sort', 'direction']));
+        } else {
+            // Default sorting if no sort parameters
+            $sortBy = $request->get('sort_by', 'name');
+            $sortDir = $request->get('sort_dir', 'asc');
+            $query->orderBy($sortBy, $sortDir);
+        }
 
         // Pagination
         $perPage = $request->get('per_page', 15);

@@ -44,7 +44,15 @@ class TaskController extends AdminController
             $query->where('priority', $priority);
         }
         
-        $tasks = $query->latest()->fastPaginate(10);
+        // Apply sorting using the Sortable trait
+        if ($request->has('sort') || $request->has('direction')) {
+            $query = $query->sortable($request->only(['sort', 'direction']));
+        } else {
+            // Default sorting if no sort parameters
+            $query->latest();
+        }
+        
+        $tasks = $query->fastPaginate(10);
         $users = User::all();
         $categories = Category::all();
         $priorities = TaskPriority::cases();

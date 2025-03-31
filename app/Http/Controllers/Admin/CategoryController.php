@@ -26,7 +26,15 @@ class CategoryController extends AdminController
             $query->where('user_id', $userId);
         }
         
-        $categories = $query->latest()->fastPaginate(10);
+        // Apply sorting using the Sortable trait
+        if ($request->has('sort') || $request->has('direction')) {
+            $query = $query->sortable($request->only(['sort', 'direction']));
+        } else {
+            // Default sorting if no sort parameters
+            $query->latest();
+        }
+        
+        $categories = $query->fastPaginate(10);
         $users = User::all();
         
         return view('admin.categories.index', compact('categories', 'users'));
