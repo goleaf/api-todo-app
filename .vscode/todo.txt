@@ -1,0 +1,82 @@
+continue creating and updating all blades for admin side, create if need. merge edit and create files to one as form.blade.php, remove edit.blade.php and create.blade.php, for all all all admin blades. make it for all all functions. and update all controllers for admin side, work it until all will be finish and make commit and push to git with message. make tests for admin using laravel dusk and check every route and every button and fix all problems. firstly run tests fix all errors and only then make adding files to git. make lists of this given tasks and go step by step, analyze my given tasks and make all code as laravel senior developer as role. in tests change routes by route names not by static link, in pint tests use routes from names not by static url, use route names. do not use web.php as routes, use only api.php and admin.php, make changes to all. remove web.php and move code where is needed
+unlimited times run all tests and fix all errors
+try to integrate this https://laravel-news.com/wherenotinstrict?utm_source=newsletter&utm_medium=email&utm_content=weekly&utm_campaign=557&bento_uuid=5b62adba-b62a-4609-946e-0361505566eb
+try to integrate this https://laravel-news.com/docudoodle-laravel-ai-documentation?utm_source=newsletter&utm_medium=email&utm_content=weekly&utm_campaign=557&bento_uuid=5b62adba-b62a-4609-946e-0361505566eb
+try to integrate this all packages:
+    https://laravel-news.com/squeaky
+    https://laravel-news.com/generate-persistent-unique-values-in-laravel
+    https://laravel-news.com/intervention-image
+    https://laravel-news.com/intervention-validation
+    https://laravel-news.com/flux-2-livewire-ui-kit
+    https://laravel-news.com/grapheme
+    https://laravel-news.com/artisan-benchmark
+    https://laravel-news.com/rich-text-laravel
+    https://laravel-news.com/recurr
+    https://laravel-news.com/automated-api-documentation-of-laravel-api-resources
+    https://laravel-news.com/translation-checker
+    https://laravel-news.com/laravel-commentable-package
+    https://laravel-news.com/laravel-error-solutions
+    https://laravel-news.com/laravel-backpack
+    https://laravel-news.com/inertia-table
+    https://laravel-news.com/laravel-share-error-package
+    https://laravel-news.com/laravel-db-auditor
+    https://laravel-news.com/dash-ui-blade-component-library
+    https://laravel-news.com/laravel-slower
+    https://laravel-news.com/tablar-kit
+    https://laravel-news.com/laravel-filterable
+    https://laravel-news.com/basset
+    https://laravel-news.com/query-enrich
+    https://laravel-news.com/filament-kanban
+    https://laravel-news.com/tabular-assertions
+    https://laravel-news.com/autodoc-facades
+    https://laravel-news.com/blade-heroicons-upgrader
+    https://laravel-news.com/turbine-ui and create fully frontend interface and use maximum api and another things for creating frontennd solution for users
+    https://laravel-news.com/laravel-updater
+    https://laravel-news.com/waterhole-discussion-platform create support page with all support solution to users, organize all as posible with admin user as admin and with users table for users
+    https://laravel-news.com/filter-api-responses-with-laravel-purity
+    https://laravel-news.com/laravel-splade integrate maximum as posible
+    https://laravel-news.com/laravel-langcountry-localization and write in docs md file with all instructions
+    https://laravel-news.com/laravel-user-monitoring
+    https://laravel-news.com/manage-user-browser-sessions-in-laravel
+    https://laravel-news.com/lara-date-filter
+    https://laravel-news.com/laravel-rest-api rewrite wxisting api with this package and make tests
+    https://laravel-news.com/laravel-lif
+    https://laravel-news.com/enumconcern
+    https://laravel-news.com/bolt-form-builder
+    https://laravel-news.com/php-json-parser
+    https://laravel-news.com/laravel-task-runner
+    https://laravel-news.com/php-heic-to-jpg
+    https://laravel-news.com/laravel-date-scopes-for-eloquent
+    https://laravel-news.com/validated-dto-package-for-laravel
+    https://laravel-news.com/query-expressions-for-laravel
+    https://laravel-news.com/bladestan
+    https://laravel-news.com/html-string-affixer-localization
+    https://laravel-news.com/laravel-model-filter
+    https://laravel-news.com/banhammer
+    https://laravel-news.com/laravel-log-reader
+    https://laravel-news.com/laravel-populated-factory
+    ✅ https://laravel-news.com/laravel-scopes-generator
+    ✅ https://laravel-news.com/laravel-model-info
+    ✅ https://laravel-news.com/laravel-drafts
+    ✅ https://laravel-news.com/laravel-options
+    ✅ https://laravel-news.com/laravel-fast-paginate
+    ✅ https://laravel-news.com/laravel-onboard
+    ✅ https://laravel-news.com/microscope-for-laravel
+    https://laravel-news.com/eloquent-has-many-deep
+    https://laravel-news.com/laravel-soap
+    https://laravel-news.com/laravel-blade-sortable
+    https://laravel-news.com/openapi-initializer
+    https://laravel-news.com/laravel-desktop-notifier
+    https://laravel-news.com/laravel-user-activity
+    https://laravel-news.com/spatie-laravel-settings
+    https://laravel-news.com/laravel-markable
+    https://laravel-news.com/laravel-translations-checker and create documentation as posible detailed in docs folder
+    https://laravel-news.com/blade-cache-directive
+    https://laravel-news.com/laravel-cache-helper
+    https://laravel-news.com/advanced-eloquent-model-filters
+    https://laravel-news.com/serialization-for-eloquent-s-querybuilder
+    https://laravel-news.com/cagilo-blade-components-for-laravel
+    https://laravel-news.com/api-version-control-in-laravel
+    https://laravel-news.com/regex-helpers-for-laravel
+    https://laravel-news.com/larastan-v1-released and create documentation as posible detailed in docs folder
+    https://laravel-news.com/blast-storybook-ui-development-for-laravel-blade and create documentation as posible detailed in docs folder
