@@ -123,20 +123,17 @@ class DashboardApiController extends Controller
         }
         
         // Query tasks created in the date range
-        $tasks = Task::select(
-                DB::raw("DATE_FORMAT(created_at, '" . ($period === 'year' ? '%Y-%m' : '%Y-%m-%d') . "') as date"),
-                DB::raw('COUNT(*) as count')
-            )
-            ->where('created_at', '>=', $start)
-            ->groupBy('date')
-            ->get();
+        $tasks = Task::where('created_at', '>=', $start)->get();
+        
+        // Group tasks by date
+        $groupedTasks = $tasks->groupBy(function ($task) use ($period, $format) {
+            return Carbon::parse($task->created_at)->format($format);
+        })->map->count();
         
         // Map task counts to formatted dates
-        foreach ($tasks as $task) {
-            $taskDate = Carbon::parse($task->date);
-            $formattedDate = $taskDate->format($format);
-            if (isset($counts[$formattedDate])) {
-                $counts[$formattedDate] = $task->count;
+        foreach ($groupedTasks as $dateKey => $count) {
+            if (isset($counts[$dateKey])) {
+                $counts[$dateKey] = $count;
             }
         }
         

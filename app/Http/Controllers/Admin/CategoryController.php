@@ -40,7 +40,7 @@ class CategoryController extends AdminController
         $users = User::all();
         $categoryTypes = CategoryType::cases();
         
-        return view('admin.categories.create', compact('users', 'categoryTypes'));
+        return view('admin.categories.form', compact('users', 'categoryTypes'));
     }
 
     /**
@@ -72,7 +72,7 @@ class CategoryController extends AdminController
         $users = User::all();
         $categoryTypes = CategoryType::cases();
         
-        return view('admin.categories.edit', compact('category', 'users', 'categoryTypes'));
+        return view('admin.categories.form', compact('category', 'users', 'categoryTypes'));
     }
 
     /**

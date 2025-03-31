@@ -31,7 +31,8 @@ class UserController extends AdminController
      */
     public function create()
     {
-        return view('admin.users.create');
+        $roles = \App\Enums\UserRole::cases();
+        return view('admin.users.form', compact('roles'));
     }
 
     /**
@@ -63,7 +64,8 @@ class UserController extends AdminController
      */
     public function edit(User $user)
     {
-        return view('admin.users.edit', compact('user'));
+        $roles = \App\Enums\UserRole::cases();
+        return view('admin.users.form', compact('user', 'roles'));
     }
 
     /**

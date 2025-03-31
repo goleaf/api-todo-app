@@ -66,7 +66,7 @@ class TaskController extends AdminController
         // All tags (will be filtered by user with JS)
         $tags = [];
         
-        return view('admin.tasks.create', compact('users', 'categories', 'priorities', 'tags'));
+        return view('admin.tasks.form', compact('users', 'categories', 'priorities', 'tags'));
     }
 
     /**
@@ -123,17 +123,7 @@ class TaskController extends AdminController
             $task->load('tags');
         }
         
-        // Get the IDs of attached tags
-        $selectedTags = [];
-        if ($task->tags) {
-            if (is_object($task->tags) && method_exists($task->tags, 'pluck')) {
-                $selectedTags = $task->tags->pluck('id')->toArray();
-            } elseif (is_array($task->tags)) {
-                $selectedTags = collect($task->tags)->pluck('id')->toArray();
-            }
-        }
-        
-        return view('admin.tasks.edit', compact('task', 'users', 'categories', 'priorities', 'tags', 'selectedTags'));
+        return view('admin.tasks.form', compact('task', 'users', 'categories', 'priorities', 'tags'));
     }
 
     /**

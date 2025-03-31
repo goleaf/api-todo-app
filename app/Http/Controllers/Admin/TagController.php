@@ -38,7 +38,7 @@ class TagController extends AdminController
     {
         $users = User::all();
         
-        return view('admin.tags.create', compact('users'));
+        return view('admin.tags.form', compact('users'));
     }
 
     /**
@@ -69,7 +69,7 @@ class TagController extends AdminController
     {
         $users = User::all();
         
-        return view('admin.tags.edit', compact('tag', 'users'));
+        return view('admin.tags.form', compact('tag', 'users'));
     }
 
     /**
