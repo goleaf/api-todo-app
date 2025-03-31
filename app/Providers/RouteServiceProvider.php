@@ -7,6 +7,8 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Middleware\AdminAuthenticate;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -24,6 +26,17 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register admin guard
+        Auth::resolved(function ($auth) {
+            $auth->extend('admin', function () {
+                return Auth::createSessionDriver('admin');
+            });
+        });
+
+        $this->app->singleton('admin', function ($app) {
+            return new AdminAuthenticate();
+        });
+
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
