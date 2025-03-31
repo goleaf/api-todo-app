@@ -170,6 +170,10 @@ return [
         'name' => 'Name',
         'color' => 'Color',
         'icon' => 'Icon',
+        'email' => 'Email Address',
+        'password' => 'Password',
+        'current_password' => 'Current Password',
+        'photo' => 'Profile Photo',
     ],
 
     /*
@@ -199,6 +203,45 @@ return [
         'color_invalid' => 'Color must be a valid hex color code (e.g., #FF5733).',
         'icon_required' => 'Category icon is required.',
         'not_found' => 'Category not found.',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | User Validation Messages
+    |--------------------------------------------------------------------------
+    */
+    'user' => [
+        'name_required' => 'Your name is required.',
+        'email_required' => 'Your email address is required.',
+        'email_invalid' => 'Please provide a valid email address.',
+        'email_unique' => 'This email address is already taken.',
+        'current_password_required' => 'Your current password is required.',
+        'current_password_invalid' => 'The current password is incorrect.',
+        'password_required' => 'A new password is required.',
+        'password_min' => 'Your password must be at least 8 characters.',
+        'password_confirmed' => 'The password confirmation does not match.',
+        'password_different' => 'The new password must be different from your current password.',
+        'photo_required' => 'A profile photo file is required.',
+        'photo_image' => 'The file must be an image.',
+        'photo_max' => 'The photo cannot be larger than 2MB.',
+        'not_found' => 'User not found.',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Auth Validation Messages
+    |--------------------------------------------------------------------------
+    */
+    'auth' => [
+        'name_required' => 'Your name is required.',
+        'email_required' => 'Your email address is required.',
+        'email_invalid' => 'Please provide a valid email address.',
+        'email_unique' => 'This email address is already taken.',
+        'password_required' => 'A password is required.',
+        'password_min' => 'Your password must be at least 8 characters.',
+        'password_confirmed' => 'The password confirmation does not match.',
+        'invalid_credentials' => 'These credentials do not match our records.',
+        'not_authorized' => 'You are not authorized to perform this action.',
     ],
 
     /*
