@@ -28,6 +28,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
     // Protected admin routes
     Route::middleware('auth:admin')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard/chart-data', [DashboardController::class, 'getChartData'])->name('dashboard.chart-data');
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
         
         // Users management

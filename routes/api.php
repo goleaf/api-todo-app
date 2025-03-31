@@ -148,65 +148,30 @@ Route::middleware('auth:sanctum')->prefix('async')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
+| Admin Authentication Routes
+|--------------------------------------------------------------------------
+*/
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::post('/login', [\App\Http\Controllers\Api\Admin\AdminAuthController::class, 'login'])->name('login');
+    
+    Route::middleware(['auth:sanctum', 'admin.api'])->group(function () {
+        Route::post('/logout', [\App\Http\Controllers\Api\Admin\AdminAuthController::class, 'logout'])->name('logout');
+        Route::post('/logout-all', [\App\Http\Controllers\Api\Admin\AdminAuthController::class, 'logoutAll'])->name('logout.all');
+        Route::get('/user', [\App\Http\Controllers\Api\Admin\AdminAuthController::class, 'user'])->name('user');
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
 | Admin API Routes
 |--------------------------------------------------------------------------
-|
-| These routes handle admin authentication and admin functionality via API.
-|
 */
-
-Route::post('/admin/login', function () {
-    $credentials = request()->only('email', 'password');
+Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'admin.api'])->group(function () {
+    // Users management
+    Route::apiResource('users', \App\Http\Controllers\Api\Admin\UsersApiController::class);
+    Route::post('users/{user}/toggle-active', [\App\Http\Controllers\Api\Admin\UsersApiController::class, 'toggleActive']);
+    Route::get('users/{user}/statistics', [\App\Http\Controllers\Api\Admin\UsersApiController::class, 'statistics']);
     
-    if (auth()->guard('admin')->attempt($credentials)) {
-        $admin = auth()->guard('admin')->user();
-        $token = $admin->createToken('admin-token', ['admin'])->plainTextToken;
-        
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'admin' => $admin,
-                'token' => $token,
-            ],
-        ]);
-    }
-    
-    return response()->json([
-        'success' => false,
-        'message' => 'Invalid credentials',
-    ], 401);
-})->name('api.admin.login');
-
-// Admin protected routes
-Route::middleware(['auth:sanctum', 'can:admin'])->prefix('admin')->group(function () {
     // Dashboard stats
-    Route::get('/stats', function () {
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'users_count' => App\Models\User::count(),
-                'tasks_count' => App\Models\Task::count(),
-                'categories_count' => App\Models\Category::count(),
-                'tags_count' => App\Models\Tag::count(),
-                'completed_tasks_count' => App\Models\Task::where('completed', true)->count(),
-                'incomplete_tasks_count' => App\Models\Task::where('completed', false)->count(),
-            ],
-        ]);
-    })->name('api.admin.stats');
-    
-    // User management
-    Route::get('/users', function () {
-        return response()->json([
-            'success' => true,
-            'data' => App\Models\User::all(),
-        ]);
-    })->name('api.admin.users.index');
-    
-    Route::get('/users/{id}', function ($id) {
-        $user = App\Models\User::findOrFail($id);
-        return response()->json([
-            'success' => true,
-            'data' => $user,
-        ]);
-    })->name('api.admin.users.show');
+    Route::get('/dashboard/chart-data', [\App\Http\Controllers\Api\Admin\DashboardApiController::class, 'getChartData']);
 });

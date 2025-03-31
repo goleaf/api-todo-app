@@ -82,6 +82,14 @@
     </div>
 </div>
 
+<div class="d-flex justify-content-end mb-3">
+    <div class="btn-group" role="group">
+        <button type="button" class="btn btn-sm btn-outline-primary period-selector active" data-period="week">Last Week</button>
+        <button type="button" class="btn btn-sm btn-outline-primary period-selector" data-period="month">Last Month</button>
+        <button type="button" class="btn btn-sm btn-outline-primary period-selector" data-period="year">Last Year</button>
+    </div>
+</div>
+
 <!-- Task Status Row -->
 <div class="row mb-4">
     <div class="col-md-6">
@@ -143,6 +151,30 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Task Creation Trend</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="taskTrendChart" width="100%" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Tasks by Priority</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="taskPriorityChart" width="100%" height="100"></canvas>
             </div>
         </div>
     </div>
@@ -243,34 +275,7 @@
                 <h5 class="mb-0">Most Active Users</h5>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>User</th>
-                                <th>Email</th>
-                                <th>Tasks</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($stats['active_users'] as $user)
-                                <tr>
-                                    <td>
-                                        <a href="{{ route('admin.users.show', $user) }}">
-                                            {{ $user->name }}
-                                        </a>
-                                    </td>
-                                    <td>{{ $user->email }}</td>
-                                    <td>{{ $user->tasks_count }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="3" class="text-center">No active users found</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                <canvas id="userActivityChart" width="100%" height="160"></canvas>
             </div>
             <div class="card-footer">
                 <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-outline-primary">View All Users</a>
@@ -303,39 +308,182 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Task Status Chart
-    const taskStatusCtx = document.getElementById('taskStatusChart').getContext('2d');
-    const taskStatusChart = new Chart(taskStatusCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Completed', 'Incomplete', 'Overdue'],
-            datasets: [{
-                data: [
-                    {{ $stats['completed_tasks_count'] }}, 
-                    {{ $stats['incomplete_tasks_count'] - $stats['overdue_tasks_count'] }}, 
-                    {{ $stats['overdue_tasks_count'] }}
-                ],
-                backgroundColor: [
-                    '#28a745', // Success green
-                    '#ffc107', // Warning yellow
-                    '#dc3545'  // Danger red
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom'
+    // Charts configuration
+    let charts = {};
+    let currentPeriod = 'week';
+    
+    // Initial chart setup with placeholder data
+    setupCharts();
+    
+    // Fetch data and update charts
+    fetchChartData(currentPeriod);
+    
+    // Period selector event handlers
+    document.querySelectorAll('.period-selector').forEach(button => {
+        button.addEventListener('click', function() {
+            if (!this.classList.contains('active')) {
+                document.querySelectorAll('.period-selector').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                currentPeriod = this.dataset.period;
+                fetchChartData(currentPeriod);
+            }
+        });
+    });
+    
+    function setupCharts() {
+        // Task Status Chart
+        charts.taskStatus = new Chart(document.getElementById('taskStatusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'Pending', 'Overdue'],
+                datasets: [{
+                    data: [0, 0, 0],
+                    backgroundColor: ['#198754', '#ffc107', '#dc3545'],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
                 }
             }
-        }
-    });
+        });
+        
+        // Task Trend Chart
+        charts.taskTrend = new Chart(document.getElementById('taskTrendChart'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Tasks Created',
+                    data: [],
+                    fill: false,
+                    borderColor: '#0d6efd',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Task Priority Chart
+        charts.taskPriority = new Chart(document.getElementById('taskPriorityChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Low', 'Medium', 'High', 'Urgent'],
+                datasets: [{
+                    label: 'Tasks by Priority',
+                    data: [0, 0, 0, 0],
+                    backgroundColor: [
+                        'rgba(40, 167, 69, 0.7)',
+                        'rgba(255, 193, 7, 0.7)',
+                        'rgba(255, 102, 0, 0.7)',
+                        'rgba(220, 53, 69, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgb(40, 167, 69)',
+                        'rgb(255, 193, 7)',
+                        'rgb(255, 102, 0)',
+                        'rgb(220, 53, 69)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+        
+        // User Activity Chart
+        charts.userActivity = new Chart(document.getElementById('userActivityChart'), {
+            type: 'horizontalBar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Tasks',
+                    data: [],
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgb(54, 162, 235)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function fetchChartData(period) {
+        fetch(`{{ route('admin.dashboard.chart-data') }}?period=${period}`)
+            .then(response => response.json())
+            .then(response => {
+                if (response.success) {
+                    updateCharts(response.data);
+                }
+            })
+            .catch(error => console.error('Error fetching chart data:', error));
+    }
+    
+    function updateCharts(data) {
+        // Update Task Status Chart
+        charts.taskStatus.data.datasets[0].data = [
+            data.tasksByStatus.completed,
+            data.tasksByStatus.pending,
+            data.tasksByStatus.overdue
+        ];
+        charts.taskStatus.update();
+        
+        // Update Task Trend Chart
+        charts.taskTrend.data.labels = data.tasksByDate.labels;
+        charts.taskTrend.data.datasets[0].data = data.tasksByDate.data;
+        charts.taskTrend.update();
+        
+        // Update Task Priority Chart
+        charts.taskPriority.data.datasets[0].data = [
+            data.tasksByPriority['0'] || 0, // Low
+            data.tasksByPriority['1'] || 0, // Medium
+            data.tasksByPriority['2'] || 0, // High
+            data.tasksByPriority['3'] || 0  // Urgent
+        ];
+        charts.taskPriority.update();
+        
+        // Update User Activity Chart
+        charts.userActivity.data.labels = data.mostActiveUsers.map(user => user.name);
+        charts.userActivity.data.datasets[0].data = data.mostActiveUsers.map(user => user.tasks_count);
+        charts.userActivity.update();
+    }
 });
 </script>
 @endpush 

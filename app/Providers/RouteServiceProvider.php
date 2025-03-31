@@ -33,9 +33,17 @@ class RouteServiceProvider extends ServiceProvider
             });
         });
 
+        // Register admin middleware directly in the route middleware
+        $this->app->singleton('admin.auth', function ($app) {
+            return new AdminAuthenticate();
+        });
+
         $this->app->singleton('admin', function ($app) {
             return new AdminAuthenticate();
         });
+
+        // Register custom route middleware
+        $this->app['router']->aliasMiddleware('admin.api', \App\Http\Middleware\AdminApi::class);
 
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
@@ -52,6 +60,8 @@ class RouteServiceProvider extends ServiceProvider
             
             // Admin routes
             Route::middleware('web')
+                ->prefix('admin')
+                ->name('admin.')
                 ->group(base_path('routes/admin.php'));
         });
     }

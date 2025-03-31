@@ -101,9 +101,9 @@
                 <h5 class="mb-0">Tags</h5>
             </div>
             <div class="card-body">
-                @if($task->tags->count() > 0)
+                @if(isset($task->tags) && (is_object($task->tags) ? $task->tags->count() > 0 : !empty($task->tags)))
                     <div class="d-flex flex-wrap gap-2">
-                        @foreach($task->tags as $tag)
+                        @foreach(is_object($task->tags) ? $task->tags : collect($task->tags) as $tag)
                             <span class="badge" style="background-color: {{ $tag->color }}">
                                 {{ $tag->name }}
                             </span>

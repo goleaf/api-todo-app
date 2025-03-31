@@ -9,6 +9,7 @@ use App\Policies\CategoryPolicy;
 use App\Policies\TaskPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -29,5 +30,10 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPolicies();
+
+        // Define the 'admin' ability for Sanctum tokens
+        Gate::define('admin', function ($user) {
+            return $user->getTable() === 'admins';
+        });
     }
 }

@@ -93,7 +93,13 @@ class TaskController extends AdminController
      */
     public function show(Task $task)
     {
+        // Ensure all needed relationships are loaded
         $task->load(['user', 'category', 'tags']);
+        
+        // Make sure tags is a collection even if it's empty
+        if (!$task->tags) {
+            $task->setRelation('tags', collect([]));
+        }
         
         return view('admin.tasks.show', compact('task'));
     }
@@ -112,8 +118,20 @@ class TaskController extends AdminController
         // Get tags for the task's user
         $tags = Tag::where('user_id', $task->user_id)->get();
         
+        // Load task tags relation if not already loaded
+        if (!$task->relationLoaded('tags')) {
+            $task->load('tags');
+        }
+        
         // Get the IDs of attached tags
-        $selectedTags = $task->tags->pluck('id')->toArray();
+        $selectedTags = [];
+        if ($task->tags) {
+            if (is_object($task->tags) && method_exists($task->tags, 'pluck')) {
+                $selectedTags = $task->tags->pluck('id')->toArray();
+            } elseif (is_array($task->tags)) {
+                $selectedTags = collect($task->tags)->pluck('id')->toArray();
+            }
+        }
         
         return view('admin.tasks.edit', compact('task', 'users', 'categories', 'priorities', 'tags', 'selectedTags'));
     }
