@@ -9,6 +9,9 @@ use App\Events\CategoryCreated;
 use App\Events\CategoryUpdated;
 use App\Events\CategoryDeleted;
 use App\Events\TaskCompleted;
+use App\Events\TagCreated;
+use App\Events\TagUpdated;
+use App\Events\TagDeleted;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -32,6 +35,9 @@ class EventServiceProvider extends ServiceProvider
         CategoryCreated::class => [],
         CategoryUpdated::class => [],
         CategoryDeleted::class => [],
+        TagCreated::class => [],
+        TagUpdated::class => [],
+        TagDeleted::class => [],
     ];
 
     /**

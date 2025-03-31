@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Events\TagCreated;
+use App\Events\TagDeleted;
+use App\Events\TagUpdated;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -159,5 +162,27 @@ class Tag extends Model
     public static function generateDefaultColor(string $name): string
     {
         return '#' . substr(md5($name), 0, 6);
+    }
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($tag) {
+            event(new TagCreated($tag));
+        });
+
+        static::updated(function ($tag) {
+            if ($tag->wasChanged()) {
+                event(new TagUpdated($tag));
+            }
+        });
+
+        static::deleted(function ($tag) {
+            event(new TagDeleted($tag));
+        });
     }
 }
