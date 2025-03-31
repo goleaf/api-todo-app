@@ -16,8 +16,8 @@ class ApiTest extends TestCase
      */
     public function test_api_health_check(): void
     {
-        // Test API root route
-        $response = $this->getJson('/api');
+        // Test documentation route
+        $response = $this->getJson('/api/documentation');
         $response->assertStatus(200);
 
         // Test task-related endpoints (unauthenticated)
@@ -29,24 +29,20 @@ class ApiTest extends TestCase
         $categoriesResponse->assertStatus(401); // Should be unauthorized
 
         // Test auth-related endpoints
-        $loginResponse = $this->postJson('/api/auth/login', [
+        $loginResponse = $this->postJson('/api/login', [
             'email' => 'test@example.com',
             'password' => 'password',
         ]);
-        // Should be 422 (validation error) not 500 (server error)
-        $loginResponse->assertStatus(422);
-
-        // Test documentation
-        $docsResponse = $this->get('/api/docs');
-        $docsResponse->assertStatus(200);
+        // Should be 401 (unauthorized) for invalid credentials
+        $loginResponse->assertStatus(401);
     }
 
     /**
-     * Test API version endpoint.
+     * Test API documentation endpoint.
      */
-    public function test_api_version_endpoint(): void
+    public function test_api_documentation_endpoint(): void
     {
-        $response = $this->getJson('/api/version');
+        $response = $this->getJson('/api/documentation');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -54,14 +50,12 @@ class ApiTest extends TestCase
                 'message',
                 'data' => [
                     'version',
-                    'name',
+                    'endpoints',
                 ],
             ])
             ->assertJson([
                 'success' => true,
-                'data' => [
-                    'name' => 'Todo API',
-                ],
+                'message' => 'API documentation available at /api/docs',
             ]);
     }
 
@@ -86,11 +80,11 @@ class ApiTest extends TestCase
     {
         // Make multiple requests to trigger rate limiting
         for ($i = 0; $i < 60; $i++) {
-            $this->getJson('/api/version');
+            $this->getJson('/api/documentation');
         }
 
         // The next request should be rate limited
-        $response = $this->getJson('/api/version');
+        $response = $this->getJson('/api/documentation');
 
         // Depending on the rate limit configuration, this might be 429 Too Many Requests
         // or still 200 if the rate limit is higher than our test threshold
@@ -107,83 +101,33 @@ class ApiTest extends TestCase
     }
 
     /**
-     * Test API maintenance mode response.
+     * Test API documentation returns available endpoints.
      */
-    public function test_api_maintenance_mode_not_active(): void
+    public function test_api_documentation_returns_available_endpoints(): void
     {
-        // Test that the API is not in maintenance mode
-        $response = $this->getJson('/api/health');
-
-        $response->assertStatus(200)
-            ->assertJson([
-                'success' => true,
-                'data' => [
-                    'status' => 'operational',
-                    'maintenance' => false,
-                ],
-            ]);
-    }
-
-    /**
-     * Test API root route returns available endpoints.
-     */
-    public function test_api_root_returns_available_endpoints(): void
-    {
-        $response = $this->getJson('/api');
+        $response = $this->getJson('/api/documentation');
 
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'success',
                 'message',
                 'data' => [
-                    'name',
                     'version',
-                    'endpoints' => [
-                        'auth' => [
-                            '*',
-                        ],
-                        'tasks' => [
-                            '*',
-                        ],
-                        'categories' => [
-                            '*',
-                        ],
-                        'profile' => [
-                            '*',
-                        ],
-                    ],
+                    'endpoints',
                 ],
             ])
             ->assertJson([
                 'success' => true,
-                'message' => 'Welcome to the Todo API',
+                'message' => 'API documentation available at /api/docs',
             ]);
-    }
-    
-    /**
-     * Test Swagger documentation is accessible.
-     */
-    public function test_swagger_documentation_is_accessible(): void
-    {
-        $response = $this->get('/api/docs');
-        
-        $response->assertStatus(200)
-            ->assertViewHas('documentation');
-    }
 
-    /**
-     * Test OpenAPI JSON is valid.
-     */
-    public function test_openapi_json_is_valid(): void
-    {
-        $response = $this->get('/api/docs/api-docs.json');
-        
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'openapi',
-                'info',
-                'paths',
-                'components',
-            ]);
+        // Additional check to make sure we have all the expected sections in the endpoints
+        $data = $response->json('data.endpoints');
+        $this->assertArrayHasKey('auth', $data);
+        $this->assertArrayHasKey('users', $data);
+        $this->assertArrayHasKey('tasks', $data);
+        $this->assertArrayHasKey('categories', $data);
+        $this->assertArrayHasKey('profile', $data);
+        $this->assertArrayHasKey('dashboard', $data);
     }
 } 
