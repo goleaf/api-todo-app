@@ -54,25 +54,28 @@ class DashboardTest extends TestCase
         // Assert response structure matching the actual API format
         $response->assertJsonStructure([
             'success',
-            'status_code',
             'message',
             'data' => [
-                'stats' => [
+                'user',
+                'tasks' => [
                     'total',
                     'completed',
-                    'pending',
+                    'incomplete',
+                    'due_today',
                     'overdue',
+                    'upcoming',
                     'completion_rate',
                 ],
-                'categories',
-                'recentTasks',
-                'upcomingDeadlines',
+                'recent_tasks',
+                'tasks_by_category',
+                'tasks_by_priority',
+                'recent_activity',
             ],
         ]);
 
         // Get the actual data
-        $stats = $response->json('data.stats');
-        $categories = $response->json('data.categories');
+        $stats = $response->json('data.tasks');
+        $tasksByCategory = $response->json('data.tasks_by_category');
 
         // Basic assertions that verify the data is reasonable
         $this->assertGreaterThan(0, $stats['total'], 'There should be some tasks');
@@ -83,8 +86,8 @@ class DashboardTest extends TestCase
         $this->assertGreaterThanOrEqual(0, $stats['completion_rate'], 'Completion rate should be >= 0');
 
         // Verify categories data
-        $this->assertNotEmpty($categories, 'Categories should not be empty');
-        $categoryNames = array_column($categories, 'name');
+        $this->assertNotEmpty($tasksByCategory, 'Categories should not be empty');
+        $categoryNames = array_column($tasksByCategory, 'name');
         $this->assertContains('Work', $categoryNames, 'The Work category should be in the response');
         $this->assertContains('Personal', $categoryNames, 'The Personal category should be in the response');
     }
@@ -129,13 +132,13 @@ class DashboardTest extends TestCase
             ->getJson('/api/dashboard');
 
         // Assert user1 only sees their own tasks
-        $response->assertJsonPath('data.stats.total', 3);
+        $response->assertJsonPath('data.tasks.total', 3);
 
         // Now act as user2
         $response = $this->actingAs($user2)
             ->getJson('/api/dashboard');
 
         // Assert user2 only sees their own tasks
-        $response->assertJsonPath('data.stats.total', 5);
+        $response->assertJsonPath('data.tasks.total', 5);
     }
 }
