@@ -14,10 +14,10 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create the main admin
+        // Create the main admin with simple password
         Admin::create([
             'email' => 'admin@todo.com',
-            'password' => Hash::make(env('ADMIN_PASSWORD', 'admin123')),
+            'password' => Hash::make('admin123'),
         ]);
 
         // Create additional fake admins if needed
