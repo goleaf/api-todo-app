@@ -18,7 +18,7 @@ class AdminSeeder extends Seeder
         Admin::create([
             'name' => 'Admin User',
             'email' => 'admin@todo.com',
-            'password' => Hash::make('password123'),
+            'password' => Hash::make(env('ADMIN_PASSWORD', 'change_me_in_env_file')),
             'email_verified_at' => now(),
         ]);
 
