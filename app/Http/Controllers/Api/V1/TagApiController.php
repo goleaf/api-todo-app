@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\ApiController;
+use App\Http\Requests\Api\Tag\BatchTagStoreRequest;
+use App\Http\Requests\Api\Tag\TagMergeRequest;
 use App\Http\Requests\Api\Tag\TagStoreRequest;
+use App\Http\Requests\Api\Tag\TagSuggestionsRequest;
 use App\Http\Requests\Api\Tag\TagUpdateRequest;
 use App\Services\Api\TagService;
 use Illuminate\Http\JsonResponse;
@@ -88,12 +91,9 @@ class TagApiController extends ApiController
     /**
      * Merge two tags.
      */
-    public function merge(Request $request): JsonResponse
+    public function merge(TagMergeRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'source_tag_id' => 'required|integer|exists:tags,id',
-            'target_tag_id' => 'required|integer|exists:tags,id|different:source_tag_id',
-        ]);
+        $validated = $request->validated();
         
         return $this->service->mergeTags(
             $validated['source_tag_id'],
@@ -104,13 +104,9 @@ class TagApiController extends ApiController
     /**
      * Get tag suggestions for autocomplete.
      */
-    public function suggestions(Request $request): JsonResponse
+    public function suggestions(TagSuggestionsRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'query' => 'required|string|min:1|max:50',
-            'limit' => 'sometimes|integer|min:1|max:50',
-        ]);
-        
+        $validated = $request->validated();
         $limit = $validated['limit'] ?? 10;
         
         return $this->service->getSuggestions($validated['query'], $limit);
@@ -119,14 +115,8 @@ class TagApiController extends ApiController
     /**
      * Create multiple tags in a single operation.
      */
-    public function batchCreate(Request $request): JsonResponse
+    public function batchCreate(BatchTagStoreRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'tags' => 'required|array|min:1',
-            'tags.*.name' => 'required|string|min:1|max:50',
-            'tags.*.color' => 'sometimes|string|max:20',
-        ]);
-        
-        return $this->service->batchCreate($validated['tags']);
+        return $this->service->batchCreate($request->validated()['tags']);
     }
 }
