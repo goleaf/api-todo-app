@@ -17,11 +17,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Facades\Cache;
+use Tonysm\RichTextLaravel\Models\Traits\HasRichText;
+use App\Traits\HasComments;
+use Illuminate\Database\Eloquent\Relations\HasManyDeep;
+use Staudenmeir\EloquentHasManyDeep\HasRelationships;
 
 class Task extends Model
 {
     /** @use HasFactory<\Database\Factories\TaskFactory> */
     use HasFactory;
+    use HasRichText;
+    use HasComments;
+    use HasRelationships;
 
     /**
      * The attributes that are mass assignable.
@@ -41,6 +48,16 @@ class Task extends Model
         'attachments',
         'progress',
         'completed_at',
+    ];
+
+    /**
+     * The rich text attributes for the model.
+     *
+     * @var array<int, string>
+     */
+    protected $richTextAttributes = [
+        'description',
+        'notes',
     ];
 
     /**
@@ -399,6 +416,57 @@ class Task extends Model
     public function hasTag(int $tagId): bool
     {
         return $this->tags()->where('tags.id', $tagId)->exists();
+    }
+
+    /**
+     * Get comment replies for this task.
+     * 
+     * This retrieves all reply comments (comments that have a parent comment)
+     * that are associated with this task through the commentable relation.
+     */
+    public function commentReplies(): HasManyDeep
+    {
+        return $this->hasManyDeep(
+            Comment::class,
+            [Comment::class],
+            [
+                'commentable_id', // Foreign key on parent comments table
+                'parent_id'       // Foreign key on replies (child comments) table
+            ],
+            [
+                'id', // Local key on tasks table
+                'id'  // Local key on comments table
+            ],
+            [
+                'commentable_type' => self::class, // Ensure this is for Task model
+                null
+            ]
+        );
+    }
+
+    /**
+     * Get the users who have commented on this task.
+     * 
+     * This allows retrieving all users who have participated in discussions on this task.
+     */
+    public function commenters(): HasManyDeep
+    {
+        return $this->hasManyDeep(
+            User::class,
+            [Comment::class],
+            [
+                'commentable_id', // Foreign key on comments table
+                'id'             // Foreign key on users table
+            ],
+            [
+                'id',        // Local key on tasks table
+                'user_id'    // Local key on comments table
+            ],
+            [
+                'commentable_type' => self::class, // Ensure this is for Task model
+                null
+            ]
+        )->distinct(); // Ensure each user is only returned once
     }
 
     /**

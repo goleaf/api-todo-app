@@ -62,7 +62,7 @@ try to integrate this all packages:
     ✅ https://laravel-news.com/laravel-fast-paginate
     ✅ https://laravel-news.com/laravel-onboard
     ✅ https://laravel-news.com/microscope-for-laravel
-    https://laravel-news.com/eloquent-has-many-deep
+    ✅ https://laravel-news.com/eloquent-has-many-deep
     https://laravel-news.com/laravel-soap
     https://laravel-news.com/laravel-blade-sortable
     https://laravel-news.com/openapi-initializer
@@ -80,3 +80,9 @@ try to integrate this all packages:
     https://laravel-news.com/regex-helpers-for-laravel
     https://laravel-news.com/larastan-v1-released and create documentation as posible detailed in docs folder
     https://laravel-news.com/blast-storybook-ui-development-for-laravel-blade and create documentation as posible detailed in docs folder
+
+
+
+- Read the tasks from `todo.txt`. Complete each task one by one in order. After finishing a task, mark it as done in the file (e.g., prepend "[DONE]") and move to the next task. Repeat until all tasks in the file are marked as done. If a task fails or is unclear, skip it, log the issue in `errors.log`, and proceed to the next task. 
+- check for every package does was created user manual how to use package in this project with detailed descriptions
+- after finnishing create for every package and changes own git commit message and make git push

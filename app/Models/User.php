@@ -6,16 +6,20 @@ use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyDeep;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Spatie\Onboard\Concerns\GetsOnboarded;
+use Spatie\Onboard\Concerns\Onboardable;
+use Staudenmeir\EloquentHasManyDeep\HasRelationships;
 
-class User extends Authenticatable
+class User extends Authenticatable implements Onboardable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, GetsOnboarded, HasRelationships;
 
     /**
      * The attributes that are mass assignable.
@@ -92,6 +96,103 @@ class User extends Authenticatable
     public function tags(): HasMany
     {
         return $this->hasMany(Tag::class);
+    }
+
+    /**
+     * Get all comments on the user's tasks.
+     * 
+     * This uses HasManyDeep to reach comments through tasks via the commentable relation.
+     */
+    public function taskComments(): HasManyDeep
+    {
+        return $this->hasManyDeep(
+            Comment::class,
+            [Task::class],
+            [
+                'user_id', // Foreign key on the tasks table
+                'commentable_id' // Foreign key on the comments table
+            ],
+            [
+                'id', // Local key on the users table
+                'id'  // Local key on the tasks table
+            ],
+            [
+                null,
+                'commentable_type' => Task::class // Add where commentable_type is 'App\Models\Task'
+            ]
+        );
+    }
+
+    /**
+     * Get all tags used in the user's tasks.
+     * 
+     * This uses HasManyDeep to reach tags through the task_tag pivot table.
+     */
+    public function taskTags(): HasManyDeep
+    {
+        return $this->hasManyDeep(
+            Tag::class,
+            [Task::class, 'task_tag'],
+            [
+                'user_id', // Foreign key on the tasks table
+                'task_id', // Foreign key on the task_tag table
+                'id'      // Foreign key on the tags table
+            ],
+            [
+                'id',     // Local key on the users table
+                'id',     // Local key on the tasks table
+                'tag_id'  // Local key on the pivot table
+            ]
+        );
+    }
+
+    /**
+     * Get all tasks that belong to the user's categories.
+     * 
+     * This allows a user to find all tasks in specific categories.
+     */
+    public function categoryTasks(): HasManyDeep
+    {
+        return $this->hasManyDeep(
+            Task::class,
+            [Category::class],
+            [
+                'user_id',     // Foreign key on the categories table
+                'category_id'  // Foreign key on the tasks table
+            ],
+            [
+                'id',  // Local key on the users table
+                'id'   // Local key on the categories table
+            ]
+        );
+    }
+
+    /**
+     * Get all comments on tasks within the user's categories.
+     * 
+     * This creates a three-level deep relationship: User -> Category -> Task -> Comment
+     */
+    public function categoryTaskComments(): HasManyDeep
+    {
+        return $this->hasManyDeep(
+            Comment::class,
+            [Category::class, Task::class],
+            [
+                'user_id',       // Foreign key on the categories table
+                'category_id',   // Foreign key on the tasks table
+                'commentable_id' // Foreign key on the comments table
+            ],
+            [
+                'id',  // Local key on the users table
+                'id',  // Local key on the categories table
+                'id'   // Local key on the tasks table
+            ],
+            [
+                null,
+                null,
+                'commentable_type' => Task::class // Add where commentable_type is 'App\Models\Task'
+            ]
+        );
     }
 
     /**
@@ -246,6 +347,6 @@ class User extends Authenticatable
             return $this->role === UserRole::ADMIN;
         }
         
-        return $this->role === UserRole::ADMIN->value || $this->role === 'admin';
+        return $this->role === UserRole::ADMIN->value;
     }
 }

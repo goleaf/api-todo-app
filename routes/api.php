@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\V1\TaskApiController;
 use App\Http\Controllers\Api\V1\UserApiController;
 use App\Http\Controllers\Api\V1\TagApiController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\CommentController;
+use App\Http\Controllers\Api\V1\TaskAnalyticsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -174,4 +176,90 @@ Route::prefix('admin')->name('admin.')->middleware(['auth:sanctum', 'admin.api']
     
     // Dashboard stats
     Route::get('/dashboard/chart-data', [\App\Http\Controllers\Api\Admin\DashboardApiController::class, 'getChartData']);
+});
+
+// Comments API routes
+Route::middleware('auth:sanctum')->prefix('comments')->name('comments.')->group(function () {
+    Route::get('/', [CommentController::class, 'index'])->name('index');
+    Route::post('/', [CommentController::class, 'store'])->name('store');
+    Route::get('/{comment}', [CommentController::class, 'show'])->name('show');
+    Route::put('/{comment}', [CommentController::class, 'update'])->name('update');
+});
+
+// Regex Helper Routes
+Route::prefix('regex')->group(function () {
+    Route::post('/validate-email', [App\Http\Controllers\Api\RegexController::class, 'validateEmail']);
+    Route::post('/extract-data', [App\Http\Controllers\Api\RegexController::class, 'extractData']);
+    Route::post('/validate', [App\Http\Controllers\Api\RegexController::class, 'validateValue']);
+    Route::post('/transform', [App\Http\Controllers\Api\RegexController::class, 'transform']);
+    Route::post('/extract-custom', [App\Http\Controllers\Api\RegexController::class, 'extractCustom']);
+});
+
+// Model Info Routes
+Route::prefix('models')->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [App\Http\Controllers\Api\ModelInfoController::class, 'index'])->name('api.models.index');
+    Route::get('/{model}', [App\Http\Controllers\Api\ModelInfoController::class, 'show'])->name('api.models.show');
+    Route::get('/{model}/attributes', [App\Http\Controllers\Api\ModelInfoController::class, 'attributes'])->name('api.models.attributes');
+    Route::get('/{model}/relations', [App\Http\Controllers\Api\ModelInfoController::class, 'relations'])->name('api.models.relations');
+});
+
+// Posts and Drafts Routes
+Route::prefix('posts')->group(function () {
+    // Public routes
+    Route::get('/', [App\Http\Controllers\PostController::class, 'index'])->name('api.posts.index');
+    Route::get('/{slug}', [App\Http\Controllers\PostController::class, 'show'])->name('api.posts.show');
+    
+    // Protected routes
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/drafts/list', [App\Http\Controllers\PostController::class, 'drafts'])->name('api.posts.drafts');
+        Route::get('/drafts/{id}', [App\Http\Controllers\PostController::class, 'showDraft'])->name('api.posts.drafts.show');
+        Route::post('/', [App\Http\Controllers\PostController::class, 'store'])->name('api.posts.store');
+        Route::put('/{id}', [App\Http\Controllers\PostController::class, 'update'])->name('api.posts.update');
+        Route::post('/drafts/{id}/publish', [App\Http\Controllers\PostController::class, 'publish'])->name('api.posts.drafts.publish');
+        Route::delete('/{id}', [App\Http\Controllers\PostController::class, 'destroy'])->name('api.posts.destroy');
+    });
+});
+
+// Options Routes
+Route::prefix('options')->group(function () {
+    Route::get('/', [App\Http\Controllers\Api\OptionsController::class, 'index'])->name('api.options.index');
+    Route::post('/', [App\Http\Controllers\Api\OptionsController::class, 'store'])->name('api.options.store');
+    Route::put('/{key}', [App\Http\Controllers\Api\OptionsController::class, 'update'])->name('api.options.update');
+    Route::delete('/{key}', [App\Http\Controllers\Api\OptionsController::class, 'destroy'])->name('api.options.destroy');
+    Route::get('/{key}/exists', [App\Http\Controllers\Api\OptionsController::class, 'exists'])->name('api.options.exists');
+});
+
+// Onboarding Routes
+Route::middleware('auth:sanctum')->prefix('onboarding')->group(function () {
+    Route::get('/', [App\Http\Controllers\OnboardingController::class, 'index'])->name('api.onboarding.index');
+    Route::post('/skip', [App\Http\Controllers\OnboardingController::class, 'skip'])->name('api.onboarding.skip');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Task Analytics Routes
+|--------------------------------------------------------------------------
+|
+| Routes for the new task analytics feature using eloquent-has-many-deep
+|
+*/
+
+Route::middleware(['auth:sanctum'])->prefix('analytics')->name('analytics.')->group(function () {
+    // User-specific analytics
+    Route::get('/user/task-comments', [TaskAnalyticsController::class, 'getUserTaskComments'])
+        ->name('user.task-comments');
+    Route::get('/user/task-tags', [TaskAnalyticsController::class, 'getUserTaskTags'])
+        ->name('user.task-tags');
+    Route::get('/user/category-tasks', [TaskAnalyticsController::class, 'getUserCategoryTasks'])
+        ->name('user.category-tasks');
+    
+    // Task analytics
+    Route::get('/tasks/{task}/engagement', [TaskAnalyticsController::class, 'getTaskEngagementMetrics'])
+        ->name('task.engagement');
+    
+    // Category analytics
+    Route::get('/categories/{category}/task-comments', [TaskAnalyticsController::class, 'getCategoryTaskComments'])
+        ->name('category.task-comments');
+    Route::get('/categories/{category}/task-tags', [TaskAnalyticsController::class, 'getCategoryTaskTags'])
+        ->name('category.task-tags');
 });
