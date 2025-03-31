@@ -2,10 +2,10 @@
 
 namespace App\Enums;
 
-enum TaskStatus: bool
+enum TaskStatus: int
 {
-    case INCOMPLETE = false;
-    case COMPLETE = true;
+    case INCOMPLETE = 0;
+    case COMPLETE = 1;
 
     /**
      * Get the label for the status.
@@ -69,7 +69,7 @@ enum TaskStatus: bool
     /**
      * Try to get enum from value or return default.
      *
-     * @param bool|null $value
+     * @param int|bool|null $value
      * @return static
      */
     public static function fromValueOrDefault($value): self
@@ -78,7 +78,14 @@ enum TaskStatus: bool
             return self::INCOMPLETE;
         }
 
-        // Manually check the bool value
-        return $value === true ? self::COMPLETE : self::INCOMPLETE;
+        // Convert boolean value to int if needed
+        if (is_bool($value)) {
+            $value = $value ? 1 : 0;
+        }
+
+        return match($value) {
+            1 => self::COMPLETE,
+            default => self::INCOMPLETE,
+        };
     }
 } 

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -74,6 +73,22 @@ class User extends Authenticatable
     public function categories(): HasMany
     {
         return $this->hasMany(Category::class);
+    }
+
+    /**
+     * Get the device tokens for the user.
+     */
+    public function deviceTokens(): HasMany
+    {
+        return $this->hasMany(DeviceToken::class);
+    }
+
+    /**
+     * Get the tags for the user.
+     */
+    public function tags(): HasMany
+    {
+        return $this->hasMany(Tag::class);
     }
 
     /**
@@ -199,3 +214,4 @@ class User extends Authenticatable
         return $result;
     }
 }
+

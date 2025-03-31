@@ -105,12 +105,20 @@ enum TaskProgressStatus: int
      * @param int|null $value
      * @return static
      */
-    public static function tryFrom($value): ?self
+    public static function fromValueOrDefault($value): self
     {
         if ($value === null) {
             return self::NOT_STARTED;
         }
 
-        return parent::tryFrom($value) ?? self::fromPercentage((int) $value);
+        // Check if the value matches one of our defined cases
+        foreach (self::cases() as $case) {
+            if ($case->value === (int) $value) {
+                return $case;
+            }
+        }
+        
+        // If no direct match, try to determine from percentage
+        return self::fromPercentage((int) $value);
     }
 } 
