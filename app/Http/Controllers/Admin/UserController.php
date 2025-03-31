@@ -21,7 +21,7 @@ class UserController extends AdminController
             $query->search($search);
         }
         
-        $users = $query->latest()->paginate(10);
+        $users = $query->latest()->fastPaginate(10);
         
         return view('admin.users.index', compact('users'));
     }

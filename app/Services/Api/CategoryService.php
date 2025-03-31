@@ -66,7 +66,7 @@ class CategoryService
 
         // Pagination
         $perPage = $request->get('per_page', 15);
-        $categories = $query->paginate($perPage);
+        $categories = $query->fastPaginate($perPage);
 
         return $this->successResponse($categories);
     }

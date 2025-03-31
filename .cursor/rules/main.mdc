@@ -274,7 +274,7 @@ Categories help organize tasks.
 - `GET /api/categories`: List all categories
 - `POST /api/categories`: Create a new category
 - `GET /api/categories/{id}`: Get a specific category
-- `PUT /api/categories/{id}`: Update a category
+- `PUT /api/categories/{id}` Update a category
 - `DELETE /api/categories/{id}`: Delete a category
 - `GET /api/categories/with-tasks-count`: Get categories with task counts
 
@@ -1088,3 +1088,349 @@ PUT /api/posts/{id}
 ```
 
 For more detailed information, refer to the dedicated documentation file: `docs/laravel-drafts.md`
+
+# Laravel Options Integration
+
+## Overview
+
+The application integrates the Laravel Options package to provide a global key-value store in the database. This allows for the storage of application-wide settings, configuration, and other persistent data.
+
+## Features
+
+- **Global Key-Value Store**: Store and retrieve application settings
+- **Helper Functions**: Simple API for getting and setting options
+- **Blade Directives**: Use options directly in Blade templates
+- **Artisan Commands**: Manage options via the command line
+- **API Endpoints**: Programmatically access and modify options
+
+## Usage
+
+### PHP Helper Functions
+
+```php
+// Get an option
+$siteTitle = option('site.title');
+
+// Get with default value
+$theme = option('site.theme', 'default');
+
+// Set an option
+option(['site.title' => 'My Application']);
+
+// Remove an option
+option()->remove('site.title');
+
+// Check if exists
+if (option_exists('site.maintenance_mode')) {
+    // Site is in maintenance mode
+}
+```
+
+### Blade Component
+
+```blade
+<x-app-options key="site.title" default="Default Title" />
+```
+
+### Blade Directives
+
+```blade
+<!-- Display an option -->
+@option('site.title')
+
+<!-- With default value -->
+@option('site.theme', 'default')
+
+<!-- Check if exists -->
+@optionExists('site.maintenance_mode')
+    <div class="alert">Site is in maintenance mode</div>
+@endif
+```
+
+### API Endpoints
+
+The following API endpoints are available for working with options:
+
+- `GET /api/options`: Get all options
+- `GET /api/options?key=site.title`: Get a specific option
+- `POST /api/options`: Create a new option
+- `PUT /api/options/{key}`: Update an option
+- `DELETE /api/options/{key}`: Delete an option
+- `GET /api/options/{key}/exists`: Check if an option exists
+
+For more detailed information, refer to the dedicated documentation file: `docs/laravel-options.md`
+
+# Laravel Fast Paginate Integration
+
+## Overview
+
+The application integrates the Laravel Fast Paginate package, which significantly improves the performance of paginated queries. This package optimizes database queries by using a more efficient approach to pagination that minimizes the performance impact of high offset values.
+
+## How It Works
+
+Traditional pagination in Laravel uses `OFFSET` and `LIMIT` SQL clauses, which become inefficient as the offset gets larger. Fast Paginate uses a deferred approach:
+
+1. First, it runs a lightweight query to get only the primary keys needed for the current page
+2. Then, it fetches the complete records using those keys in a second query
+
+This approach is much more efficient for large data sets or high page numbers.
+
+## Usage
+
+Instead of Laravel's standard `paginate()` method, you can use `fastPaginate()` with the same signature:
+
+```php
+// Traditional pagination
+$users = User::query()->paginate(15);
+
+// Fast pagination
+$users = User::query()->fastPaginate(15);
+```
+
+This works with all query builders and relationships:
+
+```php
+// Relationship pagination
+$user->posts()->fastPaginate(15);
+
+// With additional constraints
+User::where('active', true)->fastPaginate(15);
+```
+
+## Performance Benefits
+
+Implementing Fast Paginate can lead to significant performance improvements:
+
+- Queries that previously took seconds may be reduced to milliseconds
+- Page loads become faster and more consistent, even for deep pagination
+- Server resources are used more efficiently, improving overall application performance
+
+## When to Use Fast Paginate
+
+Fast Paginate is especially beneficial for:
+
+- Large tables with thousands or millions of records
+- Admin interfaces where users may browse through many pages
+- API endpoints that allow clients to request arbitrary pages
+- Reports or data grids with extensive filtering and sorting options
+
+The package is implemented throughout the application in all services and controllers that use pagination, ensuring consistent performance across all paginated views.
+
+For detailed information, see the dedicated documentation file: `docs/laravel-fast-paginate.md`
+
+# Laravel Onboard Integration
+
+## Overview
+
+The application integrates with Laravel Onboard, a package designed to track and manage user onboarding steps. This integration provides a structured process for guiding new users through initial setup tasks.
+
+## Features
+
+- **Step-Based Onboarding**: Define a sequence of setup steps for users to complete
+- **Conditional Completion**: Steps are marked complete based on custom conditions
+- **Progress Tracking**: Visual indicators show overall completion percentage
+- **Middleware Integration**: Automatically direct users to their next incomplete step
+- **Customizable Interface**: Clean, modern UI for onboarding steps using Blade components
+
+## Implementation Details
+
+The onboarding process includes five key steps:
+
+1. **Complete Profile**: Prompts users to add profile information
+2. **Create First Task**: Guides users to create their first task
+3. **Create a Category**: Encourages users to organize tasks with categories
+4. **Add a Tag**: Introduces the tagging system for better task management
+5. **Complete a Task**: Demonstrates the task completion functionality
+
+Each step includes links to relevant sections of the application and is automatically marked as complete when the user performs the required action.
+
+## Usage Example
+
+The onboarding progress is displayed to users via a Blade component:
+
+```blade
+<x-onboarding :user="auth()->user()" />
+```
+
+This component shows all steps, their completion status, and a progress bar indicating overall completion percentage.
+
+## Technical Integration
+
+- The User model implements the `Onboardable` interface
+- Steps are defined in the `OnboardServiceProvider`
+- A middleware redirects users to their next incomplete step
+- Both API and web routes are available for accessing onboarding data
+
+For detailed information, see the dedicated documentation file: `docs/laravel-onboard.md`
+
+# Laravel Microscope Integration
+
+## Overview
+
+Laravel Microscope is a powerful static analysis tool integrated into the application as a development dependency. It helps identify and fix potential errors, bad practices, and other issues that might be missed during development.
+
+## Features
+
+- **Smart Static Analysis**: Performs checks that understand Laravel's runtime and magic
+- **Error Detection**: Identifies errors before they appear in production
+- **Automated Fixes**: Can automatically fix certain issues through refactoring
+- **Performance Focused**: Built from scratch for maximum performance
+
+## Implementation Details
+
+The Laravel Microscope package has been implemented with the following components:
+
+1. **Installation**: Installed as a dev dependency via Composer
+2. **Configuration**: Published configuration to `config/microscope.php`
+3. **CI Integration**: Added commands to the CI pipeline for automated checks
+
+## Usage Examples
+
+The tool can be used through various Artisan commands:
+
+```bash
+# Check route definitions for errors
+php artisan check:routes
+
+# Find controllers without routes
+php artisan check:dead_controllers
+
+# Identify bad coding practices
+php artisan check:bad_practices
+
+# Automatically refactor code using early returns
+php artisan check:early_returns
+```
+
+## Technical Integration
+
+Laravel Microscope works by statically analyzing the codebase to find potential issues. It examines:
+
+- Route definitions and their corresponding controllers
+- PSR-4 namespace compliance
+- Facade usage and optimization opportunities
+- Database queries in Blade templates
+- Unused variables in views
+- Anti-patterns and bad practices
+
+For complete details on the integration, see the documentation at `docs/laravel-microscope.md`.
+
+# Eloquent Has Many Deep Integration
+
+## Overview
+
+The Eloquent Has Many Deep package extends Laravel's relationship system by providing support for multilevel relationships. This integration enables advanced querying capabilities that span multiple models and relationship types.
+
+## Features
+
+- **Multilevel Relationships**: Define relationships that traverse through multiple models
+- **Complex Relationship Chains**: Navigate through pivot tables, polymorphic relationships, and more
+- **Optimized Performance**: Clean, maintainable code that generates efficient SQL queries
+- **Enhanced Analytics**: Build powerful analytics features with minimal queries
+
+## Implementation Details
+
+The package has been integrated into key models to enable deep relationships:
+
+1. **User Model**:
+   - `taskComments()`: Comments on user's tasks
+   - `taskTags()`: Tags used across user's tasks
+   - `categoryTasks()`: Tasks belonging to user's categories
+   - `categoryTaskComments()`: Comments on tasks within user's categories
+
+2. **Category Model**:
+   - `taskComments()`: Comments on tasks in this category
+   - `taskTags()`: Tags used in tasks for this category
+   - `taskAttachments()`: Attachments on tasks in this category
+
+3. **Task Model**:
+   - `commentReplies()`: Replies to comments on this task
+   - `commenters()`: Users who have commented on this task
+
+## Usage Examples
+
+The following example demonstrates finding all comments on a user's tasks without needing complex queries:
+
+```php
+// Get all comments on the user's tasks with their authors
+$comments = $user->taskComments()->with('user')->get();
+
+// Find most used tags across user's tasks
+$popularTags = $user->taskTags()
+    ->select('tags.*', DB::raw('COUNT(*) as count'))
+    ->groupBy('tags.id')
+    ->orderByDesc('count')
+    ->get();
+
+// Get task engagement metrics
+$metrics = $task->commenters()->count();
+```
+
+## API Integration
+
+New analytics endpoints have been added to leverage these deep relationships:
+
+- `/api/analytics/user/task-comments`: Get comments for the user's tasks
+- `/api/analytics/user/task-tags`: Get tags used across the user's tasks
+- `/api/analytics/tasks/{task}/engagement`: Get engagement metrics for a task
+- `/api/analytics/categories/{category}/task-comments`: Get comments on category tasks
+
+For complete documentation, see the dedicated file at `docs/eloquent-has-many-deep.md`.
+
+# Laravel SOAP Integration
+
+## Overview
+
+The application integrates the `artisaninweb/laravel-soap` package to provide a structured approach for interacting with SOAP web services. This integration allows the application to communicate with external systems that expose SOAP APIs.
+
+## Features
+
+- **SOAP Client Wrapper**: Simplified interface for working with PHP's SOAP client
+- **Configuration Management**: Central configuration for multiple SOAP services
+- **Request/Response Objects**: Structured approach to handling SOAP requests and responses
+- **Error Handling**: Comprehensive error handling and logging for SOAP operations
+- **Facade Support**: Easy access to SOAP functionality via Laravel Facades
+- **Service Provider**: Automatic registration and configuration of SOAP services
+
+## Implementation Details
+
+The SOAP integration is structured with the following components:
+
+1. **Service Provider**: `app/Providers/SoapServiceProvider.php` registers SOAP services from configuration
+2. **Configuration**: `config/soap.php` defines SOAP services, their endpoints, and authentication
+3. **Request Objects**: `app/Soap/Requests/` contains request classes that encapsulate data for SOAP calls
+4. **Response Objects**: `app/Soap/Responses/` contains classes for parsing and accessing SOAP responses
+5. **Service Layer**: `app/Services/SoapService.php` handles the core SOAP operations
+6. **Controller**: `app/Http/Controllers/SoapController.php` provides API endpoints for SOAP operations
+7. **Routes**: API routes for accessing SOAP functionality
+
+## Usage Example
+
+The SOAP integration can be used in controllers or other services like this:
+
+```php
+// Create a request object
+$request = new ExampleRequest(
+    'John Doe', 
+    'john@example.com', 
+    'Test message'
+);
+
+// Execute the request through the service
+$response = $soapService->executeExampleRequest($request);
+
+// Use the response data
+if ($response->isSuccess()) {
+    $data = $response->getData();
+    // Process the data
+}
+```
+
+## API Endpoints
+
+The following API endpoints are available for interacting with SOAP services:
+
+- `POST /api/soap/example`: Submit data to a SOAP service
+- `GET /api/soap/mock`: Get a mock SOAP response for testing
+
+For more information, refer to the detailed documentation in `docs/laravel-soap.md`.

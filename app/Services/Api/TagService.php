@@ -41,7 +41,7 @@ class TagService
         
         // Pagination
         $perPage = $request->get('per_page', 15);
-        $tags = $query->paginate($perPage);
+        $tags = $query->fastPaginate($perPage);
         
         return $this->successResponse($tags->items());
     }

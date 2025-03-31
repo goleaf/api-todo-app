@@ -70,7 +70,7 @@ class TaskService
 
         // Pagination
         $perPage = $request->get('per_page', 15);
-        $tasks = $query->paginate($perPage);
+        $tasks = $query->fastPaginate($perPage);
         
         // For Laravel's response macros, we need to transform the paginator to an array
         return $this->successResponse($tasks->items());
@@ -396,7 +396,16 @@ class TaskService
             ->where('user_id', $userId);
             
         // Apply filters if request provided
-        if ($request) {
+        if (!$request){
+        
+        // Get tasks
+        $tasks = $query->get();
+        
+        return $this->successResponse([
+            'tag' => $tag,
+            'tasks' => $tasks,
+        ]);
+    } 
             // Filter by completion status
             if ($request->has('completed')) {
                 $completed = filter_var($request->completed, FILTER_VALIDATE_BOOLEAN);
@@ -417,7 +426,7 @@ class TaskService
             $sortBy = $request->get('sort_by', 'created_at');
             $sortDir = $request->get('sort_dir', 'desc');
             $query->orderBy($sortBy, $sortDir);
-        }
+        
         
         // Get tasks
         $tasks = $query->get();

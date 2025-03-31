@@ -105,12 +105,12 @@ class ValidateTodoTaskMigration extends Command
             $this->info('Please update the code to use the Task model instead of Todo.');
 
             return 1;
-        } else {
+        }
             $this->newLine();
             $this->info('✅ All checks passed! The codebase appears to be fully migrated to use the Task model.');
             $this->info("Note: Some references to 'Todo' remain in component names and route names as documented in 'docs/TODO_TO_TASK_MIGRATION.md'.");
 
             return 0;
-        }
+        
     }
 }

@@ -5,6 +5,8 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Admin;
+use App\Services\ValidationService;
+use App\Helpers\RegexHelper;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -13,7 +15,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // No services to register
+        // Register Regex Helper
+        $this->app->singleton('regex', function () {
+            return new RegexHelper();
+        });
     }
 
     /**
@@ -28,5 +33,8 @@ class AppServiceProvider extends ServiceProvider
             }
             return null;
         });
+        
+        // Register custom validation rules
+        ValidationService::registerCustomValidationRules();
     }
 }

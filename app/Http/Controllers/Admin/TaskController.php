@@ -44,7 +44,7 @@ class TaskController extends AdminController
             $query->where('priority', $priority);
         }
         
-        $tasks = $query->latest()->paginate(10);
+        $tasks = $query->latest()->fastPaginate(10);
         $users = User::all();
         $categories = Category::all();
         $priorities = TaskPriority::cases();

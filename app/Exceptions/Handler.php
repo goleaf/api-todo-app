@@ -40,7 +40,10 @@ class Handler extends ExceptionHandler
 
         // Add a custom rendering callback for API request exceptions
         $this->renderable(function (Throwable $e, Request $request) {
-            if ($request->expectsJson() || $request->is('api/*')) {
+            if (!($request->expectsJson() || $request->is('api/*'))){
+
+            return null; // Let Laravel handle non-API exceptions
+        } 
                 // Get default code and message
                 $code = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
                 $message = $e->getMessage() ?: 'Server Error';
@@ -104,9 +107,6 @@ class Handler extends ExceptionHandler
                 }
 
                 return response()->json($response, $code);
-            }
-
-            return null; // Let Laravel handle non-API exceptions
-        });
+            });
     }
 }

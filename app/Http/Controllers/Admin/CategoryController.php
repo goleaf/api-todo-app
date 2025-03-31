@@ -26,7 +26,7 @@ class CategoryController extends AdminController
             $query->where('user_id', $userId);
         }
         
-        $categories = $query->latest()->paginate(10);
+        $categories = $query->latest()->fastPaginate(10);
         $users = User::all();
         
         return view('admin.categories.index', compact('categories', 'users'));

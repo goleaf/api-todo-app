@@ -37,7 +37,7 @@ abstract class ApiService
         // Apply pagination if needed
         if ($request->has('per_page')) {
             $perPage = (int) $request->get('per_page', 15);
-            $data = $query->paginate($perPage);
+            $data = $query->fastPaginate($perPage);
         } else {
             $data = $query->get();
         }

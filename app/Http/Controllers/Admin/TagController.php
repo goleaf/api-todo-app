@@ -25,7 +25,7 @@ class TagController extends AdminController
             $query->where('user_id', $userId);
         }
         
-        $tags = $query->latest()->paginate(10);
+        $tags = $query->latest()->fastPaginate(10);
         $users = User::all();
         
         return view('admin.tags.index', compact('tags', 'users'));

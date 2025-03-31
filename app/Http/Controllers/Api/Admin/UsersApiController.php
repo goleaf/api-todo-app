@@ -55,7 +55,7 @@ class UsersApiController extends Controller
         
         // Paginate results
         $perPage = $request->input('per_page', 15);
-        $users = $query->paginate($perPage);
+        $users = $query->fastPaginate($perPage);
         
         return response()->json([
             'success' => true,

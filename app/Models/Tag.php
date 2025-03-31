@@ -133,14 +133,17 @@ class Tag extends Model
             ->where('user_id', $userId)
             ->first();
             
-        if (!$tag) {
+        if ($tag){
+        
+        return $tag;
+    } 
             $tag = static::create([
                 'name' => $name,
                 'user_id' => $userId,
                 'color' => $color ?? self::generateDefaultColor($name),
                 'usage_count' => 0,
             ]);
-        }
+        
         
         return $tag;
     }

@@ -52,4 +52,14 @@ Route::group([], function () {
         Route::get('users/{user}/categories', [TaskController::class, 'getCategoriesForUser'])->name('users.categories');
         Route::get('users/{user}/tags', [TaskController::class, 'getTagsForUser'])->name('users.tags');
     });
+});
+
+// Translation routes
+Route::prefix('translations')->name('translations.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Admin\TranslationController::class, 'index'])->name('index');
+    Route::get('/missing', [App\Http\Controllers\Admin\TranslationController::class, 'missing'])->name('missing');
+    Route::get('/unused', [App\Http\Controllers\Admin\TranslationController::class, 'unused'])->name('unused');
+    Route::post('/fix', [App\Http\Controllers\Admin\TranslationController::class, 'fix'])->name('fix');
+    Route::get('/{locale}/edit/{file?}', [App\Http\Controllers\Admin\TranslationController::class, 'edit'])->name('edit');
+    Route::post('/{locale}/update/{file}', [App\Http\Controllers\Admin\TranslationController::class, 'update'])->name('update');
 }); 

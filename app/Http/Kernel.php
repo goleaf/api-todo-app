@@ -62,5 +62,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'admin' => \App\Http\Middleware\AdminAuthenticate::class,
         'admin.api' => \App\Http\Middleware\AdminApi::class,
+        'onboarding' => \App\Http\Middleware\RedirectToUnfinishedOnboardingStep::class,
     ];
 }

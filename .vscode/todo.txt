@@ -63,7 +63,7 @@ try to integrate this all packages:
     ✅ https://laravel-news.com/laravel-onboard
     ✅ https://laravel-news.com/microscope-for-laravel
     ✅ https://laravel-news.com/eloquent-has-many-deep
-    https://laravel-news.com/laravel-soap
+    ✅ https://laravel-news.com/laravel-soap
     https://laravel-news.com/laravel-blade-sortable
     https://laravel-news.com/openapi-initializer
     https://laravel-news.com/laravel-desktop-notifier

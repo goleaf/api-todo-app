@@ -52,14 +52,22 @@ trait ApiResponses
             ],
         ];
 
-        if ($paginator->hasPages()) {
+        if (!$paginator->hasPages()){
+
+        return $this->successResponse(
+            data: $paginator->items(),
+            message: $message,
+            statusCode: $statusCode,
+            meta: $meta
+        );
+    } 
             $meta['pagination']['links'] = [
                 'first' => $paginator->url(1),
                 'last' => $paginator->url($paginator->lastPage()),
                 'prev' => $paginator->previousPageUrl(),
                 'next' => $paginator->nextPageUrl(),
             ];
-        }
+        
 
         return $this->successResponse(
             data: $paginator->items(),
@@ -140,7 +148,10 @@ trait ApiResponses
      */
     public function serverErrorResponse(string $message = 'Server error', ?array $errors = null, ?\Exception $exception = null): JsonResponse
     {
-        if ($exception && app()->environment('local', 'development', 'testing')) {
+        if (!($exception && app()->environment('local', 'development', 'testing'))){
+
+        return $this->errorResponse($message, 500, $errors);
+    } 
             $errors = $errors ?? [];
             $errors['exception'] = [
                 'message' => $exception->getMessage(),
@@ -148,7 +159,7 @@ trait ApiResponses
                 'line' => $exception->getLine(),
                 'trace' => $exception->getTraceAsString(),
             ];
-        }
+        
 
         return $this->errorResponse($message, 500, $errors);
     }

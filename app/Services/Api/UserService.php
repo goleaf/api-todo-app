@@ -42,7 +42,7 @@ class UserService
 
         // Pagination
         $perPage = $request->get('per_page', 15);
-        $users = $query->paginate($perPage);
+        $users = $query->fastPaginate($perPage);
 
         return $this->successResponse($users);
     }
@@ -131,12 +131,17 @@ class UserService
         }
 
         // Users can't delete themselves if they're admins and the last admin
-        if ($currentUser->id === $user->id && $user->isAdmin()) {
+        if (!($currentUser->id === $user->id && $user->isAdmin())){
+
+        $user->delete();
+
+        return $this->noContentResponse(__('messages.user.deleted'));
+    } 
             $adminCount = User::where('role', UserRole::ADMIN)->count();
             if ($adminCount <= 1) {
                 return $this->errorResponse(__('messages.user.last_admin'), 422);
             }
-        }
+        
 
         $user->delete();
 
@@ -191,7 +196,10 @@ class UserService
     {
         $user = Auth::user();
 
-        if ($request->hasFile('photo')) {
+        if (!$request->hasFile('photo')){
+
+        return $this->errorResponse(__('validation.user.photo_required'), 422);
+    } 
             // Delete old photo if exists
             if ($user->photo_path) {
                 Storage::disk('public')->delete($user->photo_path);
@@ -207,9 +215,6 @@ class UserService
             return $this->successResponse(['photo_url' => $user->photo_url], __('messages.user.photo_uploaded'));
         }
 
-        return $this->errorResponse(__('validation.user.photo_required'), 422);
-    }
-
     /**
      * Delete the user's profile photo.
      */
@@ -217,7 +222,10 @@ class UserService
     {
         $user = Auth::user();
 
-        if ($user->photo_path) {
+        if (!$user->photo_path){
+
+        return $this->errorResponse(__('messages.user.no_photo'), 422);
+    } 
             Storage::disk('public')->delete($user->photo_path);
 
             $user->update([
@@ -226,9 +234,6 @@ class UserService
 
             return $this->successResponse([], __('messages.user.photo_deleted'));
         }
-
-        return $this->errorResponse(__('messages.user.no_photo'), 422);
-    }
 
     /**
      * Get user statistics.

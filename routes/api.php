@@ -263,3 +263,9 @@ Route::middleware(['auth:sanctum'])->prefix('analytics')->name('analytics.')->gr
     Route::get('/categories/{category}/task-tags', [TaskAnalyticsController::class, 'getCategoryTaskTags'])
         ->name('category.task-tags');
 });
+
+// SOAP Routes
+Route::prefix('soap')->group(function () {
+    Route::post('/example', [App\Http\Controllers\SoapController::class, 'exampleMethod'])->name('api.soap.example');
+    Route::get('/mock', [App\Http\Controllers\SoapController::class, 'mockResponse'])->name('api.soap.mock');
+});

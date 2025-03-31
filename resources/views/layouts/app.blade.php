@@ -144,6 +144,7 @@
             margin-bottom: 1rem;
         }
     </style>
+    <x-rich-text::styles theme="richtextlaravel" data-turbo-track="false" />
 </head>
 <body>
     @yield('content')

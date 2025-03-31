@@ -28,12 +28,13 @@ class UpdateTaskRequest extends FormRequest
                 'nullable',
                 'exists:categories,id',
                 function ($attribute, $value, $fail) {
-                    if ($value) {
+                    if (!$value){
+                return;} 
                         $category = \App\Models\Category::find($value);
                         if (! $category || $category->user_id !== Auth::id()) {
                             $fail('The selected category is invalid.');
                         }
-                    }
+                    
                 },
             ],
             'priority' => ['nullable', 'string', 'in:low,medium,high,0,1,2'],

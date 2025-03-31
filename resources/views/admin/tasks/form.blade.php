@@ -29,7 +29,7 @@
             
             <div class="mb-3">
                 <label for="description" class="form-label">Description</label>
-                <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="4">{{ old('description', $isEdit ? $task->description : '') }}</textarea>
+                <x-trix-input id="description" name="description" value="{{ old('description', $isEdit ? $task->description : '') }}" />
                 @error('description')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
