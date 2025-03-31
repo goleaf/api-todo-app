@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CategoryType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,7 +23,17 @@ class Category extends Model
         'name',
         'color',
         'icon',
+        'type',
         'user_id',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'type' => CategoryType::class,
     ];
 
     /**

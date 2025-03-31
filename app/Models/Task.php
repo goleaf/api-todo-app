@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\TaskPriority;
+use App\Enums\TaskProgressStatus;
+use App\Enums\TaskStatus;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -29,6 +32,7 @@ class Task extends Model
         'tags',
         'notes',
         'attachments',
+        'progress',
     ];
 
     /**
@@ -39,7 +43,7 @@ class Task extends Model
     protected $casts = [
         'completed' => 'boolean',
         'due_date' => 'date',
-        'priority' => 'integer',
+        'priority' => TaskPriority::class,
         'tags' => 'array',
         'attachments' => 'array',
     ];
@@ -236,12 +240,53 @@ class Task extends Model
      */
     public function getPriorityLabelAttribute(): string
     {
-        return match ($this->priority) {
-            1 => 'Low',
-            2 => 'Medium',
-            3 => 'High',
-            4 => 'Urgent',
-            default => 'None',
-        };
+        return $this->priority ? $this->priority->label() : 'None';
+    }
+
+    /**
+     * Get the priority color.
+     */
+    public function getPriorityColorAttribute(): string
+    {
+        return $this->priority ? $this->priority->color() : 'secondary';
+    }
+
+    /**
+     * Get the status enum for this task.
+     */
+    public function getStatusAttribute(): TaskStatus
+    {
+        return $this->completed ? TaskStatus::COMPLETE : TaskStatus::INCOMPLETE;
+    }
+
+    /**
+     * Get the progress status enum for this task.
+     */
+    public function getProgressStatusAttribute(): TaskProgressStatus
+    {
+        return TaskProgressStatus::fromPercentage($this->progress ?? 0);
+    }
+
+    /**
+     * Mark the task as complete.
+     */
+    public function markAsComplete(): bool
+    {
+        $this->completed = true;
+        $this->completed_at = now();
+        $this->progress = 100;
+        
+        return $this->save();
+    }
+
+    /**
+     * Mark the task as incomplete.
+     */
+    public function markAsIncomplete(): bool
+    {
+        $this->completed = false;
+        $this->completed_at = null;
+        
+        return $this->save();
     }
 }
