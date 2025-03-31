@@ -39,37 +39,58 @@ Route::get('/oauth2-callback', function () {
     return view('vendor.l5-swagger.oauth2-callback', ['documentation' => 'default']);
 })->name('l5-swagger.default.oauth2_callback');
 
-// Root API routes that match the test expectations
+// Public routes
 Route::post('/register', [AuthApiController::class, 'register']);
 Route::post('/login', [AuthApiController::class, 'login']);
-Route::post('/logout', [AuthApiController::class, 'logout'])->middleware('auth:sanctum');
-Route::get('/user', [AuthApiController::class, 'me'])->middleware('auth:sanctum');
 
-// Test API routes that match direct endpoints expected by tests
+// Protected routes
 Route::middleware('auth:sanctum')->group(function () {
-    // Dashboard endpoint
-    Route::get('/dashboard', [DashboardApiController::class, 'index']);
-
-    // Tasks routes
-    Route::apiResource('tasks', TaskApiController::class);
-    Route::patch('/tasks/{task}/toggle', [TaskApiController::class, 'toggleComplete']);
-    Route::get('/tasks/statistics', [TaskApiController::class, 'statistics']);
-
-    // Categories routes
-    Route::apiResource('categories', CategoryApiController::class);
-    Route::get('/categories/task-counts', [CategoryApiController::class, 'taskCounts']);
-
-    // User routes 
-    Route::get('/users', [UserApiController::class, 'index']);
-    Route::get('/users/{user}', [UserApiController::class, 'show']);
-    Route::get('/users/statistics', [UserApiController::class, 'statistics']);
+    // Auth routes
+    Route::post('/logout', [AuthApiController::class, 'logout']);
+    Route::post('/refresh', [AuthApiController::class, 'refresh']);
+    Route::get('/me', [AuthApiController::class, 'me']);
+    
+    // User routes
+    Route::prefix('users')->group(function () {
+        Route::get('/', [UserApiController::class, 'index']);
+        Route::get('/{id}', [UserApiController::class, 'show']);
+    });
     
     // Profile routes
-    Route::get('/profile', [ProfileApiController::class, 'show']);
-    Route::put('/profile', [ProfileApiController::class, 'update']);
-    Route::put('/profile/password', [ProfileApiController::class, 'updatePassword']);
-    Route::post('/profile/photo', [ProfileApiController::class, 'uploadPhoto']);
-    Route::delete('/profile/photo', [ProfileApiController::class, 'deletePhoto']);
+    Route::prefix('profile')->group(function () {
+        Route::get('/', [ProfileApiController::class, 'show']);
+        Route::put('/', [ProfileApiController::class, 'update']);
+        Route::put('/password', [ProfileApiController::class, 'updatePassword']);
+        Route::post('/photo', [ProfileApiController::class, 'uploadPhoto']);
+        Route::delete('/photo', [ProfileApiController::class, 'deletePhoto']);
+    });
+    
+    // Task routes
+    Route::prefix('tasks')->group(function () {
+        Route::get('/', [TaskApiController::class, 'index']);
+        Route::post('/', [TaskApiController::class, 'store']);
+        Route::get('/statistics', [TaskApiController::class, 'statistics']);
+        Route::get('/due-today', [TaskApiController::class, 'dueToday']);
+        Route::get('/overdue', [TaskApiController::class, 'overdue']);
+        Route::get('/upcoming', [TaskApiController::class, 'upcoming']);
+        Route::get('/{id}', [TaskApiController::class, 'show']);
+        Route::put('/{id}', [TaskApiController::class, 'update']);
+        Route::delete('/{id}', [TaskApiController::class, 'destroy']);
+        Route::patch('/{id}/toggle', [TaskApiController::class, 'toggleCompletion']);
+    });
+    
+    // Category routes
+    Route::prefix('categories')->group(function () {
+        Route::get('/', [CategoryApiController::class, 'index']);
+        Route::post('/', [CategoryApiController::class, 'store']);
+        Route::get('/task-counts', [CategoryApiController::class, 'taskCounts']);
+        Route::get('/{id}', [CategoryApiController::class, 'show']);
+        Route::put('/{id}', [CategoryApiController::class, 'update']);
+        Route::delete('/{id}', [CategoryApiController::class, 'destroy']);
+    });
+    
+    // Dashboard routes
+    Route::get('/dashboard', [DashboardApiController::class, 'index']);
 });
 
 // API Version 1

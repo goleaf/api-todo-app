@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\Todo\TaskStoreRequest;
-use App\Http\Requests\Api\Todo\TaskUpdateRequest;
+use App\Http\Requests\Api\Task\TaskStoreRequest;
+use App\Http\Requests\Api\Task\TaskUpdateRequest;
 use App\Services\Api\TaskService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -64,13 +64,38 @@ class TaskApiController extends Controller
     /**
      * Toggle the completion status of a task.
      */
-    public function toggleComplete(int $id): JsonResponse
+    public function toggleCompletion(int $id): JsonResponse
     {
-        return $this->service->toggleComplete($id);
+        return $this->service->toggleCompletion($id);
     }
 
     /**
-     * Get task statistics for the authenticated user.
+     * Get tasks due today.
+     */
+    public function dueToday(): JsonResponse
+    {
+        return $this->service->getDueToday();
+    }
+
+    /**
+     * Get overdue tasks.
+     */
+    public function overdue(): JsonResponse
+    {
+        return $this->service->getOverdue();
+    }
+
+    /**
+     * Get upcoming tasks.
+     */
+    public function upcoming(Request $request): JsonResponse
+    {
+        $days = $request->get('days', 7);
+        return $this->service->getUpcoming($days);
+    }
+
+    /**
+     * Get task statistics.
      */
     public function statistics(): JsonResponse
     {

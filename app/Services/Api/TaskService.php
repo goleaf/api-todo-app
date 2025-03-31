@@ -56,6 +56,43 @@ class TaskService extends ApiService
             $query->where('due_date', '<=', $request->get('due_date_to'));
         }
         
+        // Filter by specific types
+        if ($request->has('type')) {
+            $type = $request->get('type');
+            
+            switch ($type) {
+                case 'today':
+                    $query->dueToday();
+                    break;
+                case 'overdue':
+                    $query->overdue();
+                    break;
+                case 'upcoming':
+                    $query->upcoming();
+                    break;
+                case 'no_due_date':
+                    $query->whereNull('due_date');
+                    break;
+                // Add more types as needed
+            }
+        }
+        
+        // Filter by tags if requested
+        if ($request->has('tag')) {
+            $tag = $request->get('tag');
+            $query->withTag($tag);
+        }
+        
+        // Default sorting
+        $sort = $request->get('sort_by', 'due_date');
+        $direction = $request->get('sort_direction', 'asc');
+        
+        if ($sort === 'priority') {
+            $query->orderBy('priority', 'desc'); // Higher priority first
+        } else {
+            $query->orderBy($sort, $direction);
+        }
+        
         return $query;
     }
 
@@ -73,61 +110,125 @@ class TaskService extends ApiService
     /**
      * Toggle the completion status of a task.
      */
-    public function toggleComplete(int $id): JsonResponse
+    public function toggleCompletion(int $id): JsonResponse
     {
-        $task = $this->model->where('id', $id)
-            ->where('user_id', auth()->id())
-            ->first();
+        $task = $this->model->where('user_id', auth()->id())->find($id);
         
         if (!$task) {
-            return $this->notFoundResponse(__('messages.task.not_found'));
+            return $this->notFoundResponse(__('messages.not_found'));
         }
         
-        $task->completed = !$task->completed;
-        $task->completed_at = $task->completed ? now() : null;
-        $task->save();
+        $task->toggleCompletion();
         
-        if (!empty($this->defaultRelations)) {
-            $task->load($this->defaultRelations);
-        }
-        
-        return $this->successResponse($task, __('messages.task.status_updated'));
+        return $this->successResponse($task, __('messages.task.toggled'));
     }
 
     /**
-     * Get user's task statistics.
+     * Get tasks that are due today.
+     */
+    public function getDueToday(): JsonResponse
+    {
+        $tasks = $this->model
+            ->where('user_id', auth()->id())
+            ->dueToday()
+            ->with($this->defaultRelations)
+            ->orderByPriority()
+            ->get();
+        
+        return $this->successResponse($tasks);
+    }
+
+    /**
+     * Get overdue tasks.
+     */
+    public function getOverdue(): JsonResponse
+    {
+        $tasks = $this->model
+            ->where('user_id', auth()->id())
+            ->overdue()
+            ->with($this->defaultRelations)
+            ->orderByPriority()
+            ->get();
+        
+        return $this->successResponse($tasks);
+    }
+
+    /**
+     * Get upcoming tasks.
+     */
+    public function getUpcoming(int $days = 7): JsonResponse
+    {
+        $tasks = $this->model
+            ->where('user_id', auth()->id())
+            ->upcoming($days)
+            ->with($this->defaultRelations)
+            ->orderBy('due_date')
+            ->orderByPriority()
+            ->get();
+        
+        return $this->successResponse($tasks);
+    }
+
+    /**
+     * Get task statistics.
      */
     public function getStatistics(): JsonResponse
     {
         $userId = auth()->id();
+        $today = now()->format('Y-m-d');
         
-        $stats = [
-            'total' => $this->model->where('user_id', $userId)->count(),
-            'completed' => $this->model->where('user_id', $userId)->where('completed', true)->count(),
-            'pending' => $this->model->where('user_id', $userId)->where('completed', false)->count(),
-            'overdue' => $this->model->where('user_id', $userId)
-                ->where('completed', false)
-                ->where('due_date', '<', now()->format('Y-m-d'))
-                ->count(),
-            'upcoming' => $this->model->where('user_id', $userId)
-                ->where('completed', false)
-                ->where('due_date', '>=', now()->format('Y-m-d'))
-                ->count(),
-            'by_priority' => [
-                'low' => $this->model->where('user_id', $userId)->where('priority', 0)->count(),
-                'medium' => $this->model->where('user_id', $userId)->where('priority', 1)->count(),
-                'high' => $this->model->where('user_id', $userId)->where('priority', 2)->count(),
-            ],
-            'by_category' => $this->model->where('user_id', $userId)
-                ->selectRaw('category_id, count(*) as count')
-                ->groupBy('category_id')
-                ->with('category:id,name,color')
-                ->get()
-                ->pluck('count', 'category.name')
-                ->toArray(),
+        $totalCount = $this->model->where('user_id', $userId)->count();
+        $completedCount = $this->model->where('user_id', $userId)->completed()->count();
+        $overdueCount = $this->model->where('user_id', $userId)
+            ->where('completed', false)
+            ->where('due_date', '<', $today)
+            ->count();
+        $todayCount = $this->model->where('user_id', $userId)
+            ->where('due_date', $today)
+            ->count();
+        $upcomingCount = $this->model->where('user_id', $userId)
+            ->where('completed', false)
+            ->where('due_date', '>', $today)
+            ->count();
+        
+        // Get tasks by priority
+        $byPriority = [
+            'low' => $this->model->where('user_id', $userId)->where('priority', 1)->count(),
+            'medium' => $this->model->where('user_id', $userId)->where('priority', 2)->count(),
+            'high' => $this->model->where('user_id', $userId)->where('priority', 3)->count(),
+            'urgent' => $this->model->where('user_id', $userId)->where('priority', 4)->count(),
         ];
         
-        return $this->successResponse($stats);
+        // Get tasks by category
+        $byCategory = $this->model
+            ->where('user_id', $userId)
+            ->whereNotNull('category_id')
+            ->selectRaw('category_id, count(*) as count')
+            ->groupBy('category_id')
+            ->with('category:id,name,color')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'category_id' => $item->category_id,
+                    'name' => $item->category->name,
+                    'color' => $item->category->color,
+                    'count' => $item->count,
+                ];
+            });
+        
+        // Completion rate
+        $completionRate = $totalCount > 0 ? round(($completedCount / $totalCount) * 100, 1) : 0;
+        
+        return $this->successResponse([
+            'total' => $totalCount,
+            'completed' => $completedCount,
+            'overdue' => $overdueCount,
+            'today' => $todayCount,
+            'upcoming' => $upcomingCount,
+            'completion_rate' => $completionRate,
+            'by_priority' => $byPriority,
+            'by_category' => $byCategory,
+        ]);
     }
 
     /**

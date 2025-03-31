@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 
 class Task extends Model
 {
@@ -21,16 +21,14 @@ class Task extends Model
     protected $fillable = [
         'title',
         'description',
-        'user_id',
-        'completed',
-        'completed_at',
-        'priority',
         'due_date',
+        'priority',
+        'completed',
+        'user_id',
         'category_id',
-        'session_id',
-        'reminder_at',
         'tags',
-        'progress',
+        'notes',
+        'attachments',
     ];
 
     /**
@@ -40,34 +38,16 @@ class Task extends Model
      */
     protected $casts = [
         'completed' => 'boolean',
-        'completed_at' => 'datetime',
         'due_date' => 'date',
-        'reminder_at' => 'datetime',
+        'priority' => 'integer',
         'tags' => 'array',
-        'progress' => 'integer',
+        'attachments' => 'array',
     ];
 
     /**
-     * Default attribute values
-     */
-    protected $attributes = [
-        'completed' => false,
-        'priority' => 0,
-        'progress' => 0,
-        'tags' => '[]',
-    ];
-
-    /**
-     * The accessors to append to the model's array form.
+     * The relationships that should be eager loaded.
      *
-     * @var array
-     */
-    protected $appends = ['priority_label', 'priority_color', 'is_overdue', 'is_due_today', 'is_upcoming'];
-
-    /**
-     * The relationships that should always be loaded.
-     *
-     * @var array
+     * @var array<int, string>
      */
     protected $with = ['category'];
 
@@ -80,7 +60,7 @@ class Task extends Model
     }
 
     /**
-     * Get the category that owns the task.
+     * Get the category that the task belongs to.
      */
     public function category(): BelongsTo
     {
@@ -112,6 +92,14 @@ class Task extends Model
     }
 
     /**
+     * Scope a query to only include tasks with a specific due date.
+     */
+    public function scopeDueOn(Builder $query, string $date): Builder
+    {
+        return $query->whereDate('due_date', $date);
+    }
+
+    /**
      * Scope a query to only include tasks due today.
      */
     public function scopeDueToday(Builder $query): Builder
@@ -125,44 +113,31 @@ class Task extends Model
     public function scopeOverdue(Builder $query): Builder
     {
         return $query->where('completed', false)
-            ->whereDate('due_date', '<', Carbon::today());
+            ->where('due_date', '<', Carbon::today());
     }
 
     /**
      * Scope a query to only include upcoming tasks.
      */
-    public function scopeUpcoming(Builder $query): Builder
+    public function scopeUpcoming(Builder $query, int $days = 7): Builder
     {
         return $query->where('completed', false)
-            ->whereDate('due_date', '>', Carbon::today());
+            ->whereBetween('due_date', [
+                Carbon::today(),
+                Carbon::today()->addDays($days),
+            ]);
     }
 
     /**
-     * Scope a query to order by priority descending.
+     * Scope a query to only include tasks with a specific priority.
      */
-    public function scopeOrderByPriority(Builder $query): Builder
+    public function scopeWithPriority(Builder $query, int $priority): Builder
     {
-        return $query->orderByDesc('priority');
+        return $query->where('priority', $priority);
     }
 
     /**
-     * Scope a query to order by due date.
-     */
-    public function scopeOrderByDueDate(Builder $query): Builder
-    {
-        return $query->orderBy('due_date');
-    }
-
-    /**
-     * Scope a query to filter tasks by category.
-     */
-    public function scopeInCategory(Builder $query, int $categoryId): Builder
-    {
-        return $query->where('category_id', $categoryId);
-    }
-
-    /**
-     * Scope a query to filter tasks by tag.
+     * Scope a query to only include tasks with specific tags.
      */
     public function scopeWithTag(Builder $query, string $tag): Builder
     {
@@ -170,132 +145,77 @@ class Task extends Model
     }
 
     /**
-     * Scope a query to get tasks with progress less than specified value.
+     * Scope a query to only include tasks for a specific category.
      */
-    public function scopeWithProgressLessThan(Builder $query, int $progress): Builder
+    public function scopeInCategory(Builder $query, int $categoryId): Builder
     {
-        return $query->where('progress', '<', $progress);
+        return $query->where('category_id', $categoryId);
     }
 
     /**
-     * Scope a query to get tasks with progress greater than specified value.
+     * Scope a query to order tasks by priority (highest first).
      */
-    public function scopeWithProgressGreaterThan(Builder $query, int $progress): Builder
+    public function scopeOrderByPriority(Builder $query): Builder
     {
-        return $query->where('progress', '>', $progress);
+        return $query->orderBy('priority', 'desc');
     }
 
     /**
-     * Scope a query to get tasks with reminders set.
+     * Scope a query to order tasks by due date (closest first).
      */
-    public function scopeWithReminders(Builder $query): Builder
+    public function scopeOrderByDueDate(Builder $query): Builder
     {
-        return $query->whereNotNull('reminder_at');
+        return $query->orderBy('due_date');
     }
 
     /**
-     * Mark the task as completed.
+     * Toggle the completed status of the task.
      */
-    public function markAsCompleted(): self
+    public function toggleCompletion(): bool
     {
-        $this->completed = true;
-        $this->completed_at = Carbon::now();
-        $this->progress = 100;
-        $this->save();
-
-        return $this;
+        $this->completed = !$this->completed;
+        return $this->save();
     }
 
     /**
-     * Mark the task as incomplete.
+     * Determine if the task is overdue.
      */
-    public function markAsIncomplete(): self
+    public function isOverdue(): bool
     {
-        $this->completed = false;
-        $this->completed_at = null;
-        $this->save();
-
-        return $this;
-    }
-
-    /**
-     * Set the priority of the task.
-     */
-    public function setPriority(int $priority): self
-    {
-        $this->priority = $priority;
-        $this->save();
-
-        return $this;
-    }
-
-    /**
-     * Update the progress of the task.
-     */
-    public function updateProgress(int $progress): self
-    {
-        $this->progress = min(100, max(0, $progress)); // Ensure progress is between 0-100
-        
-        // If progress is 100, mark as completed
-        if ($this->progress === 100 && !$this->completed) {
-            $this->markAsCompleted();
-        } elseif ($this->progress < 100 && $this->completed) {
-            // If progress is less than 100 but task is completed, mark as incomplete
-            $this->completed = false;
-            $this->completed_at = null;
+        if ($this->completed) {
+            return false;
         }
-        
-        $this->save();
-        return $this;
+
+        return $this->due_date && $this->due_date->isPast();
     }
 
     /**
-     * Add tags to the task.
+     * Determine if the task is due today.
      */
-    public function addTags(array $tags): self
+    public function isDueToday(): bool
     {
-        $currentTags = $this->tags ?? [];
-        $this->tags = array_unique(array_merge($currentTags, $tags));
-        $this->save();
-        
-        return $this;
+        return $this->due_date && $this->due_date->isToday();
     }
 
     /**
-     * Remove tags from the task.
+     * Determine if the task is upcoming (due within the next few days).
      */
-    public function removeTags(array $tags): self
+    public function isUpcoming(int $days = 7): bool
     {
-        if (!$this->tags) {
-            return $this;
+        if (!$this->due_date || $this->completed) {
+            return false;
         }
-        
-        $this->tags = array_values(array_diff($this->tags, $tags));
-        $this->save();
-        
-        return $this;
+
+        return $this->due_date->isFuture() && 
+               $this->due_date->lte(Carbon::today()->addDays($days));
     }
 
     /**
-     * Set reminder for the task.
+     * Get the formatted due date.
      */
-    public function setReminder(Carbon $reminderTime): self
+    public function getFormattedDueDateAttribute(): ?string
     {
-        $this->reminder_at = $reminderTime;
-        $this->save();
-        
-        return $this;
-    }
-
-    /**
-     * Clear reminder from the task.
-     */
-    public function clearReminder(): self
-    {
-        $this->reminder_at = null;
-        $this->save();
-        
-        return $this;
+        return $this->due_date ? $this->due_date->format('Y-m-d') : null;
     }
 
     /**
@@ -303,66 +223,12 @@ class Task extends Model
      */
     public function getPriorityLabelAttribute(): string
     {
-        return match ($this->priority) {
-            0 => 'Low',
-            1 => 'Medium',
-            2 => 'High',
-            default => 'Low',
+        return match($this->priority) {
+            1 => 'Low',
+            2 => 'Medium',
+            3 => 'High',
+            4 => 'Urgent',
+            default => 'None',
         };
-    }
-
-    /**
-     * Get the priority color.
-     */
-    public function getPriorityColorAttribute(): string
-    {
-        return match ($this->priority) {
-            0 => 'success',
-            1 => 'warning',
-            2 => 'danger',
-            default => 'success',
-        };
-    }
-
-    /**
-     * Check if the task is overdue.
-     */
-    public function getIsOverdueAttribute(): bool
-    {
-        return !$this->completed && 
-               $this->due_date && 
-               Carbon::parse($this->due_date)->startOfDay()->isPast() && 
-               !Carbon::parse($this->due_date)->isToday();
-    }
-    
-    /**
-     * Check if the task is due today.
-     */
-    public function getIsDueTodayAttribute(): bool
-    {
-        return !$this->completed && 
-               $this->due_date && 
-               Carbon::parse($this->due_date)->isToday();
-    }
-    
-    /**
-     * Check if the task is upcoming.
-     */
-    public function getIsUpcomingAttribute(): bool
-    {
-        return !$this->completed && 
-               $this->due_date && 
-               Carbon::parse($this->due_date)->startOfDay()->isFuture();
-    }
-    
-    /**
-     * Check if the task needs a reminder.
-     */
-    public function getNeedsReminderAttribute(): bool
-    {
-        return $this->reminder_at && 
-               !$this->completed && 
-               $this->reminder_at->isPast() && 
-               $this->reminder_at->diffInHours(now()) < 24;
     }
 }

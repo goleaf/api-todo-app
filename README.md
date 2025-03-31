@@ -1,21 +1,30 @@
 # Task Manager API
 
-A comprehensive API-only task management application built with Laravel.
+A comprehensive API-only task management application built with Laravel. This application implements a full service-based architecture with thin controllers and robust request validation.
 
 ## Features
 
 - **100% API-Based**: All functionality exposed through well-designed REST API endpoints
+- **Service-Based Architecture**: Complete separation of business logic from controllers
+- **Request Validation**: Dedicated request classes with custom error messages
 - **Task Management**: Create, read, update, and delete tasks with features for due dates, priorities, and categories
 - **Category Management**: Organize tasks with custom categories
+- **User Management**: Complete user profile and authentication system
 - **Dashboard API**: Get an overview of task statistics and recent activities
-- **Service-Based Architecture**: Clean separation between controllers and business logic
-- **Request Validation**: Robust validation with custom error messages from language files
 
 ## Tech Stack
 
 - **Laravel**: Backend PHP framework
 - **Laravel Sanctum**: API authentication
 - **MySQL**: Database system
+
+## Core Components
+
+- **Services Layer**: Where all business logic lives
+- **Request Classes**: Handle validation with custom error messages
+- **Thin Controllers**: Simply delegate to services
+- **Language Files**: Store localized messages for responses
+- **Standardized API Responses**: Consistent JSON format for all endpoints
 
 ## API Documentation
 
@@ -86,6 +95,11 @@ Content-Type: application/json
   "success": true,
   "message": "Login successful",
   "data": {
+    "user": {
+      "id": 1,
+      "name": "Example User",
+      "email": "user@example.com"
+    },
     "token": "YOUR_API_TOKEN"
   }
 }
@@ -146,6 +160,35 @@ Content-Type: application/json
   "name": "Work",
   "color": "#ff5722",
   "icon": "briefcase"
+}
+```
+
+### User & Profile
+
+```bash
+# Get current user profile
+GET /api/profile
+Authorization: Bearer YOUR_API_TOKEN
+
+# Update profile
+PUT /api/profile
+Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+
+{
+  "name": "Updated Name",
+  "email": "updated@example.com"
+}
+
+# Change password
+PUT /api/profile/password
+Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+
+{
+  "current_password": "current_password",
+  "password": "new_password",
+  "password_confirmation": "new_password"
 }
 ```
 
