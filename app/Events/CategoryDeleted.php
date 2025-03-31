@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Models\Category;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -13,28 +14,20 @@ class CategoryDeleted implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
-     * The category data.
+     * The category instance.
      *
-     * @var array
+     * @var \App\Models\Category
      */
-    public $categoryData;
-
-    /**
-     * The user ID.
-     *
-     * @var int
-     */
-    protected $userId;
+    public $category;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(array $categoryData, int $userId)
+    public function __construct(Category $category)
     {
-        $this->categoryData = $categoryData;
-        $this->userId = $userId;
+        $this->category = $category;
     }
 
     /**
@@ -45,7 +38,7 @@ class CategoryDeleted implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('user.'.$this->userId),
+            new PrivateChannel('user.'.$this->category->user_id),
         ];
     }
 
@@ -65,7 +58,7 @@ class CategoryDeleted implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'category' => $this->categoryData,
+            'category' => $this->category,
         ];
     }
 }

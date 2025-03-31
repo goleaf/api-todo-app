@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Models\Task;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -13,28 +14,20 @@ class TaskDeleted implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
-     * The task data.
+     * The task instance.
      *
-     * @var array
+     * @var \App\Models\Task
      */
-    public $taskData;
-
-    /**
-     * The user ID.
-     *
-     * @var int
-     */
-    protected $userId;
+    public $task;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(array $taskData, int $userId)
+    public function __construct(Task $task)
     {
-        $this->taskData = $taskData;
-        $this->userId = $userId;
+        $this->task = $task;
     }
 
     /**
@@ -45,7 +38,7 @@ class TaskDeleted implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('user.'.$this->userId),
+            new PrivateChannel('user.'.$this->task->user_id),
         ];
     }
 
@@ -65,7 +58,7 @@ class TaskDeleted implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'task' => $this->taskData,
+            'task' => $this->task,
         ];
     }
 }
