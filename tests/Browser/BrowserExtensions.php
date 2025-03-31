@@ -61,4 +61,20 @@ trait BrowserExtensions
         return $this->clickLink(ucfirst($section))
                    ->waitForLocation('/admin/' . strtolower($section));
     }
+    
+    /**
+     * Login as an admin user.
+     *
+     * @param  string  $email
+     * @param  string  $password
+     * @return \Laravel\Dusk\Browser
+     */
+    public function loginAsAdmin($email, $password)
+    {
+        return $this->visit('/admin/login')
+                   ->type('email', $email)
+                   ->type('password', $password)
+                   ->press('Login')
+                   ->waitForLocation('/admin/dashboard');
+    }
 } 

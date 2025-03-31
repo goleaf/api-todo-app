@@ -11,7 +11,7 @@
 <div class="card">
     <div class="card-header">{{ isset($user) ? 'Edit User' : 'Create New User' }}</div>
     <div class="card-body">
-        <form action="{{ isset($user) ? route('admin.users.update', $user) : route('admin.users.store') }}" method="POST">
+        <form id="userForm" action="{{ isset($user) ? route('admin.users.update', $user) : route('admin.users.store') }}" method="POST">
             @csrf
             @if(isset($user))
                 @method('PUT')
@@ -23,6 +23,7 @@
                 @error('name')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
+                <div class="invalid-feedback" id="name-error">Please provide a name.</div>
             </div>
             
             <div class="mb-3">
@@ -31,6 +32,7 @@
                 @error('email')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
+                <div class="invalid-feedback" id="email-error">Please provide a valid email address.</div>
             </div>
             
             @if(!isset($user))
@@ -40,17 +42,19 @@
                 @error('password')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
+                <div class="invalid-feedback" id="password-error">Password must be at least 8 characters.</div>
             </div>
             
             <div class="mb-3">
                 <label for="password_confirmation" class="form-label">Confirm Password</label>
                 <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required>
+                <div class="invalid-feedback" id="confirm-password-error">Passwords do not match.</div>
             </div>
             @endif
             
             <div class="mb-3">
                 <label for="role" class="form-label">Role</label>
-                <select class="form-select @error('role') is-invalid @enderror" id="role" name="role">
+                <select class="form-select @error('role') is-invalid @enderror" id="role" name="role" required>
                     @foreach($roles as $role)
                         <option value="{{ $role->value }}" {{ old('role', $user->role->value ?? 'user') == $role->value ? 'selected' : '' }}>
                             {{ ucfirst($role->value) }}
@@ -60,6 +64,7 @@
                 @error('role')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
+                <div class="invalid-feedback" id="role-error">Please select a role.</div>
             </div>
             
             <div class="d-flex justify-content-between">
@@ -69,4 +74,67 @@
         </form>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('userForm');
+        
+        form.addEventListener('submit', function(event) {
+            let isValid = true;
+            
+            // Validate name
+            const nameInput = document.getElementById('name');
+            if (!nameInput.value.trim()) {
+                nameInput.classList.add('is-invalid');
+                document.getElementById('name-error').style.display = 'block';
+                isValid = false;
+            } else {
+                nameInput.classList.remove('is-invalid');
+                document.getElementById('name-error').style.display = 'none';
+            }
+            
+            // Validate email
+            const emailInput = document.getElementById('email');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(emailInput.value.trim())) {
+                emailInput.classList.add('is-invalid');
+                document.getElementById('email-error').style.display = 'block';
+                isValid = false;
+            } else {
+                emailInput.classList.remove('is-invalid');
+                document.getElementById('email-error').style.display = 'none';
+            }
+            
+            // Validate password if creating new user
+            @if(!isset($user))
+            const passwordInput = document.getElementById('password');
+            if (passwordInput.value.length < 8) {
+                passwordInput.classList.add('is-invalid');
+                document.getElementById('password-error').style.display = 'block';
+                isValid = false;
+            } else {
+                passwordInput.classList.remove('is-invalid');
+                document.getElementById('password-error').style.display = 'none';
+            }
+            
+            // Validate password confirmation
+            const confirmInput = document.getElementById('password_confirmation');
+            if (confirmInput.value !== passwordInput.value) {
+                confirmInput.classList.add('is-invalid');
+                document.getElementById('confirm-password-error').style.display = 'block';
+                isValid = false;
+            } else {
+                confirmInput.classList.remove('is-invalid');
+                document.getElementById('confirm-password-error').style.display = 'none';
+            }
+            @endif
+            
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
+    });
+</script>
 @endsection 
