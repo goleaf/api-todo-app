@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Admin Authentication Routes
-Route::group(['as' => 'admin.'], function () {
+Route::group([], function () {
     // Guest routes
     Route::middleware('guest:admin')->group(function () {
         Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
