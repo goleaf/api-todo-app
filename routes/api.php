@@ -1,12 +1,12 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
-use App\Http\Controllers\Api\V1\CategoryController;
-use App\Http\Controllers\Api\V1\DashboardController;
+use App\Http\Controllers\Api\V1\CategoryApiController;
+use App\Http\Controllers\Api\V1\DashboardApiController;
 use App\Http\Controllers\Api\V1\DeviceTokenController;
 use App\Http\Controllers\Api\V1\DocumentationController;
 use App\Http\Controllers\Api\V1\ProfileController;
-use App\Http\Controllers\Api\V1\TaskController;
+use App\Http\Controllers\Api\V1\TaskApiController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Services\OneSignalNotificationService;
 use Illuminate\Http\Request;
@@ -50,14 +50,16 @@ Route::get('/user', function (Request $request) {
 // Test API routes that match direct endpoints expected by tests
 Route::middleware('auth:sanctum')->group(function () {
     // Dashboard endpoint
-    Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::get('/dashboard', [DashboardApiController::class, 'index']);
 
     // Tasks routes
-    Route::apiResource('tasks', TaskController::class);
-    Route::patch('/tasks/{task}/toggle', [TaskController::class, 'toggleComplete']);
+    Route::apiResource('tasks', TaskApiController::class);
+    Route::patch('/tasks/{task}/toggle', [TaskApiController::class, 'toggleComplete']);
+    Route::get('/tasks/statistics', [TaskApiController::class, 'statistics']);
 
     // Categories routes
-    Route::apiResource('categories', CategoryController::class);
+    Route::apiResource('categories', CategoryApiController::class);
+    Route::get('/categories/task-counts', [CategoryApiController::class, 'taskCounts']);
 
     // User routes from UserApiTest
     Route::get('/users', [UserController::class, 'show']);
@@ -98,7 +100,7 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
         Route::get('/auth/me', [AuthController::class, 'me']);
 
         // Dashboard routes
-        Route::get('/dashboard', [DashboardController::class, 'index']);
+        Route::get('/dashboard', [DashboardApiController::class, 'index']);
 
         // User routes
         Route::apiResource('users', UserController::class);
@@ -109,11 +111,13 @@ Route::prefix('v1')->middleware(['throttle:api'])->group(function () {
         Route::delete('/profile/photo', [ProfileController::class, 'deletePhoto']);
 
         // Tasks routes
-        Route::apiResource('tasks', TaskController::class);
-        Route::patch('/tasks/{task}/toggle', [TaskController::class, 'toggleComplete']);
+        Route::apiResource('tasks', TaskApiController::class);
+        Route::patch('/tasks/{task}/toggle', [TaskApiController::class, 'toggleComplete']);
+        Route::get('/tasks/statistics', [TaskApiController::class, 'statistics']);
 
         // Category routes
-        Route::apiResource('categories', CategoryController::class);
+        Route::apiResource('categories', CategoryApiController::class);
+        Route::get('/categories/task-counts', [CategoryApiController::class, 'taskCounts']);
 
         // Device token for push notifications
         Route::post('/device-token', [DeviceTokenController::class, 'store']);

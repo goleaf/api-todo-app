@@ -1,39 +1,37 @@
-# Task Manager
+# Task Manager API
 
-A comprehensive task management application built with Laravel and Livewire.
+A comprehensive API-only task management application built with Laravel.
 
 ## Features
 
+- **100% API-Based**: All functionality exposed through well-designed REST API endpoints
 - **Task Management**: Create, read, update, and delete tasks with features for due dates, priorities, and categories
-- **TaskMVC Component**: Implementation of the classic TodoMVC reference application
-- **Bulk Task Processing**: Process multiple tasks at once with our Hypervel-powered bulk processor
-- **Calendar View**: Visualize tasks in a calendar interface
-- **Dashboard**: Get an overview of task statistics and recent activities
-- **Responsive Design**: Works on desktop and mobile devices
-- **Real-time Updates**: Powered by Livewire for a dynamic user experience
-- **Async Processing**: Uses Hypervel for high-performance asynchronous operations
+- **Category Management**: Organize tasks with custom categories
+- **Dashboard API**: Get an overview of task statistics and recent activities
+- **Service-Based Architecture**: Clean separation between controllers and business logic
+- **Request Validation**: Robust validation with custom error messages from language files
 
 ## Tech Stack
 
 - **Laravel**: Backend PHP framework
-- **Livewire**: Full-stack framework for dynamic interfaces without writing JavaScript
-- **Hypervel**: Asynchronous processing library for Laravel
-- **Tailwind CSS**: Utility-first CSS framework
-- **Alpine.js**: Lightweight JavaScript framework
+- **Laravel Sanctum**: API authentication
 - **MySQL**: Database system
+
+## API Documentation
+
+API documentation is available at `/api/documentation` when the application is running.
 
 ## Installation
 
 1. Clone the repository:
    ```
-   git clone https://github.com/your-username/task-manager.git
-   cd task-manager
+   git clone https://github.com/goleaf/api-todo-app.git
+   cd api-todo-app
    ```
 
 2. Install dependencies:
    ```
    composer install
-   npm install
    ```
 
 3. Copy the environment file and set up your database:
@@ -51,40 +49,105 @@ A comprehensive task management application built with Laravel and Livewire.
    php artisan migrate --seed
    ```
 
-6. Build assets:
-   ```
-   npm run dev
-   ```
-
-7. Start the server:
+6. Start the server:
    ```
    php artisan serve
    ```
 
-## Usage
+## API Usage
 
-### Task Management
+### Authentication
 
-Create, view, edit, and delete tasks through an intuitive interface. Tasks can be assigned priorities, due dates, and categories.
+The API uses Laravel Sanctum for authentication.
 
-### TaskMVC
+```bash
+# Register
+POST /api/register
+Content-Type: application/json
 
-Experience the classic TodoMVC reference application implemented with Laravel Livewire at `/taskmvc`.
+{
+  "name": "Example User",
+  "email": "user@example.com",
+  "password": "password",
+  "password_confirmation": "password"
+}
 
-### Bulk Task Processing
+# Login
+POST /api/login
+Content-Type: application/json
 
-Process multiple tasks at once with our high-performance bulk processor powered by Hypervel at `/tasks/bulk`.
+{
+  "email": "user@example.com",
+  "password": "password"
+}
 
-### Calendar View
+# Response contains token
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "token": "YOUR_API_TOKEN"
+  }
+}
+```
 
-Visualize your tasks in a calendar interface at `/calendar`.
+### Tasks
 
-## Documentation
+```bash
+# List all tasks
+GET /api/tasks
+Authorization: Bearer YOUR_API_TOKEN
 
-- [Migration from Todo to Task](docs/TODO_TO_TASK_MIGRATION.md)
-- [Hypervel Integration](docs/hypervel-integration.md)
-- [Livewire Testing Guide](docs/livewire-testing-guide.md)
-- [Real-time Notifications](docs/real-time-notifications.md)
+# Create a task
+POST /api/tasks
+Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+
+{
+  "title": "Complete project",
+  "description": "Finish all required features",
+  "due_date": "2025-04-15",
+  "priority": 2,
+  "category_id": 1
+}
+
+# Update a task
+PUT /api/tasks/1
+Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+
+{
+  "title": "Complete project phase 1",
+  "priority": 1
+}
+
+# Delete a task
+DELETE /api/tasks/1
+Authorization: Bearer YOUR_API_TOKEN
+
+# Toggle task completion
+PATCH /api/tasks/1/toggle
+Authorization: Bearer YOUR_API_TOKEN
+```
+
+### Categories
+
+```bash
+# List all categories
+GET /api/categories
+Authorization: Bearer YOUR_API_TOKEN
+
+# Create a category
+POST /api/categories
+Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+
+{
+  "name": "Work",
+  "color": "#ff5722",
+  "icon": "briefcase"
+}
+```
 
 ## Testing
 
