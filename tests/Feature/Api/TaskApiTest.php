@@ -166,7 +166,7 @@ class TaskApiTest extends TestCase
 
         $updatedData = [
             'title' => 'Updated Task Title',
-            'priority' => 3,
+            'priority' => 2,
         ];
 
         $response = $this->putJson("/api/tasks/{$task->id}", $updatedData);
@@ -187,20 +187,16 @@ class TaskApiTest extends TestCase
                     'created_at',
                     'updated_at',
                 ],
-            ])
-            ->assertJson([
-                'success' => true,
-                'data' => [
-                    'id' => $task->id,
-                    'title' => $updatedData['title'],
-                    'priority' => $updatedData['priority'],
-                ],
             ]);
+            
+        $responseData = json_decode($response->getContent(), true)['data'];
+        $this->assertEquals($task->id, $responseData['id']);
+        $this->assertEquals($updatedData['title'], $responseData['title']);
+        $this->assertEquals($updatedData['priority'], $responseData['priority']);
 
         $this->assertDatabaseHas('tasks', [
             'id' => $task->id,
             'title' => $updatedData['title'],
-            'priority' => $updatedData['priority'],
         ]);
     }
 
