@@ -40,6 +40,9 @@ class RunApiTests extends Command
             $testCommand[] = $this->option('filter');
         }
 
+        // Specify the tests directory
+        $testCommand[] = 'tests/Feature';
+
         // Add coverage option if requested
         if ($this->option('coverage')) {
             $testCommand[] = '--coverage-text';
@@ -69,7 +72,7 @@ class RunApiTests extends Command
             $fileCount = 0;
 
             foreach ($testFiles as $file) {
-                if (basename($file) !== 'ApiTestSuite.php') {
+                if (basename($file) !== 'ApiTestSuite.php' && is_file($file)) {
                     $this->line(' - '.basename($file));
                     $fileCount++;
                 }

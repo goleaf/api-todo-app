@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -47,6 +48,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'role' => UserRole::class,
     ];
 
     /**
@@ -91,7 +93,7 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === UserRole::ADMIN;
     }
 
     /**
@@ -148,7 +150,7 @@ class User extends Authenticatable
     /**
      * Scope a query to filter by role.
      */
-    public function scopeWithRole(Builder $query, string $role): Builder
+    public function scopeWithRole(Builder $query, UserRole $role): Builder
     {
         return $query->where('role', $role);
     }
@@ -158,13 +160,42 @@ class User extends Authenticatable
      */
     public function getTaskStatistics(): array
     {
+        $total = $this->tasks()->count();
+        $completed = $this->completedTasks()->count();
+        
         return [
-            'total' => $this->tasks()->count(),
-            'completed' => $this->completedTasks()->count(),
-            'incomplete' => $this->incompleteTasks()->count(),
-            'due_today' => $this->tasksDueToday()->count(),
+            'total' => $total,
+            'completed' => $completed,
+            'incomplete' => $total - $completed,
+            'today' => $this->tasksDueToday()->count(),
             'overdue' => $this->overdueTasks()->count(),
             'upcoming' => $this->upcomingTasks()->count(),
+            'completion_rate' => $total > 0 ? round(($completed / $total) * 100, 1) : 0,
+            'by_priority' => [
+                '1' => $this->tasks()->withPriority(1)->count(),
+                '2' => $this->tasks()->withPriority(2)->count(),
+                '3' => $this->tasks()->withPriority(3)->count(),
+                '4' => $this->tasks()->withPriority(4)->count(),
+            ],
+            'by_category' => $this->getCategoryStatistics(),
         ];
+    }
+    
+    /**
+     * Get task statistics by category.
+     */
+    private function getCategoryStatistics(): array
+    {
+        $result = [];
+        $categories = $this->categories()->get();
+        
+        foreach ($categories as $category) {
+            $result[$category->id] = [
+                'name' => $category->name,
+                'count' => $category->tasks()->count(),
+            ];
+        }
+        
+        return $result;
     }
 }
