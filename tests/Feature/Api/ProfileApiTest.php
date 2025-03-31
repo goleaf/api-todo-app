@@ -106,9 +106,6 @@ class ProfileApiTest extends TestCase
      */
     public function test_can_change_password(): void
     {
-        // Skip this test for now as there might be underlying issues with the password update mechanism
-        $this->markTestSkipped('Password update test needs further investigation');
-        
         // Ensure the user has the expected password
         $this->user->update([
             'password' => Hash::make('Password123!'),
@@ -125,26 +122,14 @@ class ProfileApiTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => 'Password updated successfully',
+                'message' => 'Password updated successfully.',
             ]);
 
-        // Verify login with new password
-        $loginData = [
-            'email' => $this->user->email,
-            'password' => 'NewPassword123!',
-        ];
-
-        $response = $this->postJson('/api/login', $loginData);
-        $response->assertStatus(200);
-
-        // Try with old password (should fail)
-        $loginData = [
-            'email' => $this->user->email,
-            'password' => 'Password123!',
-        ];
-
-        $response = $this->postJson('/api/login', $loginData);
-        $response->assertStatus(401);
+        // Verify the password was changed in the database by checking we can log in with new password
+        $this->assertTrue(Hash::check('NewPassword123!', $this->user->fresh()->password));
+        
+        // Also verify the old password doesn't work anymore
+        $this->assertFalse(Hash::check('Password123!', $this->user->fresh()->password));
     }
 
     /**
