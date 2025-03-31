@@ -151,7 +151,7 @@ class Tag extends Model
     public static function getMatchingForUser(string $partialName, int $userId, int $limit = 10): Builder
     {
         return static::forUser($userId)
-            ->namelike($partialName)
+            ->nameLike($partialName)
             ->orderByUsage()
             ->limit($limit);
     }
