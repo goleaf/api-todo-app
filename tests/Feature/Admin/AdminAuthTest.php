@@ -80,6 +80,6 @@ class AdminAuthTest extends TestCase
     public function test_unauthenticated_admin_cannot_access_dashboard(): void
     {
         $response = $this->get(route('admin.dashboard'));
-        $response->assertRedirect();
+        $response->assertRedirect(route('admin.login'));
     }
 } 

@@ -42,7 +42,7 @@ class TagTest extends TestCase
             ->get(route('admin.tags.create'));
 
         $response->assertStatus(200);
-        $response->assertViewIs('admin.tags.create');
+        $response->assertViewIs('admin.tags.form');
 
         // Submit the form to create a tag
         $tagData = [
@@ -94,7 +94,7 @@ class TagTest extends TestCase
             ->get(route('admin.tags.edit', $tag));
 
         $response->assertStatus(200);
-        $response->assertViewIs('admin.tags.edit');
+        $response->assertViewIs('admin.tags.form');
 
         // Submit the form to update the tag
         $updatedData = [

@@ -48,7 +48,7 @@ class TaskTest extends TestCase
             ->get(route('admin.tasks.create'));
 
         $response->assertStatus(200);
-        $response->assertViewIs('admin.tasks.create');
+        $response->assertViewIs('admin.tasks.form');
 
         // Submit the form to create a task
         $taskData = [
@@ -109,7 +109,7 @@ class TaskTest extends TestCase
             ->get(route('admin.tasks.edit', $task));
 
         $response->assertStatus(200);
-        $response->assertViewIs('admin.tasks.edit');
+        $response->assertViewIs('admin.tasks.form');
 
         // Submit the form to update the task
         $updatedData = [

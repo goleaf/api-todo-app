@@ -43,7 +43,7 @@ class CategoryTest extends TestCase
             ->get(route('admin.categories.create'));
 
         $response->assertStatus(200);
-        $response->assertViewIs('admin.categories.create');
+        $response->assertViewIs('admin.categories.form');
 
         // Submit the form to create a category
         $categoryData = [
@@ -97,7 +97,7 @@ class CategoryTest extends TestCase
             ->get(route('admin.categories.edit', $category));
 
         $response->assertStatus(200);
-        $response->assertViewIs('admin.categories.edit');
+        $response->assertViewIs('admin.categories.form');
 
         // Submit the form to update the category
         $updatedData = [

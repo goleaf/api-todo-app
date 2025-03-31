@@ -108,7 +108,7 @@
                             <td>
                                 <form action="{{ route('admin.tasks.toggle', $task) }}" method="POST" class="d-inline">
                                     @csrf
-                                    <button type="submit" class="btn btn-sm {{ $task->completed ? 'btn-success' : 'btn-warning' }}">
+                                    <button type="submit" class="btn btn-sm {{ $task->completed ? 'btn-success' : 'btn-warning' }}" dusk="toggle-task-{{ $task->id }}">
                                         {{ $task->completed ? 'Completed' : 'Pending' }}
                                     </button>
                                 </form>
@@ -127,12 +127,12 @@
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <a href="{{ route('admin.tasks.show', $task) }}" class="btn btn-sm btn-info">View</a>
-                                    <a href="{{ route('admin.tasks.edit', $task) }}" class="btn btn-sm btn-warning">Edit</a>
+                                    <a href="{{ route('admin.tasks.show', $task) }}" class="btn btn-sm btn-info" dusk="view-task-{{ $task->id }}">View</a>
+                                    <a href="{{ route('admin.tasks.edit', $task) }}" class="btn btn-sm btn-warning" dusk="edit-task-{{ $task->id }}">Edit</a>
                                     <form action="{{ route('admin.tasks.destroy', $task) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this task?');" class="d-inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                        <button type="submit" class="btn btn-sm btn-danger" dusk="delete-task-{{ $task->id }}">Delete</button>
                                     </form>
                                 </div>
                             </td>

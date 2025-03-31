@@ -46,12 +46,12 @@
                             <td>{{ $user->tasks->count() }}</td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <a href="{{ route('admin.users.show', $user) }}" class="btn btn-sm btn-info">View</a>
-                                    <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-warning">Edit</a>
+                                    <a href="{{ route('admin.users.show', $user) }}" class="btn btn-sm btn-info" dusk="view-user-{{ $user->id }}">View</a>
+                                    <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-warning" dusk="edit-user-{{ $user->id }}">Edit</a>
                                     <form action="{{ route('admin.users.destroy', $user) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this user?');" class="d-inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                        <button type="submit" class="btn btn-sm btn-danger" dusk="delete-user-{{ $user->id }}">Delete</button>
                                     </form>
                                 </div>
                             </td>
