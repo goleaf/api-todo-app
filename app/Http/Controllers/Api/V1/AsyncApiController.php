@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\ApiController;
+use App\Http\Requests\Api\Async\AsyncBulkProcessTasksRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -52,14 +53,11 @@ class AsyncApiController extends ApiController
     /**
      * Process tasks in bulk asynchronously.
      */
-    public function bulkProcessTasks(Request $request): JsonResponse
+    public function bulkProcessTasks(AsyncBulkProcessTasksRequest $request): JsonResponse
     {
-        $taskIds = $request->input('task_ids', []);
-        $action = $request->input('action', 'complete');
-
-        if (empty($taskIds)) {
-            return $this->errorResponse('No task IDs provided', 422);
-        }
+        $validated = $request->validated();
+        $taskIds = $validated['task_ids'];
+        $action = $validated['action'];
 
         // Simulate processing tasks
         $processed = array_map(function ($id) use ($action) {

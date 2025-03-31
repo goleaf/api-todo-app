@@ -4,7 +4,7 @@ namespace App\Http\Requests\Api\Task;
 
 use App\Http\Requests\Api\ApiRequest;
 
-class TaskUpdateTagsRequest extends ApiRequest
+class TaskBulkTagOperationRequest extends ApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,6 +22,7 @@ class TaskUpdateTagsRequest extends ApiRequest
     public function rules(): array
     {
         return [
+            'operation' => 'required|string|in:add,remove',
             'tags' => 'required|array',
             'tags.*' => 'string|max:50',
         ];
@@ -33,6 +34,9 @@ class TaskUpdateTagsRequest extends ApiRequest
     public function messages(): array
     {
         return [
+            'operation.required' => __('validation.required', ['attribute' => 'operation']),
+            'operation.string' => __('validation.string', ['attribute' => 'operation']),
+            'operation.in' => __('validation.in', ['attribute' => 'operation']),
             'tags.required' => __('validation.required', ['attribute' => 'tags']),
             'tags.array' => __('validation.array', ['attribute' => 'tags']),
             'tags.*.string' => __('validation.string', ['attribute' => 'tag']),

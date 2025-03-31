@@ -2,9 +2,13 @@
 
 namespace App\Providers;
 
-use App\Events\TodoCreated;
-use App\Events\TodoDeleted;
-use App\Events\TodoUpdated;
+use App\Events\TaskCreated;
+use App\Events\TaskDeleted;
+use App\Events\TaskUpdated;
+use App\Events\CategoryCreated;
+use App\Events\CategoryUpdated;
+use App\Events\CategoryDeleted;
+use App\Events\TaskCompleted;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -21,9 +25,13 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
-        TodoCreated::class => [],
-        TodoUpdated::class => [],
-        TodoDeleted::class => [],
+        TaskCreated::class => [],
+        TaskUpdated::class => [],
+        TaskDeleted::class => [],
+        TaskCompleted::class => [],
+        CategoryCreated::class => [],
+        CategoryUpdated::class => [],
+        CategoryDeleted::class => [],
     ];
 
     /**

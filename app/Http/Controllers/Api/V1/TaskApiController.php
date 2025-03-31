@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\ApiController;
+use App\Http\Requests\Api\Task\TaskBulkTagOperationRequest;
 use App\Http\Requests\Api\Task\TaskStoreRequest;
 use App\Http\Requests\Api\Task\TaskUpdateRequest;
 use App\Http\Requests\Api\Task\TaskUpdateTagsRequest;
@@ -115,26 +116,17 @@ class TaskApiController extends ApiController
     /**
      * Update tags for a task.
      */
-    public function updateTags(Request $request, int $id): JsonResponse
+    public function updateTags(TaskUpdateTagsRequest $request, int $id): JsonResponse
     {
-        $validated = $request->validate([
-            'tags' => 'required|array',
-            'tags.*' => 'string|max:50',
-        ]);
-        
-        return $this->service->updateTaskTags($id, $validated['tags']);
+        return $this->service->updateTaskTags($id, $request->validated()['tags']);
     }
 
     /**
      * Bulk operation on task tags.
      */
-    public function bulkTagOperation(Request $request, int $id): JsonResponse
+    public function bulkTagOperation(TaskBulkTagOperationRequest $request, int $id): JsonResponse
     {
-        $validated = $request->validate([
-            'operation' => 'required|string|in:add,remove',
-            'tags' => 'required|array',
-            'tags.*' => 'string|max:50',
-        ]);
+        $validated = $request->validated();
         
         return $this->service->bulkTagOperation(
             $id, 
