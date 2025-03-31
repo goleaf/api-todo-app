@@ -83,13 +83,14 @@ class CategoryEventsTest extends TestCase
         ]);
 
         $categoryId = $category->id;
+        $userId = $category->user_id;
 
         Event::fake([CategoryDeleted::class]);
 
         $category->delete();
 
-        Event::assertDispatched(CategoryDeleted::class, function ($event) use ($categoryId) {
-            return $event->category->id === $categoryId;
+        Event::assertDispatched(CategoryDeleted::class, function ($event) use ($categoryId, $userId) {
+            return $event->categoryId === $categoryId && $event->userId === $userId;
         });
     }
 } 

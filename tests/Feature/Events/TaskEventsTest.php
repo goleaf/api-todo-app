@@ -95,13 +95,14 @@ class TaskEventsTest extends TestCase
         ]);
 
         $taskId = $task->id;
+        $userId = $task->user_id;
 
         Event::fake([TaskDeleted::class]);
 
         $task->delete();
 
-        Event::assertDispatched(TaskDeleted::class, function ($event) use ($taskId) {
-            return $event->task->id === $taskId;
+        Event::assertDispatched(TaskDeleted::class, function ($event) use ($taskId, $userId) {
+            return $event->taskId === $taskId && $event->userId === $userId;
         });
     }
 
