@@ -100,4 +100,33 @@ class TagApiController extends ApiController
             $validated['target_tag_id']
         );
     }
+
+    /**
+     * Get tag suggestions for autocomplete.
+     */
+    public function suggestions(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'query' => 'required|string|min:1|max:50',
+            'limit' => 'sometimes|integer|min:1|max:50',
+        ]);
+        
+        $limit = $validated['limit'] ?? 10;
+        
+        return $this->service->getSuggestions($validated['query'], $limit);
+    }
+
+    /**
+     * Create multiple tags in a single operation.
+     */
+    public function batchCreate(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'tags' => 'required|array|min:1',
+            'tags.*.name' => 'required|string|min:1|max:50',
+            'tags.*.color' => 'sometimes|string|max:20',
+        ]);
+        
+        return $this->service->batchCreate($validated['tags']);
+    }
 }

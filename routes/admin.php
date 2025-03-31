@@ -41,5 +41,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
         
         // Tasks management
         Route::resource('tasks', TaskController::class);
+        Route::post('tasks/{task}/toggle', [TaskController::class, 'toggleCompletion'])->name('tasks.toggle');
+        Route::get('users/{user}/categories', [TaskController::class, 'getCategoriesForUser'])->name('users.categories');
+        Route::get('users/{user}/tags', [TaskController::class, 'getTagsForUser'])->name('users.tags');
     });
 }); 

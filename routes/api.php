@@ -33,7 +33,7 @@ Route::get('/documentation', function () {
                 'users' => ['/users', '/users/{id}', '/users/statistics'],
                 'tasks' => ['/tasks', '/tasks/{id}', '/tasks/statistics', '/tasks/{id}/tags', '/tasks/{id}/tags/bulk', '/tasks/by-tag/{tagName}'],
                 'categories' => ['/categories', '/categories/{id}', '/categories/task-counts'],
-                'tags' => ['/tags', '/tags/{id}', '/tags/popular', '/tags/task-counts', '/tags/{id}/tasks'],
+                'tags' => ['/tags', '/tags/{id}', '/tags/popular', '/tags/task-counts', '/tags/{id}/tasks', '/tags/merge', '/tags/suggestions', '/tags/batch'],
                 'profile' => ['/profile', '/profile/password', '/profile/photo'],
                 'dashboard' => ['/dashboard'],
             ],
@@ -105,6 +105,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [TagApiController::class, 'store']);
         Route::get('/popular', [TagApiController::class, 'popular']);
         Route::get('/task-counts', [TagApiController::class, 'taskCounts']);
+        Route::post('/merge', [TagApiController::class, 'merge']);
+        Route::get('/suggestions', [TagApiController::class, 'suggestions']);
+        Route::post('/batch', [TagApiController::class, 'batchCreate']);
         Route::get('/{id}', [TagApiController::class, 'show']);
         Route::put('/{id}', [TagApiController::class, 'update']);
         Route::delete('/{id}', [TagApiController::class, 'destroy']);

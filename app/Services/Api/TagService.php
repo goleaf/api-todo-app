@@ -248,4 +248,76 @@ class TagService
             return $this->errorResponse(__('messages.tag.merge_failed'), 500);
         }
     }
+
+    /**
+     * Get tag suggestions based on partial name input.
+     * Useful for autocomplete functionality.
+     */
+    public function getSuggestions(string $query, int $limit = 10): JsonResponse
+    {
+        $user = Auth::user();
+        
+        $tags = Tag::forUser($user->id)
+            ->where('name', 'like', "%{$query}%")
+            ->orderByUsage()
+            ->limit($limit)
+            ->get(['id', 'name', 'color', 'usage_count']);
+            
+        return $this->successResponse($tags);
+    }
+
+    /**
+     * Create multiple tags in a single operation.
+     */
+    public function batchCreate(array $tagsData): JsonResponse
+    {
+        $user = Auth::user();
+        $userId = $user->id;
+        $createdTags = [];
+        $existingTags = [];
+        
+        // Begin transaction
+        DB::beginTransaction();
+        
+        try {
+            foreach ($tagsData as $tagData) {
+                // Check if tag already exists for this user
+                $existingTag = Tag::where('name', $tagData['name'])
+                    ->where('user_id', $userId)
+                    ->first();
+                    
+                if ($existingTag) {
+                    $existingTags[] = $existingTag;
+                    continue;
+                }
+                
+                // Set defaults if not provided
+                if (!isset($tagData['color']) || empty($tagData['color'])) {
+                    $tagData['color'] = '#' . substr(md5($tagData['name']), 0, 6);
+                }
+                
+                // Create the tag
+                $tag = new Tag();
+                $tag->name = $tagData['name'];
+                $tag->color = $tagData['color'];
+                $tag->user_id = $userId;
+                $tag->save();
+                
+                $createdTags[] = $tag;
+            }
+            
+            DB::commit();
+            
+            return $this->successResponse([
+                'created' => $createdTags,
+                'existing' => $existingTags,
+                'total_created' => count($createdTags),
+                'total_existing' => count($existingTags),
+            ], __('messages.tag.batch_created'));
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->errorResponse(__('messages.tag.batch_create_failed'), 500);
+        }
+    }
 } 
