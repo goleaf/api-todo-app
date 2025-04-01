@@ -63,6 +63,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('confirm-password', [ConfirmPasswordController::class, 'showConfirmForm'])
         ->name('password.confirm');
     Route::post('confirm-password', [ConfirmPasswordController::class, 'confirm']);
+
+    // Statistics page
+    Route::get('/statistics', function () {
+        return view('statistics.index');
+    })->name('statistics');
 });
 
 // Verified Routes

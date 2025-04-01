@@ -1,79 +1,55 @@
-<x-layouts.app>
-    <x-slot:title>{{ __('Create Category') }}</x-slot:title>
+<x-app-layout>
+    <x-slot name="header">
+        <div class="flex justify-between items-center">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('Create Category') }}
+            </h2>
+            <a href="{{ route('categories.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300 focus:bg-gray-300 active:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                Back to Categories
+            </a>
+        </div>
+    </x-slot>
 
-    <div class="space-y-6">
-        <x-header>
-            <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-bold">{{ __('Create Category') }}</h1>
-            </div>
-        </x-header>
-        
-        <x-card>
-            <form action="{{ route('admin.categories.store') }}" method="POST">
-                @csrf
-                
-                <div class="space-y-4">
-                    <div>
-                        <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {{ __('Name') }} <span class="text-red-500">*</span>
-                        </label>
-                        <input type="text" name="name" id="name" value="{{ old('name') }}" required
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:ring-blue-500"
-                            placeholder="{{ __('Enter category name') }}">
-                        @error('name')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    
-                    <div>
-                        <label for="color" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {{ __('Color') }}
-                        </label>
-                        <div class="flex mt-1">
-                            <input type="color" name="color" id="color" value="{{ old('color', '#3b82f6') }}"
-                                class="h-10 w-12 rounded-l-md border-gray-300 dark:border-gray-700 dark:bg-gray-800">
-                            <input type="text" name="color_hex" id="color_hex" value="{{ old('color', '#3b82f6') }}"
-                                class="flex-1 rounded-r-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                                readonly>
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 bg-white border-b border-gray-200">
+                    <form action="{{ route('categories.store') }}" method="POST">
+                        @csrf
+                        
+                        <div class="mb-6">
+                            <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+                            <input type="text" name="name" id="name" value="{{ old('name') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required>
+                            @error('name')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
-                        @error('color')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    
-                    <div>
-                        <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            {{ __('Description') }}
-                        </label>
-                        <textarea name="description" id="description" rows="3"
-                            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:ring-blue-500"
-                            placeholder="{{ __('Enter category description') }}">{{ old('description') }}</textarea>
-                        @error('description')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
+                        
+                        <div class="mb-6">
+                            <label for="color" class="block text-sm font-medium text-gray-700">Color</label>
+                            <select name="color" id="color" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                                <option value="gray" {{ old('color') == 'gray' ? 'selected' : '' }}>Gray</option>
+                                <option value="red" {{ old('color') == 'red' ? 'selected' : '' }}>Red</option>
+                                <option value="yellow" {{ old('color') == 'yellow' ? 'selected' : '' }}>Yellow</option>
+                                <option value="green" {{ old('color') == 'green' ? 'selected' : '' }}>Green</option>
+                                <option value="blue" {{ old('color') == 'blue' ? 'selected' : '' }}>Blue</option>
+                                <option value="indigo" {{ old('color') == 'indigo' ? 'selected' : '' }}>Indigo</option>
+                                <option value="purple" {{ old('color') == 'purple' ? 'selected' : '' }}>Purple</option>
+                                <option value="pink" {{ old('color') == 'pink' ? 'selected' : '' }}>Pink</option>
+                            </select>
+                            @error('color')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        
+                        <div class="flex justify-end">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                Create Category
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                
-                <div class="mt-6 flex items-center justify-end space-x-3">
-                    <a href="{{ route('admin.categories.index') }}" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
-                        {{ __('Cancel') }}
-                    </a>
-                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        {{ __('Create Category') }}
-                    </button>
-                </div>
-            </form>
-        </x-card>
+            </div>
+        </div>
     </div>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const colorInput = document.getElementById('color');
-            const colorHexInput = document.getElementById('color_hex');
-            
-            colorInput.addEventListener('input', function() {
-                colorHexInput.value = this.value;
-            });
-        });
-    </script>
-</x-layouts.app> 
+</x-app-layout> 

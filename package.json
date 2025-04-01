@@ -11,8 +11,10 @@
         "@tabler/core": "1.1.1",
         "@tabler/icons": "^3.31.0",
         "@tabler/icons-webfont": "^3.31.0",
+        "@tailwindcss/forms": "^0.5.7",
         "@tailwindcss/vite": "^4.0.0",
         "apexcharts": "^3.40.0",
+        "autoprefixer": "^10.4.17",
         "autosize": "^6.0.1",
         "axios": "^1.7.4",
         "bootstrap": "5.3.3",
@@ -29,10 +31,11 @@
         "litepicker": "^2.0.12",
         "nouislider": "^15.8.1",
         "plyr": "^3.7.8",
+        "postcss": "^8.4.35",
         "sass": "~1.64.2",
         "sass-loader": "^16.0.1",
         "star-rating.js": "^4.3.1",
-        "tailwindcss": "^4.0.17",
+        "tailwindcss": "^3.4.1",
         "tinymce": "^7.6.1",
         "tom-select": "^2.4.2",
         "typed.js": "^2.1.0",
@@ -40,8 +43,6 @@
         "vite-plugin-static-copy": "~1.0.5"
     },
     "dependencies": {
-        "alpinejs": "^3.14.9",
-        "autoprefixer": "^10.4.21",
-        "postcss": "^8.5.3"
+        "alpinejs": "^3.14.9"
     }
 }

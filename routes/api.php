@@ -57,4 +57,12 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\Api\DashboardController::class, 'index']);
+
+    // Statistics routes
+    Route::prefix('statistics')->group(function () {
+        Route::get('tasks', 'App\Http\Controllers\Api\StatisticsController@taskStats');
+        Route::get('time', 'App\Http\Controllers\Api\StatisticsController@timeStats');
+        Route::get('productivity', 'App\Http\Controllers\Api\StatisticsController@productivityTrends');
+        Route::get('tags', 'App\Http\Controllers\Api\StatisticsController@tagStats');
+    });
 });

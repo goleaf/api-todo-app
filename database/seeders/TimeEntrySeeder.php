@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\Task;
-use App\Models\TimeEntry;
-use App\Models\User;
 use Illuminate\Database\Seeder;
+use App\Models\TimeEntry;
+use App\Models\Task;
+use App\Models\User;
 
 class TimeEntrySeeder extends Seeder
 {
@@ -14,33 +14,22 @@ class TimeEntrySeeder extends Seeder
      */
     public function run(): void
     {
-        User::all()->each(function ($user) {
-            // Get user's tasks
-            $tasks = Task::where('user_id', $user->id)->get();
+        $users = User::all();
+        $tasks = Task::all();
 
-            // Create completed time entries for random tasks
-            $tasks->random(10)->each(function ($task) {
-                // Create 1-3 time entries for each task
-                for ($i = 0; $i < rand(1, 3); $i++) {
-                    $startDate = now()->subDays(rand(1, 30));
-                    $duration = rand(15, 120); // Duration in minutes
-
-                    TimeEntry::create([
-                        'task_id' => $task->id,
-                        'start_time' => $startDate,
-                        'end_time' => $startDate->copy()->addMinutes($duration),
-                        'duration' => $duration,
-                    ]);
-                }
-            });
-
-            // Create some ongoing time entries
-            $tasks->random(2)->each(function ($task) {
+        $users->each(function ($user) use ($tasks) {
+            $userTasks = $tasks->where('user_id', $user->id);
+            
+            $userTasks->each(function ($task) {
+                $startTime = now()->subDays(rand(1, 30))->setTime(rand(8, 17), rand(0, 59));
+                $endTime = $startTime->copy()->addMinutes(rand(15, 480));
+                
                 TimeEntry::create([
+                    'user_id' => $task->user_id,
                     'task_id' => $task->id,
-                    'start_time' => now()->subMinutes(rand(5, 60)),
-                    'end_time' => null,
-                    'duration' => null,
+                    'started_at' => $startTime,
+                    'ended_at' => $endTime,
+                    'description' => 'Sample time entry for task: ' . $task->title,
                 ]);
             });
         });

@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use Illuminate\Database\Seeder;
 use App\Models\Category;
 use App\Models\User;
-use Illuminate\Database\Seeder;
 
 class CategorySeeder extends Seeder
 {
@@ -13,28 +13,26 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        $defaultCategories = [
-            'Work' => '#FF0000',
-            'Personal' => '#00FF00',
-            'Shopping' => '#0000FF',
-            'Health' => '#FFA500',
-            'Education' => '#800080',
+        $categories = [
+            ['name' => 'Work', 'color' => '#FF0000'],
+            ['name' => 'Personal', 'color' => '#00FF00'],
+            ['name' => 'Shopping', 'color' => '#0000FF'],
+            ['name' => 'Health', 'color' => '#FFFF00'],
+            ['name' => 'Education', 'color' => '#FF00FF'],
         ];
 
-        User::all()->each(function ($user) use ($defaultCategories) {
-            // Create default categories for each user
-            foreach ($defaultCategories as $name => $color) {
-                Category::create([
-                    'user_id' => $user->id,
-                    'name' => $name,
-                    'color' => $color,
-                ]);
+        User::all()->each(function ($user) use ($categories) {
+            foreach ($categories as $category) {
+                Category::firstOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'name' => $category['name']
+                    ],
+                    [
+                        'color' => $category['color']
+                    ]
+                );
             }
-
-            // Create additional random categories
-            Category::factory(3)->create([
-                'user_id' => $user->id,
-            ]);
         });
     }
 } 
