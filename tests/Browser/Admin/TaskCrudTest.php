@@ -5,6 +5,7 @@ namespace Tests\Browser\Admin;
 use App\Models\Category;
 use App\Models\Task;
 use App\Models\User;
+use App\Enums\UserRole;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\Dusk\Browser;
@@ -17,7 +18,7 @@ class TaskCrudTest extends DuskTestCase
      */
     public function testTaskListingPage()
     {
-        $admin = User::where('role', 'admin')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
 
         if (!$admin) {
             $this->markTestSkipped('No admin user found in the database');
@@ -45,7 +46,7 @@ class TaskCrudTest extends DuskTestCase
      */
     public function testCreateTaskForm()
     {
-        $admin = User::where('role', 'admin')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
 
         if (!$admin) {
             $this->markTestSkipped('No admin user found in the database');
@@ -72,8 +73,8 @@ class TaskCrudTest extends DuskTestCase
      */
     public function testTaskCreation()
     {
-        $admin = User::where('role', 'admin')->first();
-        $user = User::where('role', 'user')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
+        $user = User::withRole(UserRole::USER)->first();
         $category = Category::first();
 
         if (!$admin || !$user || !$category) {
@@ -108,8 +109,8 @@ class TaskCrudTest extends DuskTestCase
      */
     public function testEditTaskForm()
     {
-        $admin = User::where('role', 'admin')->first();
-        $user = User::where('role', 'user')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
+        $user = User::withRole(UserRole::USER)->first();
         $category = Category::first();
 
         if (!$admin || !$user || !$category) {
@@ -150,8 +151,8 @@ class TaskCrudTest extends DuskTestCase
      */
     public function testTaskUpdate()
     {
-        $admin = User::where('role', 'admin')->first();
-        $user = User::where('role', 'user')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
+        $user = User::withRole(UserRole::USER)->first();
         $category = Category::first();
 
         if (!$admin || !$user || !$category) {
@@ -193,8 +194,8 @@ class TaskCrudTest extends DuskTestCase
      */
     public function testTaskToggleCompletion()
     {
-        $admin = User::where('role', 'admin')->first();
-        $user = User::where('role', 'user')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
+        $user = User::withRole(UserRole::USER)->first();
         $category = Category::first();
 
         if (!$admin || !$user || !$category) {
@@ -240,8 +241,8 @@ class TaskCrudTest extends DuskTestCase
      */
     public function testTaskDeletion()
     {
-        $admin = User::where('role', 'admin')->first();
-        $user = User::where('role', 'user')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
+        $user = User::withRole(UserRole::USER)->first();
         $category = Category::first();
 
         if (!$admin || !$user || !$category) {

@@ -3,6 +3,7 @@
 namespace Tests\Browser\Admin;
 
 use App\Models\User;
+use App\Enums\UserRole;
 use Laravel\Dusk\Browser;
 use Tests\Browser\Pages\Admin\Dashboard;
 use Tests\DuskTestCase;
@@ -16,7 +17,7 @@ class AdminDashboardAnalyticsTest extends DuskTestCase
      */
     public function testDashboardStatisticsCardsAreDisplayed()
     {
-        $admin = User::where('role', 'admin')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
 
         if (!$admin) {
             $this->markTestSkipped('No admin user found in the database');
@@ -39,7 +40,7 @@ class AdminDashboardAnalyticsTest extends DuskTestCase
      */
     public function testDashboardChartDataEndpoint()
     {
-        $admin = User::where('role', 'admin')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
 
         if (!$admin) {
             $this->markTestSkipped('No admin user found in the database');
@@ -62,7 +63,7 @@ class AdminDashboardAnalyticsTest extends DuskTestCase
      */
     public function testDashboardChartDataWithPeriodParameter()
     {
-        $admin = User::where('role', 'admin')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
 
         if (!$admin) {
             $this->markTestSkipped('No admin user found in the database');
@@ -97,7 +98,7 @@ class AdminDashboardAnalyticsTest extends DuskTestCase
      */
     public function testRefreshDashboardButton()
     {
-        $admin = User::where('role', 'admin')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
 
         if (!$admin) {
             $this->markTestSkipped('No admin user found in the database');

@@ -11,6 +11,7 @@ use Laravel\Dusk\Browser;
 use ReflectionClass;
 use ReflectionMethod;
 use Tests\Browser\BrowserExtensions;
+use Illuminate\Support\Facades\Artisan;
 
 abstract class DuskTestCase extends BaseTestCase
 {
@@ -41,6 +42,28 @@ abstract class DuskTestCase extends BaseTestCase
             };
             
             Browser::macro($methodName, $callback->bindTo(null, Browser::class));
+        }
+
+        // Run migrations once to ensure tables are created
+        static::runMigrations();
+    }
+
+    /**
+     * Run database migrations for tests.
+     *
+     * @return void
+     */
+    protected static function runMigrations(): void
+    {
+        static $migrated = false;
+
+        if (!$migrated) {
+            Artisan::call('migrate:fresh', [
+                '--seed' => true,
+                '--env' => 'dusk.local',
+            ]);
+            
+            $migrated = true;
         }
     }
 

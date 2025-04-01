@@ -3,6 +3,7 @@
 namespace Tests\Browser\Admin;
 
 use App\Models\User;
+use App\Enums\UserRole;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
 
@@ -15,7 +16,7 @@ class UserFormValidationTest extends DuskTestCase
      */
     public function testRequiredFieldsValidation()
     {
-        $admin = User::where('role', 'admin')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
 
         if (!$admin) {
             $this->markTestSkipped('No admin user found in the database');
@@ -38,7 +39,7 @@ class UserFormValidationTest extends DuskTestCase
      */
     public function testEmailValidation()
     {
-        $admin = User::where('role', 'admin')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
 
         if (!$admin) {
             $this->markTestSkipped('No admin user found in the database');
@@ -63,7 +64,7 @@ class UserFormValidationTest extends DuskTestCase
      */
     public function testPasswordConfirmationValidation()
     {
-        $admin = User::where('role', 'admin')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
 
         if (!$admin) {
             $this->markTestSkipped('No admin user found in the database');
@@ -88,7 +89,7 @@ class UserFormValidationTest extends DuskTestCase
      */
     public function testEmailUniquenessValidation()
     {
-        $admin = User::where('role', 'admin')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
 
         if (!$admin) {
             $this->markTestSkipped('No admin user found in the database');

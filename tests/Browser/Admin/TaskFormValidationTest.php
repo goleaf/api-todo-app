@@ -3,6 +3,7 @@
 namespace Tests\Browser\Admin;
 
 use App\Models\User;
+use App\Enums\UserRole;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
 
@@ -15,7 +16,7 @@ class TaskFormValidationTest extends DuskTestCase
      */
     public function testRequiredFieldsValidation()
     {
-        $admin = User::where('role', 'admin')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
 
         if (!$admin) {
             $this->markTestSkipped('No admin user found in the database');
@@ -37,8 +38,8 @@ class TaskFormValidationTest extends DuskTestCase
      */
     public function testDateValidation()
     {
-        $admin = User::where('role', 'admin')->first();
-        $user = User::where('role', 'user')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
+        $user = User::withRole(UserRole::USER)->first();
 
         if (!$admin || !$user) {
             $this->markTestSkipped('Admin or user not found in the database');
@@ -62,8 +63,8 @@ class TaskFormValidationTest extends DuskTestCase
      */
     public function testProgressValidation()
     {
-        $admin = User::where('role', 'admin')->first();
-        $user = User::where('role', 'user')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
+        $user = User::withRole(UserRole::USER)->first();
 
         if (!$admin || !$user) {
             $this->markTestSkipped('Admin or user not found in the database');
@@ -96,8 +97,8 @@ class TaskFormValidationTest extends DuskTestCase
      */
     public function testPriorityValidation()
     {
-        $admin = User::where('role', 'admin')->first();
-        $user = User::where('role', 'user')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
+        $user = User::withRole(UserRole::USER)->first();
 
         if (!$admin || !$user) {
             $this->markTestSkipped('Admin or user not found in the database');

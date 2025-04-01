@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Tag;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
+use App\Enums\UserRole;
 
 class AdminSearchTest extends DuskTestCase
 {
@@ -18,7 +19,7 @@ class AdminSearchTest extends DuskTestCase
      */
     public function testUserSearch()
     {
-        $admin = User::where('role', 'admin')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
 
         if (!$admin) {
             $this->markTestSkipped('No admin user found in the database');
@@ -62,8 +63,8 @@ class AdminSearchTest extends DuskTestCase
      */
     public function testCategorySearch()
     {
-        $admin = User::where('role', 'admin')->first();
-        $user = User::where('role', 'user')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
+        $user = User::withRole(UserRole::USER)->first();
 
         if (!$admin || !$user) {
             $this->markTestSkipped('Admin or user not found in the database');
@@ -105,8 +106,8 @@ class AdminSearchTest extends DuskTestCase
      */
     public function testTagSearch()
     {
-        $admin = User::where('role', 'admin')->first();
-        $user = User::where('role', 'user')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
+        $user = User::withRole(UserRole::USER)->first();
 
         if (!$admin || !$user) {
             $this->markTestSkipped('Admin or user not found in the database');
@@ -147,8 +148,8 @@ class AdminSearchTest extends DuskTestCase
      */
     public function testTaskSearch()
     {
-        $admin = User::where('role', 'admin')->first();
-        $user = User::where('role', 'user')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
+        $user = User::withRole(UserRole::USER)->first();
 
         if (!$admin || !$user) {
             $this->markTestSkipped('Admin or user not found in the database');

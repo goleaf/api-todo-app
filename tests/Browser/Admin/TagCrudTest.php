@@ -4,6 +4,7 @@ namespace Tests\Browser\Admin;
 
 use App\Models\Tag;
 use App\Models\User;
+use App\Enums\UserRole;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
@@ -15,7 +16,7 @@ class TagCrudTest extends DuskTestCase
      */
     public function testTagListingPage()
     {
-        $admin = User::where('role', 'admin')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
 
         if (!$admin) {
             $this->markTestSkipped('No admin user found in the database');
@@ -40,7 +41,7 @@ class TagCrudTest extends DuskTestCase
      */
     public function testCreateTagForm()
     {
-        $admin = User::where('role', 'admin')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
 
         if (!$admin) {
             $this->markTestSkipped('No admin user found in the database');
@@ -63,8 +64,8 @@ class TagCrudTest extends DuskTestCase
      */
     public function testTagCreation()
     {
-        $admin = User::where('role', 'admin')->first();
-        $user = User::where('role', 'user')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
+        $user = User::withRole(UserRole::USER)->first();
 
         if (!$admin || !$user) {
             $this->markTestSkipped('Admin or user not found in the database');
@@ -93,8 +94,8 @@ class TagCrudTest extends DuskTestCase
      */
     public function testEditTagForm()
     {
-        $admin = User::where('role', 'admin')->first();
-        $user = User::where('role', 'user')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
+        $user = User::withRole(UserRole::USER)->first();
 
         if (!$admin || !$user) {
             $this->markTestSkipped('Admin or user not found in the database');
@@ -127,8 +128,8 @@ class TagCrudTest extends DuskTestCase
      */
     public function testTagUpdate()
     {
-        $admin = User::where('role', 'admin')->first();
-        $user = User::where('role', 'user')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
+        $user = User::withRole(UserRole::USER)->first();
 
         if (!$admin || !$user) {
             $this->markTestSkipped('Admin or user not found in the database');
@@ -164,8 +165,8 @@ class TagCrudTest extends DuskTestCase
      */
     public function testTagDeletion()
     {
-        $admin = User::where('role', 'admin')->first();
-        $user = User::where('role', 'user')->first();
+        $admin = User::withRole(UserRole::ADMIN)->first();
+        $user = User::withRole(UserRole::USER)->first();
 
         if (!$admin || !$user) {
             $this->markTestSkipped('Admin or user not found in the database');
