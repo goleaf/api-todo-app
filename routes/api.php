@@ -162,12 +162,12 @@ Route::middleware('auth:sanctum')->group(function () {
         })->name('api.tasks.tags');
         
         Route::put('/{id}/tags', function(Illuminate\Http\Request $request, $id) {
-            $request->merge(['id' => $id, 'tags' => $request->all()]);
+            $request->merge(['id' => $id, 'tags' => $request->input('tags', [])]);
             return app()->make(TasksController::class)->handleOperation('updateTags', $request);
         })->name('api.tasks.update-tags');
         
         Route::post('/{id}/tags', function(Illuminate\Http\Request $request, $id) {
-            $request->merge(['id' => $id]);
+            $request->merge(['id' => $id, 'tag_ids' => $request->input('tag_ids', [])]);
             return app()->make(TasksController::class)->handleOperation('bulkTagOperation', $request);
         })->name('api.tasks.bulk-tag-operation');
     });
