@@ -1524,3 +1524,28 @@ public function index(Request $request)
 The pagination links include all current query parameters to maintain sort state across pages.
 
 For more information, see the full documentation in `docs/column-sortable.md`.
+
+## Running Tests
+
+The application includes a comprehensive test suite to ensure all API endpoints and functionality work as expected. To run tests correctly, use the custom Artisan command:
+
+```bash
+# Run all API tests with detailed output
+php artisan app:run-api-tests
+
+# Run specific API tests with a filter
+php artisan app:run-api-tests --filter=TaskTest
+
+# Generate code coverage report while running tests
+php artisan app:run-api-tests --coverage
+```
+
+### Common Test Issues & Fixes
+
+1. **RecursiveDirectoryIterator Error**: If you encounter `RecursiveDirectoryIterator::__construct(): Failed to open directory` error, do not run PHPUnit directly on individual test files. Use the Artisan command instead.
+
+2. **Database Testing**: Tests use an in-memory SQLite database. Make sure your test environment variables are properly configured in the `.env.testing` file.
+
+3. **Task Model Relationships**: The Task model requires proper relationships with Categories and Tags. Make sure these are properly defined in the models before running tests.
+
+4. **API Response Format**: All API responses should follow the standard format with `success`, `message`, and `data` fields. Tests will fail if this format is not maintained.

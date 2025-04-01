@@ -150,7 +150,7 @@ class TranslationController extends Controller
         }
         
         if ($file === null) {
-            return view('admin.translations.edit', [
+            return view('admin.translations.form', [
                 'locale' => $locale,
                 'fileList' => $fileList,
                 'currentFile' => null,
@@ -168,12 +168,71 @@ class TranslationController extends Controller
         // Flatten translations for easier editing
         $flatTranslations = $this->flattenTranslations($translations[$file]);
         
-        return view('admin.translations.edit', [
+        return view('admin.translations.form', [
             'locale' => $locale,
             'fileList' => $fileList,
             'currentFile' => $file,
             'translations' => $flatTranslations,
         ]);
+    }
+    
+    /**
+     * Show form to create a new translation.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        return view('admin.translations.form');
+    }
+    
+    /**
+     * Store a newly created translation.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'locale' => 'required|string|min:2|max:5',
+            'file' => 'required|string|min:1|max:50',
+            'content' => 'required|json',
+        ]);
+        
+        $locale = $request->input('locale');
+        $file = $request->input('file');
+        $content = json_decode($request->input('content'), true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Invalid JSON format in content field.');
+        }
+        
+        $directory = resource_path("lang/{$locale}");
+        
+        if (!File::exists($directory)) {
+            File::makeDirectory($directory, 0755, true);
+        }
+        
+        $filePath = "{$directory}/{$file}.php";
+        
+        // Check if file already exists
+        if (File::exists($filePath)) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', "Translation file '{$file}.php' already exists for locale '{$locale}'.");
+        }
+        
+        // Generate PHP content
+        $phpContent = "<?php\n\nreturn " . var_export($content, true) . ";\n";
+        
+        // Save file
+        File::put($filePath, $phpContent);
+        
+        return redirect()->route('admin.translations.edit', ['locale' => $locale, 'file' => $file])
+            ->with('success', "Translation file '{$file}.php' created successfully for locale '{$locale}'.");
     }
     
     /**

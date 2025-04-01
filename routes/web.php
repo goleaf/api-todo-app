@@ -1,31 +1,22 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Web\OnboardingController;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
 |
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
+| This file now only includes redirects to the appropriate API or admin routes.
+| All functionality has been moved to api.php or admin.php.
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Redirect root to admin login
+Route::redirect('/', '/admin/login');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'onboarding'])->name('dashboard');
+// Redirect old dashboard path to admin dashboard
+Route::redirect('/dashboard', '/admin/user-dashboard');
 
-// Onboarding Routes
-Route::middleware(['auth'])->group(function () {
-    Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
-    Route::post('/onboarding/skip', [OnboardingController::class, 'skip'])->name('onboarding.skip');
-});
-
+// Include auth routes
 require __DIR__.'/auth.php'; 

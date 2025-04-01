@@ -17,8 +17,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// Root route for the application
+Route::get('/', function () {
+    return view('welcome');
+})->name('welcome');
+
 // Redirect root to admin login
-Route::redirect('/', '/admin/login');
+Route::redirect('/admin', '/admin/login');
 
 // Admin Authentication Routes
 Route::group([], function () {
@@ -36,6 +41,11 @@ Route::group([], function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/dashboard/chart-data', [DashboardController::class, 'getChartData'])->name('dashboard.chart-data');
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+        
+        // User dashboard (moved from web.php)
+        Route::get('/user-dashboard', function () {
+            return view('dashboard');
+        })->middleware(['onboarding'])->name('user.dashboard');
         
         // Users management
         Route::resource('users', UserController::class);
@@ -60,6 +70,8 @@ Route::prefix('translations')->name('translations.')->group(function () {
     Route::get('/missing', [App\Http\Controllers\Admin\TranslationController::class, 'missing'])->name('missing');
     Route::get('/unused', [App\Http\Controllers\Admin\TranslationController::class, 'unused'])->name('unused');
     Route::post('/fix', [App\Http\Controllers\Admin\TranslationController::class, 'fix'])->name('fix');
+    Route::get('/create', [App\Http\Controllers\Admin\TranslationController::class, 'create'])->name('create');
+    Route::post('/store', [App\Http\Controllers\Admin\TranslationController::class, 'store'])->name('store');
     Route::get('/{locale}/edit/{file?}', [App\Http\Controllers\Admin\TranslationController::class, 'edit'])->name('edit');
     Route::post('/{locale}/update/{file}', [App\Http\Controllers\Admin\TranslationController::class, 'update'])->name('update');
 }); 

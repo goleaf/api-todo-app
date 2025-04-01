@@ -61,6 +61,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/refresh', [AuthApiController::class, 'refresh'])->name('api.auth.refresh');
     Route::get('/me', [AuthApiController::class, 'me'])->name('api.auth.me');
 
+    // Dashboard route
+    Route::get('/dashboard', [DashboardApiController::class, 'index'])->middleware(['onboarding'])->name('api.dashboard');
+
     // User routes - full CRUD (using REST API controllers)
     Route::prefix('users')->group(function () {
         Route::get('/', function(Illuminate\Http\Request $request) {
@@ -99,6 +102,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/password', [ProfileApiController::class, 'updatePassword'])->name('api.profile.update-password');
         Route::post('/photo', [ProfileApiController::class, 'uploadPhoto'])->name('api.profile.upload-photo');
         Route::delete('/photo', [ProfileApiController::class, 'deletePhoto'])->name('api.profile.delete-photo');
+    });
+
+    // Onboarding Routes
+    Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
+        Route::get('/onboarding', [App\Http\Controllers\Web\OnboardingController::class, 'index'])->name('api.onboarding.index');
+        Route::post('/onboarding/skip', [App\Http\Controllers\Web\OnboardingController::class, 'skip'])->name('api.onboarding.skip');
     });
 
     // Task routes - full CRUD (using REST API controllers)
@@ -253,9 +262,6 @@ Route::middleware('auth:sanctum')->group(function () {
             return app()->make(TagsController::class)->handleRelation('tasks', $request);
         })->name('api.tags.tasks');
     });
-
-    // Dashboard routes
-    Route::get('/dashboard', [DashboardApiController::class, 'index'])->name('api.dashboard.index');
 });
 
 // API fallback - 404 for invalid routes
@@ -364,12 +370,6 @@ Route::prefix('options')->group(function () {
     Route::put('/{key}', [App\Http\Controllers\Api\OptionsController::class, 'update'])->name('api.options.update');
     Route::delete('/{key}', [App\Http\Controllers\Api\OptionsController::class, 'destroy'])->name('api.options.destroy');
     Route::get('/{key}/exists', [App\Http\Controllers\Api\OptionsController::class, 'exists'])->name('api.options.exists');
-});
-
-// Onboarding Routes
-Route::middleware('auth:sanctum')->prefix('onboarding')->group(function () {
-    Route::get('/', [App\Http\Controllers\OnboardingController::class, 'index'])->name('api.onboarding.index');
-    Route::post('/skip', [App\Http\Controllers\OnboardingController::class, 'skip'])->name('api.onboarding.skip');
 });
 
 /*

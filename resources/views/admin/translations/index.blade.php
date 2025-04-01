@@ -10,6 +10,11 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Translation Management</h5>
+        <div>
+            <a href="{{ route('admin.translations.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i> Add New Translation
+            </a>
+        </div>
     </div>
     <div class="card-body">
         @if (isset($message))
