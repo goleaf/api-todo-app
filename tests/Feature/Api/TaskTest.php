@@ -5,15 +5,16 @@ namespace Tests\Feature\Api;
 use App\Models\Category;
 use App\Models\Task;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Artisan;
 
 class TaskTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     private User $user;
     private User $otherUser;
@@ -22,6 +23,9 @@ class TaskTest extends TestCase
     {
         parent::setUp();
 
+        // Refresh database before tests
+        Artisan::call('migrate:fresh');
+        
         // Allow all Gate checks to pass for testing
         Gate::before(function () {
             return true;
