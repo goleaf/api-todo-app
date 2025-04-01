@@ -34,13 +34,13 @@ class TaskTest extends TestCase
 
     public function test_admin_can_view_tasks_index()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $tasks = Task::factory(3)->create([
             'user_id' => $user->id,
         ]);
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->get(route('admin.tasks.index'));
 
         $response->assertStatus(200);
@@ -55,13 +55,13 @@ class TaskTest extends TestCase
 
     public function test_admin_can_create_a_task()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $category = Category::factory()->create([
             'user_id' => $user->id,
         ]);
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->get(route('admin.tasks.create'));
 
         $response->assertStatus(200);
@@ -79,7 +79,7 @@ class TaskTest extends TestCase
             'completed' => false,
         ];
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->post(route('admin.tasks.store'), $taskData);
 
         $response->assertRedirect(route('admin.tasks.index'));
@@ -95,14 +95,14 @@ class TaskTest extends TestCase
 
     public function test_admin_can_view_a_task()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $task = Task::factory()->create([
             'user_id' => $user->id,
             'title' => 'Test Task',
         ]);
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->get(route('admin.tasks.show', $task));
 
         $response->assertStatus(200);
@@ -112,7 +112,7 @@ class TaskTest extends TestCase
 
     public function test_admin_can_update_a_task()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $category = Category::factory()->create([
             'user_id' => $user->id,
@@ -122,7 +122,7 @@ class TaskTest extends TestCase
             'title' => 'Original Title',
         ]);
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->get(route('admin.tasks.edit', $task));
 
         $response->assertStatus(200);
@@ -140,7 +140,7 @@ class TaskTest extends TestCase
             'completed' => true,
         ];
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->put(route('admin.tasks.update', $task), $updatedData);
 
         $response->assertRedirect(route('admin.tasks.index'));
@@ -157,13 +157,13 @@ class TaskTest extends TestCase
 
     public function test_admin_can_delete_a_task()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $task = Task::factory()->create([
             'user_id' => $user->id,
         ]);
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->delete(route('admin.tasks.destroy', $task));
 
         $response->assertRedirect(route('admin.tasks.index'));
@@ -177,7 +177,7 @@ class TaskTest extends TestCase
 
     public function test_admin_can_toggle_task_completion()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $task = Task::factory()->create([
             'user_id' => $user->id,
@@ -185,7 +185,7 @@ class TaskTest extends TestCase
         ]);
 
         // First toggle - from incomplete to complete
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->post(route('admin.tasks.toggle', $task));
 
         $response->assertRedirect();
@@ -201,7 +201,7 @@ class TaskTest extends TestCase
         $task->refresh();
 
         // Second toggle - from complete to incomplete
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->post(route('admin.tasks.toggle', $task));
 
         $response->assertRedirect();
@@ -216,7 +216,7 @@ class TaskTest extends TestCase
 
     public function test_admin_can_attach_tags_to_task()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $tags = Tag::factory(3)->create([
             'user_id' => $user->id,
@@ -235,7 +235,7 @@ class TaskTest extends TestCase
             'tags' => $tags->pluck('id')->toArray(),
         ];
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->put(route('admin.tasks.update', $task), $taskData);
 
         $response->assertRedirect(route('admin.tasks.index'));
@@ -252,13 +252,13 @@ class TaskTest extends TestCase
 
     public function test_admin_can_get_categories_for_user()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $categories = Category::factory(3)->create([
             'user_id' => $user->id,
         ]);
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->getJson(route('admin.users.categories', $user));
 
         $response->assertStatus(200);
@@ -275,13 +275,13 @@ class TaskTest extends TestCase
 
     public function test_admin_can_get_tags_for_user()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $tags = Tag::factory(3)->create([
             'user_id' => $user->id,
         ]);
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->getJson(route('admin.users.tags', $user));
 
         $response->assertStatus(200);

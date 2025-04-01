@@ -20,6 +20,7 @@ class AdminAuthTest extends TestCase
         
         // Refresh database for SQLite compatibility
         Artisan::call('migrate:fresh');
+        Artisan::call('db:seed', ['--class' => 'AdminSeeder']);
     }
 
     /**

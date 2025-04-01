@@ -32,13 +32,13 @@ class CategoryTest extends TestCase
 
     public function test_admin_can_view_categories_index()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $categories = Category::factory(3)->create([
             'user_id' => $user->id,
         ]);
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->get(route('admin.categories.index'));
 
         $response->assertStatus(200);
@@ -53,10 +53,10 @@ class CategoryTest extends TestCase
 
     public function test_admin_can_create_a_category()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->get(route('admin.categories.create'));
 
         $response->assertStatus(200);
@@ -71,7 +71,7 @@ class CategoryTest extends TestCase
             'type' => CategoryType::WORK->value,
         ];
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->post(route('admin.categories.store'), $categoryData);
 
         $response->assertRedirect(route('admin.categories.index'));
@@ -86,14 +86,14 @@ class CategoryTest extends TestCase
 
     public function test_admin_can_view_a_category()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $category = Category::factory()->create([
             'user_id' => $user->id,
             'name' => 'Test Category',
         ]);
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->get(route('admin.categories.show', $category));
 
         $response->assertStatus(200);
@@ -103,14 +103,14 @@ class CategoryTest extends TestCase
 
     public function test_admin_can_update_a_category()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $category = Category::factory()->create([
             'user_id' => $user->id,
             'name' => 'Original Name',
         ]);
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->get(route('admin.categories.edit', $category));
 
         $response->assertStatus(200);
@@ -125,7 +125,7 @@ class CategoryTest extends TestCase
             'type' => CategoryType::PERSONAL->value,
         ];
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->put(route('admin.categories.update', $category), $updatedData);
 
         $response->assertRedirect(route('admin.categories.index'));
@@ -140,13 +140,13 @@ class CategoryTest extends TestCase
 
     public function test_admin_can_delete_a_category()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $category = Category::factory()->create([
             'user_id' => $user->id,
         ]);
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->delete(route('admin.categories.destroy', $category));
 
         $response->assertRedirect(route('admin.categories.index'));
@@ -160,7 +160,7 @@ class CategoryTest extends TestCase
 
     public function test_admin_cannot_delete_category_with_tasks()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $category = Category::factory()->create([
             'user_id' => $user->id,
@@ -172,7 +172,7 @@ class CategoryTest extends TestCase
             'category_id' => $category->id,
         ]);
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->delete(route('admin.categories.destroy', $category));
 
         $response->assertRedirect(route('admin.categories.index'));

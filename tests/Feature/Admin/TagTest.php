@@ -31,13 +31,13 @@ class TagTest extends TestCase
 
     public function test_admin_can_view_tags_index()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $tags = Tag::factory(3)->create([
             'user_id' => $user->id,
         ]);
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->get(route('admin.tags.index'));
 
         $response->assertStatus(200);
@@ -52,10 +52,10 @@ class TagTest extends TestCase
 
     public function test_admin_can_create_a_tag()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->get(route('admin.tags.create'));
 
         $response->assertStatus(200);
@@ -68,7 +68,7 @@ class TagTest extends TestCase
             'color' => '#ff0000',
         ];
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->post(route('admin.tags.store'), $tagData);
 
         $response->assertRedirect(route('admin.tags.index'));
@@ -83,14 +83,14 @@ class TagTest extends TestCase
 
     public function test_admin_can_view_a_tag()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $tag = Tag::factory()->create([
             'user_id' => $user->id,
             'name' => 'Test Tag',
         ]);
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->get(route('admin.tags.show', $tag));
 
         $response->assertStatus(200);
@@ -100,14 +100,14 @@ class TagTest extends TestCase
 
     public function test_admin_can_update_a_tag()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $tag = Tag::factory()->create([
             'user_id' => $user->id,
             'name' => 'Original Name',
         ]);
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->get(route('admin.tags.edit', $tag));
 
         $response->assertStatus(200);
@@ -120,7 +120,7 @@ class TagTest extends TestCase
             'color' => '#00ff00',
         ];
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->put(route('admin.tags.update', $tag), $updatedData);
 
         $response->assertRedirect(route('admin.tags.index'));
@@ -135,13 +135,13 @@ class TagTest extends TestCase
 
     public function test_admin_can_delete_a_tag()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $tag = Tag::factory()->create([
             'user_id' => $user->id,
         ]);
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->delete(route('admin.tags.destroy', $tag));
 
         $response->assertRedirect(route('admin.tags.index'));
@@ -155,7 +155,7 @@ class TagTest extends TestCase
 
     public function test_admin_can_delete_tag_with_tasks()
     {
-        $admin = Admin::factory()->create();
+        // Create test data
         $user = User::factory()->create();
         $tag = Tag::factory()->create([
             'user_id' => $user->id,
@@ -167,7 +167,7 @@ class TagTest extends TestCase
         ]);
         $task->tags()->attach($tag->id);
 
-        $response = $this->actingAs($admin, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->delete(route('admin.tags.destroy', $tag));
 
         $response->assertRedirect(route('admin.tags.index'));

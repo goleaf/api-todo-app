@@ -46,7 +46,7 @@ class DashboardTest extends TestCase
         // Complete some tasks
         Task::query()->limit(4)->update(['completed' => true]);
 
-        $response = $this->actingAs($this->adminUser, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->get(route('admin.dashboard'));
 
         $response->assertStatus(200);
@@ -82,7 +82,7 @@ class DashboardTest extends TestCase
         $user = User::factory()->create();
         Task::factory(7)->create(['user_id' => $user->id]);
 
-        $response = $this->actingAs($this->adminUser, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->get(route('admin.dashboard'));
 
         $response->assertStatus(200);
@@ -108,7 +108,7 @@ class DashboardTest extends TestCase
             Task::factory($i + 1)->create(['user_id' => $user->id]);
         }
 
-        $response = $this->actingAs($this->adminUser, 'admin')
+        $response = $this->actingAs($this->adminUser)
             ->get(route('admin.dashboard'));
 
         $response->assertStatus(200);
