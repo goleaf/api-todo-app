@@ -7,19 +7,32 @@ use App\Events\CategoryDeleted;
 use App\Events\CategoryUpdated;
 use App\Models\Category;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Artisan;
 
 class CategoryEventsTest extends TestCase
 {
-    use RefreshDatabase;
+    use WithFaker;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        
+        // Refresh database for SQLite compatibility
+        Artisan::call('migrate:fresh');
+        
+        Event::fake([
+            CategoryCreated::class,
+            CategoryUpdated::class,
+            CategoryDeleted::class,
+        ]);
+    }
 
     /** @test */
     public function it_dispatches_category_created_event_when_creating_a_category()
     {
-        Event::fake([CategoryCreated::class]);
-
         $user = User::factory()->create();
         $category = Category::create([
             'name' => 'Test Category',
@@ -44,8 +57,6 @@ class CategoryEventsTest extends TestCase
             'user_id' => $user->id,
         ]);
 
-        Event::fake([CategoryUpdated::class]);
-
         $category->update(['name' => 'Updated Category']);
 
         Event::assertDispatched(CategoryUpdated::class, function ($event) use ($category) {
@@ -63,8 +74,6 @@ class CategoryEventsTest extends TestCase
             'icon' => 'folder',
             'user_id' => $user->id,
         ]);
-
-        Event::fake([CategoryUpdated::class]);
 
         $category->update(['name' => 'Test Category']); // No actual change
 
@@ -84,8 +93,6 @@ class CategoryEventsTest extends TestCase
 
         $categoryId = $category->id;
         $userId = $category->user_id;
-
-        Event::fake([CategoryDeleted::class]);
 
         $category->delete();
 

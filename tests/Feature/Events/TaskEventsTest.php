@@ -9,19 +9,34 @@ use App\Events\TaskUpdated;
 use App\Models\Category;
 use App\Models\Task;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Event;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Artisan;
 
 class TaskEventsTest extends TestCase
 {
-    use RefreshDatabase;
+    use WithFaker;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        
+        // Refresh database for SQLite compatibility
+        Artisan::call('migrate:fresh');
+        
+        Event::fake([
+            TaskCreated::class,
+            TaskUpdated::class,
+            TaskCompleted::class,
+            TaskDeleted::class,
+        ]);
+    }
 
     /** @test */
     public function it_dispatches_task_created_event_when_creating_a_task()
     {
-        Event::fake([TaskCreated::class]);
-
         $user = User::factory()->create();
         $category = Category::factory()->create(['user_id' => $user->id]);
         
@@ -50,8 +65,6 @@ class TaskEventsTest extends TestCase
             'category_id' => $category->id,
         ]);
 
-        Event::fake([TaskUpdated::class]);
-
         $task->update(['title' => 'Updated Task']);
 
         Event::assertDispatched(TaskUpdated::class, function ($event) use ($task) {
@@ -72,8 +85,6 @@ class TaskEventsTest extends TestCase
             'category_id' => $category->id,
             'completed' => false,
         ]);
-
-        Event::fake([TaskUpdated::class, TaskCompleted::class]);
 
         $task->update(['completed' => true, 'completed_at' => now()]);
 
@@ -97,8 +108,6 @@ class TaskEventsTest extends TestCase
         $taskId = $task->id;
         $userId = $task->user_id;
 
-        Event::fake([TaskDeleted::class]);
-
         $task->delete();
 
         Event::assertDispatched(TaskDeleted::class, function ($event) use ($taskId, $userId) {
@@ -119,8 +128,6 @@ class TaskEventsTest extends TestCase
             'category_id' => $category->id,
             'completed' => false,
         ]);
-
-        Event::fake([TaskCompleted::class]);
 
         $task->toggleCompletion();
 
@@ -143,8 +150,6 @@ class TaskEventsTest extends TestCase
             'completed' => false,
         ]);
 
-        Event::fake([TaskCompleted::class]);
-
         $task->markAsComplete();
 
         Event::assertDispatched(TaskCompleted::class, function ($event) use ($task) {
@@ -166,8 +171,6 @@ class TaskEventsTest extends TestCase
             'completed' => true,
             'completed_at' => now(),
         ]);
-
-        Event::fake([TaskCompleted::class]);
 
         $task->toggleCompletion(); // This should mark it as incomplete
 

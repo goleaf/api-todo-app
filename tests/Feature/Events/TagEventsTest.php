@@ -7,19 +7,32 @@ use App\Events\TagDeleted;
 use App\Events\TagUpdated;
 use App\Models\Tag;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Artisan;
 
 class TagEventsTest extends TestCase
 {
-    use RefreshDatabase;
+    use WithFaker;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        
+        // Refresh database for SQLite compatibility
+        Artisan::call('migrate:fresh');
+        
+        Event::fake([
+            TagCreated::class,
+            TagUpdated::class,
+            TagDeleted::class,
+        ]);
+    }
 
     /** @test */
     public function it_dispatches_tag_created_event_when_creating_a_tag()
     {
-        Event::fake([TagCreated::class]);
-
         $user = User::factory()->create();
         $tag = Tag::create([
             'name' => 'Test Tag',
@@ -42,8 +55,6 @@ class TagEventsTest extends TestCase
             'user_id' => $user->id,
         ]);
 
-        Event::fake([TagUpdated::class]);
-
         $tag->update(['name' => 'Updated Tag']);
 
         Event::assertDispatched(TagUpdated::class, function ($event) use ($tag) {
@@ -60,8 +71,6 @@ class TagEventsTest extends TestCase
             'color' => '#ff0000',
             'user_id' => $user->id,
         ]);
-
-        Event::fake([TagUpdated::class]);
 
         $tag->update(['name' => 'Test Tag']); // No actual change
 
@@ -80,8 +89,6 @@ class TagEventsTest extends TestCase
 
         $tagId = $tag->id;
         $userId = $tag->user_id;
-
-        Event::fake([TagDeleted::class]);
 
         $tag->delete();
 
@@ -102,8 +109,6 @@ class TagEventsTest extends TestCase
 
         $tagId = $tag->id;
         $userId = $tag->user_id;
-
-        Event::fake([TagDeleted::class]);
 
         Tag::destroy($tag->id);
 
