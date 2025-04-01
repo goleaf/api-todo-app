@@ -117,14 +117,13 @@ class TasksController extends RestController
                 'high' => Task::where('user_id', $userId)->where('priority', 3)->count(),
                 'urgent' => Task::where('user_id', $userId)->where('priority', 4)->count(),
             ],
-            'by_month' => DB::table('tasks')
-                ->select(DB::raw('MONTH(created_at) as month'), DB::raw('COUNT(*) as count'))
-                ->where('user_id', $userId)
+            'by_month' => Task::where('user_id', $userId)
                 ->whereYear('created_at', date('Y'))
-                ->groupBy(DB::raw('MONTH(created_at)'))
+                ->select(DB::raw('strftime("%m", created_at) as month'), DB::raw('COUNT(*) as count'))
                 ->orderBy('month')
+                ->groupBy(DB::raw('strftime("%m", created_at)'))
                 ->get()
-                ->pluck('count', 'month')
+                ->keyBy('month')
                 ->toArray(),
         ];
         

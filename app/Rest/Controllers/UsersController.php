@@ -36,13 +36,13 @@ class UsersController extends RestController
                 'due_today' => $user->tasks()->dueToday()->count(),
                 'overdue' => $user->tasks()->overdue()->count(),
                 'created_this_month' => $user->tasks()
-                    ->whereMonth('created_at', now()->month)
-                    ->whereYear('created_at', now()->year)
+                    ->whereRaw("strftime('%m', created_at) = strftime('%m', 'now')")
+                    ->whereRaw("strftime('%Y', created_at) = strftime('%Y', 'now')")
                     ->count(),
                 'completed_this_month' => $user->tasks()
                     ->where('completed', true)
-                    ->whereMonth('completed_at', now()->month)
-                    ->whereYear('completed_at', now()->year)
+                    ->whereRaw("strftime('%m', completed_at) = strftime('%m', 'now')")
+                    ->whereRaw("strftime('%Y', completed_at) = strftime('%Y', 'now')")
                     ->count(),
             ],
             'categories' => [
@@ -64,27 +64,48 @@ class UsersController extends RestController
                     ->orderBy('usage_count', 'desc')
                     ->first(),
                 'created_this_month' => $user->tags()
-                    ->whereMonth('created_at', now()->month)
-                    ->whereYear('created_at', now()->year)
+                    ->whereRaw("strftime('%m', created_at) = strftime('%m', 'now')")
+                    ->whereRaw("strftime('%Y', created_at) = strftime('%Y', 'now')")
                     ->count(),
             ],
             'activity' => [
                 'tasks_by_month' => DB::table('tasks')
-                    ->select(DB::raw('MONTH(created_at) as month'), DB::raw('COUNT(*) as count'))
+                    ->select(DB::raw('strftime("%m", created_at) as month'), DB::raw('COUNT(*) as count'))
                     ->where('user_id', $userId)
-                    ->whereYear('created_at', date('Y'))
-                    ->groupBy(DB::raw('MONTH(created_at)'))
+                    ->whereRaw("strftime('%Y', created_at) = strftime('%Y', 'now')")
+                    ->groupBy(DB::raw('strftime("%m", created_at)'))
                     ->orderBy('month')
                     ->get()
                     ->pluck('count', 'month')
                     ->toArray(),
                     
                 'completions_by_month' => DB::table('tasks')
-                    ->select(DB::raw('MONTH(completed_at) as month'), DB::raw('COUNT(*) as count'))
+                    ->select(DB::raw('strftime("%m", completed_at) as month'), DB::raw('COUNT(*) as count'))
                     ->where('user_id', $userId)
                     ->whereNotNull('completed_at')
-                    ->whereYear('completed_at', date('Y'))
-                    ->groupBy(DB::raw('MONTH(completed_at)'))
+                    ->whereRaw("strftime('%Y', completed_at) = strftime('%Y', 'now')")
+                    ->groupBy(DB::raw('strftime("%m", completed_at)'))
+                    ->orderBy('month')
+                    ->get()
+                    ->pluck('count', 'month')
+                    ->toArray(),
+            ],
+            'task_data' => [
+                'task_creation_by_month' => DB::table('tasks')
+                    ->select(DB::raw('strftime("%m", created_at) as month'), DB::raw('COUNT(*) as count'))
+                    ->where('user_id', $userId)
+                    ->whereRaw("strftime('%Y', created_at) = strftime('%Y', 'now')")
+                    ->groupBy(DB::raw('strftime("%m", created_at)'))
+                    ->orderBy('month')
+                    ->get()
+                    ->pluck('count', 'month')
+                    ->toArray(),
+                'task_completion_by_month' => DB::table('tasks')
+                    ->select(DB::raw('strftime("%m", completed_at) as month'), DB::raw('COUNT(*) as count'))
+                    ->where('user_id', $userId)
+                    ->whereNotNull('completed_at')
+                    ->whereRaw("strftime('%Y', completed_at) = strftime('%Y', 'now')")
+                    ->groupBy(DB::raw('strftime("%m", completed_at)'))
                     ->orderBy('month')
                     ->get()
                     ->pluck('count', 'month')
