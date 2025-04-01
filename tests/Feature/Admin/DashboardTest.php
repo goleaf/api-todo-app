@@ -7,17 +7,28 @@ use App\Models\User;
 use App\Models\Task;
 use App\Models\Category;
 use App\Models\Tag;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Artisan;
+use App\Enums\UserRole;
 
 class DashboardTest extends TestCase
 {
-    use RefreshDatabase;
+    use WithFaker;
 
+    protected User $adminUser;
+    
     protected function setUp(): void
     {
         parent::setUp();
-        $this->admin = Admin::factory()->create();
+        
+        // Refresh database for SQLite compatibility
+        Artisan::call('migrate:fresh');
+        
+        // Create admin user
+        $this->adminUser = User::factory()->create([
+            'role' => UserRole::ADMIN->value,
+        ]);
     }
 
     /**
@@ -35,7 +46,7 @@ class DashboardTest extends TestCase
         // Complete some tasks
         Task::query()->limit(4)->update(['completed' => true]);
 
-        $response = $this->actingAs($this->admin, 'admin')
+        $response = $this->actingAs($this->adminUser, 'admin')
             ->get(route('admin.dashboard'));
 
         $response->assertStatus(200);
@@ -71,7 +82,7 @@ class DashboardTest extends TestCase
         $user = User::factory()->create();
         Task::factory(7)->create(['user_id' => $user->id]);
 
-        $response = $this->actingAs($this->admin, 'admin')
+        $response = $this->actingAs($this->adminUser, 'admin')
             ->get(route('admin.dashboard'));
 
         $response->assertStatus(200);
@@ -97,7 +108,7 @@ class DashboardTest extends TestCase
             Task::factory($i + 1)->create(['user_id' => $user->id]);
         }
 
-        $response = $this->actingAs($this->admin, 'admin')
+        $response = $this->actingAs($this->adminUser, 'admin')
             ->get(route('admin.dashboard'));
 
         $response->assertStatus(200);

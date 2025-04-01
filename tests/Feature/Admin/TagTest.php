@@ -5,12 +5,29 @@ namespace Tests\Feature\Admin;
 use App\Models\Admin;
 use App\Models\Tag;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Enums\UserRole;
+use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Artisan;
 
 class TagTest extends TestCase
 {
-    use RefreshDatabase;
+    use WithFaker;
+
+    protected User $adminUser;
+    
+    protected function setUp(): void
+    {
+        parent::setUp();
+        
+        // Refresh database for SQLite compatibility
+        Artisan::call('migrate:fresh');
+        
+        // Create admin user
+        $this->adminUser = User::factory()->create([
+            'role' => UserRole::ADMIN->value,
+        ]);
+    }
 
     public function test_admin_can_view_tags_index()
     {

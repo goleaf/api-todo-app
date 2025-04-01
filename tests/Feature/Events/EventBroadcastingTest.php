@@ -4,17 +4,29 @@ namespace Tests\Feature\Events;
 
 use App\Events\TagCreated;
 use App\Events\TaskCreated;
+use App\Events\TaskUpdated;
+use App\Events\TaskDeleted;
 use App\Events\CategoryCreated;
 use App\Models\Category;
 use App\Models\Tag;
 use App\Models\Task;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Artisan;
 
 class EventBroadcastingTest extends TestCase
 {
-    use RefreshDatabase;
+    use WithFaker;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        
+        // Refresh database for SQLite compatibility
+        Artisan::call('migrate:fresh');
+    }
 
     /** @test */
     public function task_created_event_broadcasts_on_the_correct_channel()

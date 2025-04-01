@@ -3,13 +3,24 @@
 namespace Tests\Feature\Admin;
 
 use App\Models\Admin;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\User;
+use App\Enums\UserRole;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Artisan;
 
 class AdminAuthTest extends TestCase
 {
-    use RefreshDatabase;
+    use WithFaker;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        
+        // Refresh database for SQLite compatibility
+        Artisan::call('migrate:fresh');
+    }
 
     /**
      * Test admin login page loads properly.
