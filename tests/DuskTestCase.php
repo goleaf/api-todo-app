@@ -12,19 +12,37 @@ use ReflectionClass;
 use ReflectionMethod;
 use Tests\Browser\BrowserExtensions;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use App\Models\User;
+use App\Enums\UserRole;
+use Illuminate\Support\Facades\Hash;
+use App\Models\Category;
 
 abstract class DuskTestCase extends BaseTestCase
 {
-    use CreatesApplication;
+    use CreatesApplication, DatabaseMigrations;
 
     /**
-     * Boot the browser extension trait.
+     * Setup the test environment.
      *
      * @return void
      */
     protected function setUp(): void
     {
         parent::setUp();
+        
+        // Configure database for testing
+        $this->configureDatabase();
+        
+        // Migrate the database
+        $this->artisan('migrate:fresh', [
+            '--env' => 'dusk.local',
+            '--database' => 'sqlite',
+            '--seed' => true,
+        ]);
+        
+        // Create test users
+        $this->createTestUsers();
         
         // Directly register each method from the BrowserExtensions trait as a macro
         $extensionMethods = (new ReflectionClass(BrowserExtensions::class))->getMethods(
@@ -43,28 +61,18 @@ abstract class DuskTestCase extends BaseTestCase
             
             Browser::macro($methodName, $callback->bindTo(null, Browser::class));
         }
-
-        // Run migrations once to ensure tables are created
-        static::runMigrations();
     }
 
     /**
-     * Run database migrations for tests.
+     * Configure the database for testing.
      *
      * @return void
      */
-    protected static function runMigrations(): void
+    protected function configureDatabase(): void
     {
-        static $migrated = false;
-
-        if (!$migrated) {
-            Artisan::call('migrate:fresh', [
-                '--seed' => true,
-                '--env' => 'dusk.local',
-            ]);
-            
-            $migrated = true;
-        }
+        // Make sure we're using the dusk.local environment
+        $this->app['config']->set('database.default', 'sqlite');
+        $this->app['config']->set('database.connections.sqlite.database', __DIR__ . '/../database/dusk.sqlite');
     }
 
     /**
@@ -77,6 +85,12 @@ abstract class DuskTestCase extends BaseTestCase
     {
         if (! static::runningInSail()) {
             static::startChromeDriver();
+        }
+
+        // Create database file if it doesn't exist
+        $databasePath = __DIR__ . '/../database/dusk.sqlite';
+        if (!file_exists($databasePath)) {
+            file_put_contents($databasePath, '');
         }
     }
 
@@ -124,5 +138,49 @@ abstract class DuskTestCase extends BaseTestCase
     {
         return isset($_SERVER['DUSK_KEEP_OPEN']) ||
                isset($_ENV['DUSK_KEEP_OPEN']);
+    }
+
+    /**
+     * Create test users required for testing.
+     *
+     * @return void
+     */
+    protected function createTestUsers(): void
+    {
+        // Create an admin user if it doesn't exist
+        if (!User::where('email', 'admin@example.com')->exists()) {
+            User::create([
+                'name' => 'Admin User',
+                'email' => 'admin@example.com',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+                'role' => UserRole::ADMIN,
+                'active' => true,
+            ]);
+        }
+        
+        // Create a regular user if it doesn't exist
+        if (!User::where('email', 'user@example.com')->exists()) {
+            $user = User::create([
+                'name' => 'Regular User',
+                'email' => 'user@example.com',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+                'role' => UserRole::USER,
+                'active' => true,
+            ]);
+        } else {
+            $user = User::where('email', 'user@example.com')->first();
+        }
+        
+        // Create a test category if it doesn't exist
+        if (Category::count() === 0) {
+            Category::create([
+                'name' => 'Test Category',
+                'user_id' => $user->id,
+                'type' => 'work',
+                'color' => '#3355FF'
+            ]);
+        }
     }
 } 
