@@ -12,6 +12,7 @@
         "artisaninweb/laravel-soap": "^0.3.0",
         "darkaonline/l5-swagger": "^8.1",
         "genericmilk/docudoodle": "^2.0",
+        "halilcosdu/laravel-slower": "*",
         "inertiajs/inertia-laravel": "^2.0",
         "intervention/image": "^3.11",
         "intervention/validation": "^4.5",

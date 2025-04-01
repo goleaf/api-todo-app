@@ -47,6 +47,13 @@ Route::group([], function () {
             return view('dashboard');
         })->middleware(['onboarding'])->name('user.dashboard');
         
+        // Slow Query Management
+        Route::get('/slow-queries', [App\Http\Controllers\Admin\SlowQueryController::class, 'index'])->name('slow-queries.index');
+        Route::get('/slow-queries/{slowQuery}', [App\Http\Controllers\Admin\SlowQueryController::class, 'show'])->name('slow-queries.show');
+        Route::patch('/slow-queries/{slowQuery}/mark-analyzed', [App\Http\Controllers\Admin\SlowQueryController::class, 'markAsAnalyzed'])->name('slow-queries.mark-analyzed');
+        Route::delete('/slow-queries/{slowQuery}', [App\Http\Controllers\Admin\SlowQueryController::class, 'destroy'])->name('slow-queries.destroy');
+        Route::delete('/slow-queries', [App\Http\Controllers\Admin\SlowQueryController::class, 'clearAll'])->name('slow-queries.clear-all');
+        
         // Users management
         Route::resource('users', UserController::class);
         

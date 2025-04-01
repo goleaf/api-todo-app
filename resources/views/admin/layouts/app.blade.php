@@ -131,6 +131,11 @@
                                     <i class="fas fa-language"></i> Translations
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.slow-queries.index') }}" class="nav-link {{ request()->routeIs('admin.slow-queries.*') ? 'active' : '' }}">
+                                    <i class="fas fa-tachometer-alt"></i> Slow Queries
+                                </a>
+                            </li>
                             <li class="nav-item mt-3">
                                 <form method="POST" action="{{ route('admin.logout') }}">
                                     @csrf
