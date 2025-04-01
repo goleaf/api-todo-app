@@ -5,30 +5,31 @@ namespace Tests\Feature\Api;
 use App\Models\Task;
 use App\Models\Category;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Artisan;
 
 class DashboardTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
-    private User $user;
+    protected User $user;
 
-    protected function setUp(): void
+    public function setUp(): void
     {
         parent::setUp();
-
-        // Create user for testing
+        
+        // Refresh database for SQLite compatibility
+        Artisan::call('migrate:fresh');
+        
         $this->user = User::factory()->create();
+        Sanctum::actingAs($this->user);
     }
 
     /** @test */
     public function can_get_dashboard_data()
     {
-        Sanctum::actingAs($this->user);
-        
         // Create some tasks
         Task::factory()->count(3)->create([
             'user_id' => $this->user->id,

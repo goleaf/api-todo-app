@@ -5,20 +5,24 @@ namespace Tests\Feature\Api;
 use App\Models\Tag;
 use App\Models\Task;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Artisan;
 
 class TagsApiTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     protected User $user;
 
     public function setUp(): void
     {
         parent::setUp();
+        
+        // Refresh database for SQLite compatibility
+        Artisan::call('migrate:fresh');
+        
         $this->user = User::factory()->create();
         Sanctum::actingAs($this->user);
     }

@@ -23,7 +23,7 @@ class TaskTest extends TestCase
     {
         parent::setUp();
 
-        // Refresh database before tests
+        // Refresh database for SQLite compatibility
         Artisan::call('migrate:fresh');
         
         // Allow all Gate checks to pass for testing

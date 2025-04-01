@@ -6,19 +6,28 @@ use App\Models\User;
 use App\Models\Task;
 use App\Models\Category;
 use App\Models\Tag;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use Laravel\Sanctum\Sanctum;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Artisan;
 
 class RestApiTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
-    protected function setUp(): void
+    protected User $user;
+    protected User $adminUser;
+
+    public function setUp(): void
     {
         parent::setUp();
+        
+        // Refresh database for SQLite compatibility
+        Artisan::call('migrate:fresh');
+        
+        $this->user = User::factory()->create(['role' => 'user']);
+        $this->adminUser = User::factory()->create(['role' => 'admin']);
         
         // Disable database transactions for these tests to avoid conflicts
         $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidatePostSize::class);
@@ -32,8 +41,6 @@ class RestApiTest extends TestCase
         });
         
         // Create test data
-        $this->user = User::factory()->create();
-        $this->adminUser = User::factory()->create(['role' => 'admin']); // Admin role
         $this->category = Category::factory()->create(['user_id' => $this->user->id]);
         $this->task = Task::factory()->create([
             'user_id' => $this->user->id,

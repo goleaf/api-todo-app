@@ -5,14 +5,14 @@ namespace Tests\Feature\Api;
 use App\Models\Tag;
 use App\Models\Task;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Artisan;
 
 class TagTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     private User $user;
     private User $otherUser;
@@ -20,6 +20,9 @@ class TagTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // Refresh database for SQLite compatibility
+        Artisan::call('migrate:fresh');
 
         // Create users for testing
         $this->user = User::factory()->create();
