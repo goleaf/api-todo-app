@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('task_tag', function (Blueprint $table) {
+        Schema::create('time_entries', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('task_id')->constrained()->onDelete('cascade');
-            $table->foreignId('tag_id')->constrained()->onDelete('cascade');
+            $table->dateTime('started_at');
+            $table->dateTime('ended_at')->nullable();
+            $table->text('description')->nullable();
             $table->timestamps();
-            
-            // Prevent duplicate tag assignments
-            $table->unique(['task_id', 'tag_id']);
+            $table->softDeletes();
         });
     }
 
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('task_tag');
+        Schema::dropIfExists('time_entries');
     }
-};
+}; 

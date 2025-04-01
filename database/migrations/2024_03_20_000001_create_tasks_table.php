@@ -13,14 +13,16 @@ return new class extends Migration
     {
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('category_id')->nullable()->constrained()->onDelete('set null');
             $table->string('title');
             $table->text('description')->nullable();
-            $table->date('due_date')->nullable();
-            $table->tinyInteger('priority')->default(1); // 1 = Low, 2 = Medium, 3 = High
+            $table->dateTime('due_date')->nullable();
+            $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
             $table->boolean('completed')->default(false);
-            $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->timestamp('completed_at')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -31,4 +33,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('tasks');
     }
-};
+}; 

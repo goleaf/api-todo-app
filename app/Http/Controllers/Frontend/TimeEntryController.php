@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\TimeEntryRequest;
 use App\Models\Task;
 use App\Models\TimeEntry;
 use Illuminate\Http\Request;
@@ -43,18 +44,12 @@ class TimeEntryController extends Controller
     /**
      * Store a newly created time entry.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\TimeEntryRequest  $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request)
+    public function store(TimeEntryRequest $request)
     {
-        $validated = $request->validate([
-            'task_id' => 'required|exists:tasks,id',
-            'started_at' => 'required|date',
-            'ended_at' => 'nullable|date|after:started_at',
-            'description' => 'nullable|string|max:1000',
-        ]);
-
+        $validated = $request->validated();
         $validated['user_id'] = Auth::id();
 
         TimeEntry::create($validated);
@@ -96,21 +91,15 @@ class TimeEntryController extends Controller
     /**
      * Update the specified time entry.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\TimeEntryRequest  $request
      * @param  \App\Models\TimeEntry  $timeEntry
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(Request $request, TimeEntry $timeEntry)
+    public function update(TimeEntryRequest $request, TimeEntry $timeEntry)
     {
         $this->authorize('update', $timeEntry);
 
-        $validated = $request->validate([
-            'task_id' => 'required|exists:tasks,id',
-            'started_at' => 'required|date',
-            'ended_at' => 'nullable|date|after:started_at',
-            'description' => 'nullable|string|max:1000',
-        ]);
-
+        $validated = $request->validated();
         $timeEntry->update($validated);
 
         return redirect()->route('time-entries.index')

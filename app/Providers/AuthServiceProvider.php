@@ -2,6 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\Category;
+use App\Models\Tag;
+use App\Models\Task;
+use App\Models\TimeEntry;
+use App\Policies\CategoryPolicy;
+use App\Policies\TagPolicy;
+use App\Policies\TaskPolicy;
+use App\Policies\TimeEntryPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
@@ -13,20 +21,16 @@ class AuthServiceProvider extends ServiceProvider
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        \App\Models\Task::class => \App\Policies\TaskPolicy::class,
-        \App\Models\TimeEntry::class => \App\Policies\TimeEntryPolicy::class,
-        \App\Models\Attachment::class => \App\Policies\AttachmentPolicy::class,
-        \App\Models\Tag::class => \App\Policies\TagPolicy::class,
-        \App\Models\SmartTag::class => \App\Policies\SmartTagPolicy::class,
-        \App\Models\Category::class => \App\Policies\CategoryPolicy::class,
+        Task::class => TaskPolicy::class,
+        Category::class => CategoryPolicy::class,
+        Tag::class => TagPolicy::class,
+        TimeEntry::class => TimeEntryPolicy::class,
     ];
 
     /**
      * Register any authentication / authorization services.
-     *
-     * @return void
      */
-    public function boot()
+    public function boot(): void
     {
         $this->registerPolicies();
         $this->configureGates();

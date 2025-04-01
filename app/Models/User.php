@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
@@ -23,6 +23,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'timezone',
+        'date_format',
+        'time_format',
     ];
 
     /**
@@ -94,71 +97,79 @@ class User extends Authenticatable
     }
     
     /**
-     * Get completed tasks for the user.
+     * Get the user's pending tasks.
      */
-    public function completedTasks()
+    public function pendingTasks(): HasMany
     {
-        return $this->tasks()->completed();
+        return $this->tasks()->where('completed', false);
     }
     
     /**
-     * Get incomplete tasks for the user.
+     * Get the user's completed tasks.
      */
-    public function incompleteTasks()
+    public function completedTasks(): HasMany
     {
-        return $this->tasks()->incomplete();
+        return $this->tasks()->where('completed', true);
     }
     
     /**
-     * Get overdue tasks for the user.
+     * Get the user's overdue tasks.
      */
-    public function overdueTasks()
+    public function overdueTasks(): HasMany
     {
-        return $this->tasks()->overdue();
+        return $this->tasks()
+            ->where('completed', false)
+            ->where('due_date', '<', now());
     }
     
     /**
-     * Get tasks due today for the user.
+     * Get the user's upcoming tasks.
      */
-    public function todayTasks()
+    public function upcomingTasks(): HasMany
     {
-        return $this->tasks()->dueToday();
+        return $this->tasks()
+            ->where('completed', false)
+            ->where('due_date', '>', now());
     }
     
     /**
-     * Get tasks due this week for the user.
+     * Get the user's running time entries.
      */
-    public function thisWeekTasks()
+    public function runningTimeEntries(): HasMany
     {
-        return $this->tasks()->dueThisWeek();
+        return $this->timeEntries()->whereNull('ended_at');
     }
     
     /**
-     * Get tasks with no due date.
+     * Get the user's completed time entries.
      */
-    public function unscheduledTasks()
+    public function completedTimeEntries(): HasMany
     {
-        return $this->tasks()->whereNull('due_date');
+        return $this->timeEntries()->whereNotNull('ended_at');
     }
     
     /**
-     * Get total time entries duration.
+     * Get total time spent on all tasks.
      */
-    public function getTotalTrackedTimeAttribute(): int
+    public function getTotalTimeSpentAttribute(): int
     {
         return $this->timeEntries()->sum('duration_seconds');
     }
     
     /**
-     * Format total tracked time as human-readable.
+     * Get the total time spent as a human-readable string.
      */
-    public function getFormattedTotalTrackedTimeAttribute(): string
+    public function getTotalTimeSpentFormattedAttribute(): string
     {
-        $seconds = $this->total_tracked_time;
-        
+        $seconds = $this->total_time_spent;
         $hours = floor($seconds / 3600);
         $minutes = floor(($seconds % 3600) / 60);
-        
-        return sprintf('%02d:%02d', $hours, $minutes);
+        $seconds = $seconds % 60;
+
+        if ($hours > 0) {
+            return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+        }
+
+        return sprintf('%02d:%02d', $minutes, $seconds);
     }
 }

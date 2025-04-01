@@ -26,6 +26,7 @@
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Color</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tasks</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                     </tr>
@@ -34,15 +35,15 @@
                                     @foreach($tags as $tag)
                                         <tr>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                <div class="flex items-center">
-                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ $tag->color ?? 'gray' }}-100 text-{{ $tag->color ?? 'gray' }}-800 mr-2">
-                                                        #
-                                                    </span>
-                                                    <a href="{{ route('tags.show', $tag) }}" class="text-indigo-600 hover:text-indigo-900">{{ $tag->name }}</a>
-                                                </div>
+                                                <a href="{{ route('tags.show', $tag) }}" class="text-indigo-600 hover:text-indigo-900">{{ $tag->name }}</a>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {{ $tag->tasks_count ?? $tag->tasks->count() }}
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{{ $tag->color ?? 'gray' }}-100 text-{{ $tag->color ?? 'gray' }}-800">
+                                                    {{ $tag->color ?? 'Default' }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {{ $tag->tasks_count ?? $tag->tasks->count() }} tasks
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <a href="{{ route('tags.edit', $tag) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\TaskRequest;
 use App\Models\Task;
 use App\Models\Category;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,11 +20,13 @@ class TaskController extends Controller
     public function index()
     {
         $tasks = Task::where('user_id', Auth::id())
-            ->with('category')
+            ->with(['category', 'tags'])
             ->latest()
             ->paginate(10);
 
-        $categories = Category::where('user_id', Auth::id())->get();
+        $categories = Category::where('user_id', Auth::id())
+            ->orderBy('name')
+            ->get();
 
         return view('user.tasks.index', compact('tasks', 'categories'));
     }
@@ -34,32 +38,33 @@ class TaskController extends Controller
      */
     public function create()
     {
-        $categories = Category::where('user_id', Auth::id())->get();
-        return view('user.tasks.create', compact('categories'));
+        $categories = Category::where('user_id', Auth::id())
+            ->orderBy('name')
+            ->get();
+
+        $tags = Tag::where('user_id', Auth::id())
+            ->orderBy('name')
+            ->get();
+
+        return view('user.tasks.create', compact('categories', 'tags'));
     }
 
     /**
      * Store a newly created task.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\TaskRequest  $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request)
+    public function store(TaskRequest $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'due_date' => 'nullable|date',
-            'priority' => 'required|integer|between:1,4',
-            'category_id' => 'nullable|exists:categories,id',
-            'tags' => 'nullable|array',
-            'notes' => 'nullable|string',
-        ]);
-
+        $validated = $request->validated();
         $validated['user_id'] = Auth::id();
-        $validated['completed'] = false;
 
-        Task::create($validated);
+        $task = Task::create($validated);
+
+        if (isset($validated['tags'])) {
+            $task->tags()->sync($validated['tags']);
+        }
 
         return redirect()->route('tasks.index')
             ->with('success', 'Task created successfully.');
@@ -74,6 +79,9 @@ class TaskController extends Controller
     public function show(Task $task)
     {
         $this->authorize('view', $task);
+
+        $task->load(['category', 'tags', 'timeEntries']);
+
         return view('user.tasks.show', compact('task'));
     }
 
@@ -86,32 +94,35 @@ class TaskController extends Controller
     public function edit(Task $task)
     {
         $this->authorize('update', $task);
-        $categories = Category::where('user_id', Auth::id())->get();
-        return view('user.tasks.edit', compact('task', 'categories'));
+
+        $categories = Category::where('user_id', Auth::id())
+            ->orderBy('name')
+            ->get();
+
+        $tags = Tag::where('user_id', Auth::id())
+            ->orderBy('name')
+            ->get();
+
+        return view('user.tasks.edit', compact('task', 'categories', 'tags'));
     }
 
     /**
      * Update the specified task.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\TaskRequest  $request
      * @param  \App\Models\Task  $task
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(Request $request, Task $task)
+    public function update(TaskRequest $request, Task $task)
     {
         $this->authorize('update', $task);
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'due_date' => 'nullable|date',
-            'priority' => 'required|integer|between:1,4',
-            'category_id' => 'nullable|exists:categories,id',
-            'tags' => 'nullable|array',
-            'notes' => 'nullable|string',
-        ]);
-
+        $validated = $request->validated();
         $task->update($validated);
+
+        if (isset($validated['tags'])) {
+            $task->tags()->sync($validated['tags']);
+        }
 
         return redirect()->route('tasks.index')
             ->with('success', 'Task updated successfully.');
@@ -134,7 +145,7 @@ class TaskController extends Controller
     }
 
     /**
-     * Toggle the completion status of the task.
+     * Toggle the completion status of the specified task.
      *
      * @param  \App\Models\Task  $task
      * @return \Illuminate\Http\JsonResponse
@@ -143,13 +154,11 @@ class TaskController extends Controller
     {
         $this->authorize('update', $task);
 
-        $task->completed = !$task->completed;
-        $task->save();
+        $task->toggle();
 
         return response()->json([
             'success' => true,
-            'message' => 'Task status updated successfully.',
-            'completed' => $task->completed
+            'task' => $task,
         ]);
     }
 } 

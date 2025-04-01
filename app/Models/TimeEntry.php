@@ -17,35 +17,22 @@ class TimeEntry extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'task_id',
         'user_id',
+        'task_id',
         'started_at',
         'ended_at',
-        'duration_seconds',
         'description',
-        'is_billable',
-        'hourly_rate',
     ];
     
     /**
      * The attributes that should be cast.
      *
-     * @var array
+     * @var array<string, string>
      */
     protected $casts = [
         'started_at' => 'datetime',
         'ended_at' => 'datetime',
-        'is_billable' => 'boolean',
-        'hourly_rate' => 'decimal:2',
     ];
-    
-    /**
-     * Get the task that the time entry belongs to.
-     */
-    public function task(): BelongsTo
-    {
-        return $this->belongsTo(Task::class);
-    }
     
     /**
      * Get the user that owns the time entry.
@@ -56,70 +43,80 @@ class TimeEntry extends Model
     }
     
     /**
-     * Start a new time entry.
+     * Get the task that owns the time entry.
      */
-    public static function start(Task $task, ?string $description = null): self
+    public function task(): BelongsTo
     {
-        return self::create([
-            'task_id' => $task->id,
-            'user_id' => auth()->id(),
-            'started_at' => Carbon::now(),
-            'description' => $description,
-        ]);
+        return $this->belongsTo(Task::class);
+    }
+    
+    /**
+     * Scope a query to only include time entries for a specific user.
+     */
+    public function scopeForUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+    
+    /**
+     * Scope a query to only include running time entries.
+     */
+    public function scopeRunning($query)
+    {
+        return $query->whereNull('ended_at');
+    }
+    
+    /**
+     * Scope a query to only include completed time entries.
+     */
+    public function scopeCompleted($query)
+    {
+        return $query->whereNotNull('ended_at');
+    }
+    
+    /**
+     * Get the duration of the time entry in seconds.
+     */
+    public function getDurationSecondsAttribute(): int
+    {
+        if (!$this->ended_at) {
+            return Carbon::now()->diffInSeconds($this->started_at);
+        }
+        
+        return $this->ended_at->diffInSeconds($this->started_at);
+    }
+    
+    /**
+     * Get the duration of the time entry as a human-readable string.
+     */
+    public function getDurationAttribute(): string
+    {
+        $seconds = $this->duration_seconds;
+        $hours = floor($seconds / 3600);
+        $minutes = floor(($seconds % 3600) / 60);
+        $seconds = $seconds % 60;
+        
+        if ($hours > 0) {
+            return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+        }
+        
+        return sprintf('%02d:%02d', $minutes, $seconds);
     }
     
     /**
      * Stop the time entry.
      */
-    public function stop(): self
+    public function stop(): bool
     {
-        $now = Carbon::now();
-        $this->ended_at = $now;
-        
-        // Calculate duration
-        $startedAt = Carbon::parse($this->started_at);
-        $this->duration_seconds = $now->diffInSeconds($startedAt);
-        
-        $this->save();
-        
-        return $this;
+        $this->ended_at = now();
+        return $this->save();
     }
     
     /**
-     * Check if this time entry is currently running.
+     * Check if the time entry is currently running.
      */
     public function isRunning(): bool
     {
         return is_null($this->ended_at);
-    }
-    
-    /**
-     * Format duration as a human-readable string.
-     */
-    public function getFormattedDurationAttribute(): string
-    {
-        $seconds = $this->duration_seconds;
-        
-        if ($this->isRunning()) {
-            $seconds = Carbon::now()->diffInSeconds($this->started_at);
-        }
-        
-        $hours = floor($seconds / 3600);
-        $minutes = floor(($seconds % 3600) / 60);
-        
-        return sprintf('%02d:%02d', $hours, $minutes);
-    }
-    
-    /**
-     * Calculate cost based on billable status and hourly rate.
-     */
-    public function getCostAttribute(): ?float
-    {
-        if (!$this->is_billable || is_null($this->hourly_rate)) {
-            return null;
-        }
-        
-        $hours = $this->duration_seconds / 3600;
-        return $hours * $this->hourly_rate;
     }
 }

@@ -9,10 +9,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Task extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -20,24 +21,25 @@ class Task extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'user_id',
+        'category_id',
         'title',
         'description',
         'due_date',
         'priority',
         'completed',
-        'category_id',
-        'user_id',
+        'completed_at',
     ];
 
     /**
      * The attributes that should be cast.
      *
-     * @var array
+     * @var array<string, string>
      */
     protected $casts = [
-        'due_date' => 'date',
+        'due_date' => 'datetime',
         'completed' => 'boolean',
-        'priority' => 'integer',
+        'completed_at' => 'datetime',
     ];
 
     /**
@@ -56,21 +58,22 @@ class Task extends Model
     }
 
     /**
-     * Get the category that the task belongs to.
+     * Get the category that owns the task.
      */
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
-    
+
     /**
-     * Get the tags associated with the task.
+     * Get the tags for the task.
      */
     public function tags(): BelongsToMany
     {
-        return $this->belongsToMany(Tag::class);
+        return $this->belongsToMany(Tag::class, 'task_tag')
+            ->withTimestamps();
     }
-    
+
     /**
      * Get the time entries for the task.
      */
@@ -78,7 +81,7 @@ class Task extends Model
     {
         return $this->hasMany(TimeEntry::class);
     }
-    
+
     /**
      * Get the attachments for the task.
      */
@@ -88,21 +91,57 @@ class Task extends Model
     }
 
     /**
+     * Scope a query to only include tasks for a specific user.
+     */
+    public function scopeForUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    /**
      * Scope a query to only include completed tasks.
      */
-    public function scopeCompleted(Builder $query): Builder
+    public function scopeCompleted($query)
     {
         return $query->where('completed', true);
     }
 
     /**
-     * Scope a query to only include incomplete tasks.
+     * Scope a query to only include pending tasks.
      */
-    public function scopeIncomplete(Builder $query): Builder
+    public function scopePending($query)
     {
         return $query->where('completed', false);
     }
-    
+
+    /**
+     * Scope a query to only include overdue tasks.
+     */
+    public function scopeOverdue($query)
+    {
+        return $query->where('completed', false)
+            ->where('due_date', '<', now());
+    }
+
+    /**
+     * Scope a query to only include upcoming tasks.
+     */
+    public function scopeUpcoming($query)
+    {
+        return $query->where('completed', false)
+            ->where('due_date', '>', now());
+    }
+
+    /**
+     * Toggle the completion status of the task.
+     */
+    public function toggle(): bool
+    {
+        $this->completed = !$this->completed;
+        $this->completed_at = $this->completed ? now() : null;
+        return $this->save();
+    }
+
     /**
      * Scope a query to only include tasks due today.
      */
@@ -110,16 +149,7 @@ class Task extends Model
     {
         return $query->whereDate('due_date', Carbon::today());
     }
-    
-    /**
-     * Scope a query to only include overdue tasks.
-     */
-    public function scopeOverdue(Builder $query): Builder
-    {
-        return $query->where('completed', false)
-                     ->whereDate('due_date', '<', Carbon::today());
-    }
-    
+
     /**
      * Scope a query to only include tasks due within the next week.
      */
@@ -129,7 +159,7 @@ class Task extends Model
                      ->whereDate('due_date', '>=', Carbon::today())
                      ->whereDate('due_date', '<=', Carbon::today()->addDays(7));
     }
-    
+
     /**
      * Scope a query to get high priority tasks.
      */
@@ -137,7 +167,7 @@ class Task extends Model
     {
         return $query->where('priority', self::PRIORITY_HIGH);
     }
-    
+
     /**
      * Calculate the total time spent on this task.
      */
@@ -145,7 +175,7 @@ class Task extends Model
     {
         return $this->timeEntries()->sum('duration_seconds');
     }
-    
+
     /**
      * Format total time as a human-readable string.
      */

@@ -28,14 +28,15 @@
                         <div class="mb-6">
                             <label for="color" class="block text-sm font-medium text-gray-700">Color</label>
                             <select name="color" id="color" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                <option value="gray" {{ old('color') == 'gray' ? 'selected' : '' }}>Gray</option>
-                                <option value="red" {{ old('color') == 'red' ? 'selected' : '' }}>Red</option>
-                                <option value="yellow" {{ old('color') == 'yellow' ? 'selected' : '' }}>Yellow</option>
-                                <option value="green" {{ old('color') == 'green' ? 'selected' : '' }}>Green</option>
-                                <option value="blue" {{ old('color') == 'blue' ? 'selected' : '' }}>Blue</option>
-                                <option value="indigo" {{ old('color') == 'indigo' ? 'selected' : '' }}>Indigo</option>
-                                <option value="purple" {{ old('color') == 'purple' ? 'selected' : '' }}>Purple</option>
-                                <option value="pink" {{ old('color') == 'pink' ? 'selected' : '' }}>Pink</option>
+                                <option value="">Select a color</option>
+                                <option value="red" {{ old('color') === 'red' ? 'selected' : '' }}>Red</option>
+                                <option value="yellow" {{ old('color') === 'yellow' ? 'selected' : '' }}>Yellow</option>
+                                <option value="green" {{ old('color') === 'green' ? 'selected' : '' }}>Green</option>
+                                <option value="blue" {{ old('color') === 'blue' ? 'selected' : '' }}>Blue</option>
+                                <option value="indigo" {{ old('color') === 'indigo' ? 'selected' : '' }}>Indigo</option>
+                                <option value="purple" {{ old('color') === 'purple' ? 'selected' : '' }}>Purple</option>
+                                <option value="pink" {{ old('color') === 'pink' ? 'selected' : '' }}>Pink</option>
+                                <option value="gray" {{ old('color') === 'gray' ? 'selected' : '' }}>Gray</option>
                             </select>
                             @error('color')
                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>

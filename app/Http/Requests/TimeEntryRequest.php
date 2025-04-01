@@ -17,15 +17,15 @@ class TimeEntryRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, array<int, \Illuminate\Contracts\Validation\Rule|array|string>>
      */
     public function rules(): array
     {
         return [
-            'task_id' => 'required|exists:tasks,id',
-            'start_time' => 'required|date',
-            'end_time' => 'nullable|date|after:start_time',
-            'description' => 'nullable|string',
+            'task_id' => ['required', 'exists:tasks,id'],
+            'started_at' => ['required', 'date'],
+            'ended_at' => ['nullable', 'date', 'after:started_at'],
+            'description' => ['nullable', 'string', 'max:1000'],
         ];
     }
 } 

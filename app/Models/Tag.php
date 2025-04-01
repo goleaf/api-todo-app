@@ -17,9 +17,9 @@ class Tag extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'user_id',
         'name',
         'color',
-        'user_id',
     ];
     
     /**
@@ -31,7 +31,7 @@ class Tag extends Model
     }
     
     /**
-     * Get the tasks associated with the tag.
+     * Get the tasks for the tag.
      */
     public function tasks(): BelongsToMany
     {
@@ -39,9 +39,33 @@ class Tag extends Model
     }
     
     /**
-     * Get the count of tasks associated with this tag.
+     * Scope a query to only include tags for a specific user.
      */
-    public function getTaskCountAttribute(): int
+    public function scopeForUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+    
+    /**
+     * Get the number of pending tasks with this tag.
+     */
+    public function getPendingTasksCountAttribute(): int
+    {
+        return $this->tasks()->where('completed', false)->count();
+    }
+    
+    /**
+     * Get the number of completed tasks with this tag.
+     */
+    public function getCompletedTasksCountAttribute(): int
+    {
+        return $this->tasks()->where('completed', true)->count();
+    }
+    
+    /**
+     * Get the total number of tasks with this tag.
+     */
+    public function getTotalTasksCountAttribute(): int
     {
         return $this->tasks()->count();
     }
