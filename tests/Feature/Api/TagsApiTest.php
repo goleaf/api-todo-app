@@ -169,11 +169,19 @@ class TagsApiTest extends TestCase
         // Attach initial tags
         $task->tags()->attach($initialTags->pluck('id'));
 
-        // Create new tag names
-        $newTagNames = ['new-tag-1', 'new-tag-2', 'new-tag-3'];
+        // Create new tags and get their IDs
+        $newTags = [];
+        foreach (['new-tag-1', 'new-tag-2', 'new-tag-3'] as $tagName) {
+            $tag = Tag::create([
+                'name' => $tagName,
+                'user_id' => $this->user->id,
+                'color' => '#' . dechex(rand(0, 16777215))
+            ]);
+            $newTags[] = $tag->id;
+        }
 
         $response = $this->putJson("/api/tasks/{$task->id}/tags", [
-            'tags' => $newTagNames,
+            'tags' => $newTags,
         ]);
 
         // Output response content for debugging
@@ -187,11 +195,11 @@ class TagsApiTest extends TestCase
         // Check that task has exactly 3 tags now
         $this->assertEquals(3, $task->fresh()->tags()->count());
 
-        // Check that tags with these names exist
-        foreach ($newTagNames as $tagName) {
-            $this->assertDatabaseHas('tags', [
-                'name' => $tagName,
-                'user_id' => $this->user->id,
+        // Check that the correct tags are attached
+        foreach ($newTags as $tagId) {
+            $this->assertDatabaseHas('task_tag', [
+                'task_id' => $task->id,
+                'tag_id' => $tagId,
             ]);
         }
     }
@@ -244,12 +252,20 @@ class TagsApiTest extends TestCase
         // Attach initial tag
         $task->tags()->attach($initialTag->id);
         
-        // New tags to add
-        $newTagNames = ['new-tag-1', 'new-tag-2'];
+        // Create new tags
+        $newTags = [];
+        foreach (['new-tag-1', 'new-tag-2'] as $tagName) {
+            $tag = Tag::create([
+                'name' => $tagName,
+                'user_id' => $this->user->id,
+                'color' => '#' . dechex(rand(0, 16777215))
+            ]);
+            $newTags[] = $tag->id;
+        }
         
         $response = $this->postJson("/api/tasks/{$task->id}/tags", [
             'operation' => 'add',
-            'tags' => $newTagNames,
+            'tag_ids' => $newTags,
         ]);
         
         // Output response content for debugging
@@ -269,16 +285,11 @@ class TagsApiTest extends TestCase
             'tag_id' => $initialTag->id,
         ]);
         
-        // Check that the new tags exist and are attached to the task
-        foreach ($newTagNames as $tagName) {
-            $tag = Tag::where('name', $tagName)
-                ->where('user_id', $this->user->id)
-                ->first();
-                
-            $this->assertNotNull($tag);
+        // Check that the new tags are attached to the task
+        foreach ($newTags as $tagId) {
             $this->assertDatabaseHas('task_tag', [
                 'task_id' => $task->id,
-                'tag_id' => $tag->id,
+                'tag_id' => $tagId,
             ]);
         }
     }
@@ -314,7 +325,7 @@ class TagsApiTest extends TestCase
         // Request to remove tags
         $response = $this->postJson("/api/tasks/{$task->id}/tags", [
             'operation' => 'remove',
-            'tags' => ['tag-to-remove-1', 'tag-to-remove-2'],
+            'tag_ids' => [$tag2->id, $tag3->id],
         ]);
         
         // Output response content for debugging
