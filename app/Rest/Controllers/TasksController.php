@@ -54,7 +54,13 @@ class TasksController extends RestController
         $task = Task::findOrFail($parameters['id']);
         $tagIds = $parameters['tags'] ?? [];
         
-        $task->tags()->sync($tagIds);
+        // Ensure tags parameter is treated as a proper array of IDs
+        if (!empty($tagIds) && is_array($tagIds)) {
+            $task->tags()->sync($tagIds);
+        } else {
+            // If empty or not an array, just remove all tags
+            $task->tags()->sync([]);
+        }
         
         return response()->json([
             'success' => true,
@@ -75,18 +81,23 @@ class TasksController extends RestController
         $operation = $parameters['operation'] ?? 'add';
         $tagIds = $parameters['tag_ids'] ?? [];
         
-        if ($operation === 'add') {
-            $task->tags()->syncWithoutDetaching($tagIds);
-            $message = 'Tags added successfully';
-        } elseif ($operation === 'remove') {
-            $task->tags()->detach($tagIds);
-            $message = 'Tags removed successfully';
+        // Ensure tag_ids is a proper array of IDs
+        if (!empty($tagIds) && is_array($tagIds)) {
+            if ($operation === 'add') {
+                $task->tags()->syncWithoutDetaching($tagIds);
+                $message = 'Tags added successfully';
+            } elseif ($operation === 'remove') {
+                $task->tags()->detach($tagIds);
+                $message = 'Tags removed successfully';
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid operation',
+                    'errors' => ['operation' => 'Operation must be "add" or "remove"']
+                ], 422);
+            }
         } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid operation',
-                'errors' => ['operation' => 'Operation must be "add" or "remove"']
-            ], 422);
+            $message = 'No tags specified';
         }
         
         return response()->json([
