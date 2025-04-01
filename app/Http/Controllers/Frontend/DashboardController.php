@@ -51,7 +51,7 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('user.dashboard', compact(
+        return view('frontend.dashboard.dashboard', compact(
             'taskStats',
             'categoryStats',
             'recentTasks',

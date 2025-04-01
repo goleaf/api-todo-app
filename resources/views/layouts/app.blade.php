@@ -18,8 +18,8 @@
     <link rel="stylesheet" href="{{ asset('vendor/tabler/dist/css/tabler-icons.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/tabler/dist/css/tabler-vendors.min.css') }}">
 
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <!-- Vite Assets -->
+    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 
     <x-rich-text::styles theme="richtextlaravel" data-turbo-track="false" />
 </head>
@@ -30,8 +30,5 @@
 
     <!-- Tabler Core -->
     <script src="{{ asset('vendor/tabler/dist/js/tabler.min.js') }}"></script>
-    
-    <!-- Custom Scripts -->
-    <script src="{{ asset('js/app.js') }}"></script>
 </body>
 </html> 

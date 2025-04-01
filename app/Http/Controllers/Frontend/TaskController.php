@@ -28,7 +28,7 @@ class TaskController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('user.tasks.index', compact('tasks', 'categories'));
+        return view('frontend.tasks.index', compact('tasks', 'categories'));
     }
 
     /**
@@ -46,24 +46,23 @@ class TaskController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('user.tasks.create', compact('categories', 'tags'));
+        return view('frontend.tasks.create', compact('categories', 'tags'));
     }
 
     /**
-     * Store a newly created task.
+     * Store a newly created task in storage.
      *
      * @param  \App\Http\Requests\TaskRequest  $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function store(TaskRequest $request)
     {
-        $validated = $request->validated();
-        $validated['user_id'] = Auth::id();
+        $task = new Task($request->validated());
+        $task->user_id = Auth::id();
+        $task->save();
 
-        $task = Task::create($validated);
-
-        if (isset($validated['tags'])) {
-            $task->tags()->sync($validated['tags']);
+        if ($request->has('tags')) {
+            $task->tags()->sync($request->tags);
         }
 
         return redirect()->route('tasks.index')
@@ -79,10 +78,7 @@ class TaskController extends Controller
     public function show(Task $task)
     {
         $this->authorize('view', $task);
-
-        $task->load(['category', 'tags', 'timeEntries']);
-
-        return view('user.tasks.show', compact('task'));
+        return view('frontend.tasks.show', compact('task'));
     }
 
     /**
@@ -94,7 +90,7 @@ class TaskController extends Controller
     public function edit(Task $task)
     {
         $this->authorize('update', $task);
-
+        
         $categories = Category::where('user_id', Auth::id())
             ->orderBy('name')
             ->get();
@@ -103,11 +99,11 @@ class TaskController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('user.tasks.edit', compact('task', 'categories', 'tags'));
+        return view('frontend.tasks.edit', compact('task', 'categories', 'tags'));
     }
 
     /**
-     * Update the specified task.
+     * Update the specified task in storage.
      *
      * @param  \App\Http\Requests\TaskRequest  $request
      * @param  \App\Models\Task  $task
@@ -116,12 +112,11 @@ class TaskController extends Controller
     public function update(TaskRequest $request, Task $task)
     {
         $this->authorize('update', $task);
+        
+        $task->update($request->validated());
 
-        $validated = $request->validated();
-        $task->update($validated);
-
-        if (isset($validated['tags'])) {
-            $task->tags()->sync($validated['tags']);
+        if ($request->has('tags')) {
+            $task->tags()->sync($request->tags);
         }
 
         return redirect()->route('tasks.index')
@@ -129,7 +124,7 @@ class TaskController extends Controller
     }
 
     /**
-     * Remove the specified task.
+     * Remove the specified task from storage.
      *
      * @param  \App\Models\Task  $task
      * @return \Illuminate\Http\RedirectResponse
@@ -137,7 +132,7 @@ class TaskController extends Controller
     public function destroy(Task $task)
     {
         $this->authorize('delete', $task);
-
+        
         $task->delete();
 
         return redirect()->route('tasks.index')
@@ -145,20 +140,19 @@ class TaskController extends Controller
     }
 
     /**
-     * Toggle the completion status of the specified task.
+     * Toggle the completion status of the task.
      *
      * @param  \App\Models\Task  $task
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function toggle(Task $task)
     {
         $this->authorize('update', $task);
+        
+        $task->completed = !$task->completed;
+        $task->save();
 
-        $task->toggle();
-
-        return response()->json([
-            'success' => true,
-            'task' => $task,
-        ]);
+        return redirect()->route('tasks.index')
+            ->with('success', 'Task status updated successfully.');
     }
 } 

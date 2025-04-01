@@ -12,6 +12,7 @@ use App\Http\Controllers\Frontend\CategoryController;
 use App\Http\Controllers\Frontend\TagController;
 use App\Http\Controllers\Frontend\TimeEntryController;
 use App\Http\Controllers\Frontend\SettingsController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -63,6 +64,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('confirm-password', [ConfirmPasswordController::class, 'showConfirmForm'])
         ->name('password.confirm');
     Route::post('confirm-password', [ConfirmPasswordController::class, 'confirm']);
+
+    // Profile Routes
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Statistics page
     Route::get('/statistics', function () {

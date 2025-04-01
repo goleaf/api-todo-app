@@ -23,7 +23,7 @@ class TimeEntryController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('user.time-entries.index', compact('timeEntries'));
+        return view('frontend.time-entries.index', compact('timeEntries'));
     }
 
     /**
@@ -38,7 +38,7 @@ class TimeEntryController extends Controller
             ->orderBy('title')
             ->get();
 
-        return view('user.time-entries.create', compact('tasks'));
+        return view('frontend.time-entries.create', compact('tasks'));
     }
 
     /**
@@ -67,7 +67,7 @@ class TimeEntryController extends Controller
     public function show(TimeEntry $timeEntry)
     {
         $this->authorize('view', $timeEntry);
-        return view('user.time-entries.show', compact('timeEntry'));
+        return view('frontend.time-entries.show', compact('timeEntry'));
     }
 
     /**
@@ -79,13 +79,13 @@ class TimeEntryController extends Controller
     public function edit(TimeEntry $timeEntry)
     {
         $this->authorize('update', $timeEntry);
-
+        
         $tasks = Task::where('user_id', Auth::id())
             ->where('completed', false)
             ->orderBy('title')
             ->get();
 
-        return view('user.time-entries.edit', compact('timeEntry', 'tasks'));
+        return view('frontend.time-entries.edit', compact('timeEntry', 'tasks'));
     }
 
     /**
@@ -98,9 +98,8 @@ class TimeEntryController extends Controller
     public function update(TimeEntryRequest $request, TimeEntry $timeEntry)
     {
         $this->authorize('update', $timeEntry);
-
-        $validated = $request->validated();
-        $timeEntry->update($validated);
+        
+        $timeEntry->update($request->validated());
 
         return redirect()->route('time-entries.index')
             ->with('success', 'Time entry updated successfully.');
@@ -115,7 +114,7 @@ class TimeEntryController extends Controller
     public function destroy(TimeEntry $timeEntry)
     {
         $this->authorize('delete', $timeEntry);
-
+        
         $timeEntry->delete();
 
         return redirect()->route('time-entries.index')
@@ -123,54 +122,52 @@ class TimeEntryController extends Controller
     }
 
     /**
-     * Start a new time entry for a task.
+     * Start tracking time for a task.
      *
      * @param  \App\Models\Task  $task
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function start(Task $task)
     {
         $this->authorize('update', $task);
+        
+        if ($task->isTracking()) {
+            return redirect()->route('tasks.show', $task)
+                ->with('error', 'Time tracking is already started for this task.');
+        }
 
-        $timeEntry = TimeEntry::create([
-            'user_id' => Auth::id(),
+        TimeEntry::create([
             'task_id' => $task->id,
+            'user_id' => Auth::id(),
             'started_at' => now(),
-            'description' => 'Started tracking time',
         ]);
 
-        return response()->json([
-            'success' => true,
-            'timeEntry' => $timeEntry,
-        ]);
+        return redirect()->route('tasks.show', $task)
+            ->with('success', 'Time tracking started successfully.');
     }
 
     /**
-     * Stop the current time entry for a task.
+     * Stop tracking time for a task.
      *
      * @param  \App\Models\Task  $task
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function stop(Task $task)
     {
         $this->authorize('update', $task);
+        
+        $timeEntry = $task->currentTimeEntry;
 
-        $timeEntry = TimeEntry::where('user_id', Auth::id())
-            ->where('task_id', $task->id)
-            ->whereNull('ended_at')
-            ->latest()
-            ->first();
-
-        if ($timeEntry) {
-            $timeEntry->update([
-                'ended_at' => now(),
-                'description' => 'Stopped tracking time',
-            ]);
+        if (!$timeEntry) {
+            return redirect()->route('tasks.show', $task)
+                ->with('error', 'No active time tracking found for this task.');
         }
 
-        return response()->json([
-            'success' => true,
-            'timeEntry' => $timeEntry,
+        $timeEntry->update([
+            'stopped_at' => now(),
         ]);
+
+        return redirect()->route('tasks.show', $task)
+            ->with('success', 'Time tracking stopped successfully.');
     }
 } 

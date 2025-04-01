@@ -24,7 +24,7 @@ class TagController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('user.tags.index', compact('tags'));
+        return view('frontend.tags.index', compact('tags'));
     }
 
     /**
@@ -34,7 +34,7 @@ class TagController extends Controller
      */
     public function create()
     {
-        return view('user.tags.create');
+        return view('frontend.tags.create');
     }
 
     /**
@@ -63,13 +63,12 @@ class TagController extends Controller
     public function show(Tag $tag)
     {
         $this->authorize('view', $tag);
+        
+        $tag->load(['tasks' => function ($query) {
+            $query->latest();
+        }]);
 
-        $tasks = $tag->tasks()
-            ->where('user_id', Auth::id())
-            ->latest()
-            ->paginate(10);
-
-        return view('user.tags.show', compact('tag', 'tasks'));
+        return view('frontend.tags.show', compact('tag'));
     }
 
     /**
@@ -81,7 +80,7 @@ class TagController extends Controller
     public function edit(Tag $tag)
     {
         $this->authorize('update', $tag);
-        return view('user.tags.edit', compact('tag'));
+        return view('frontend.tags.edit', compact('tag'));
     }
 
     /**
@@ -94,9 +93,8 @@ class TagController extends Controller
     public function update(TagRequest $request, Tag $tag)
     {
         $this->authorize('update', $tag);
-
-        $validated = $request->validated();
-        $tag->update($validated);
+        
+        $tag->update($request->validated());
 
         return redirect()->route('tags.index')
             ->with('success', 'Tag updated successfully.');
@@ -111,7 +109,7 @@ class TagController extends Controller
     public function destroy(Tag $tag)
     {
         $this->authorize('delete', $tag);
-
+        
         $tag->delete();
 
         return redirect()->route('tags.index')

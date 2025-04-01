@@ -18,7 +18,7 @@ class SettingsController extends Controller
      */
     public function index()
     {
-        return view('user.settings.index');
+        return view('frontend.settings.index');
     }
 
     /**
@@ -70,9 +70,8 @@ class SettingsController extends Controller
     public function updatePreferences(Request $request)
     {
         $validated = $request->validate([
-            'timezone' => ['required', 'string', 'timezone'],
-            'date_format' => ['required', 'string', 'in:Y-m-d,d/m/Y,m/d/Y'],
-            'time_format' => ['required', 'string', 'in:H:i,h:i A'],
+            'theme' => ['required', 'string', 'in:light,dark'],
+            'notifications' => ['required', 'boolean'],
         ]);
 
         Auth::user()->update($validated);
@@ -88,7 +87,7 @@ class SettingsController extends Controller
      */
     public function deleteAccount(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'password' => ['required', 'current_password'],
             'confirmation' => ['required', 'string', 'in:DELETE'],
         ]);
