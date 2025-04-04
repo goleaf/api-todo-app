@@ -23,7 +23,7 @@ class SearchController extends Controller
         $request->validate([
             'query' => ['required', 'string', 'min:2'],
             'type' => ['nullable', 'string', 'in:tasks,categories,tags,time_entries,all'],
-            'status' => ['nullable', 'string', 'in:todo,in_progress,completed'],
+            'status' => ['nullable', 'string', 'in:pending,in_progress,completed'],
             'priority' => ['nullable', 'integer', 'in:1,2,3'],
             'date_from' => ['nullable', 'date'],
             'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],

@@ -37,15 +37,24 @@ class UpdateSmartTagRequest extends FormRequest
             ],
             'description' => ['nullable', 'string'],
             'conditions' => ['sometimes', 'required', 'array'],
-            'conditions.*.field' => ['required', 'string', 'in:title,description,due_date,priority,status'],
-            'conditions.*.operator' => ['required', 'string', 'in:equals,contains,starts_with,ends_with,greater_than,less_than,between'],
-            'conditions.*.value' => ['required'],
+            'conditions.*.field' => [
+                'required_with:conditions', 
+                'string', 
+                'in:title,description,due_date,priority,status,has_tags,has_time_entries,has_attachments,created_at,updated_at,specific_tag'
+            ],
+            'conditions.*.operator' => ['required_with:conditions', 'string', 'in:equals,contains,starts_with,ends_with,greater_than,less_than,between'],
+            'conditions.*.value' => ['required_with:conditions'],
             'actions' => ['sometimes', 'required', 'array'],
-            'actions.*.type' => ['required', 'string', 'in:add_tag,remove_tag,set_category,set_priority,set_status'],
+            'actions.*.type' => [
+                'required_with:actions', 
+                'string', 
+                'in:add_tag,remove_tag,set_category,set_priority,set_status,set_due_date,mark_completed,mark_incomplete'
+            ],
             'actions.*.tag_id' => ['required_if:actions.*.type,add_tag,remove_tag', 'exists:tags,id'],
             'actions.*.category_id' => ['required_if:actions.*.type,set_category', 'exists:categories,id'],
             'actions.*.priority' => ['required_if:actions.*.type,set_priority', 'integer', 'in:1,2,3'],
-            'actions.*.status' => ['required_if:actions.*.type,set_status', 'string', 'in:todo,in_progress,completed'],
+            'actions.*.status' => ['required_if:actions.*.type,set_status', 'string', 'in:pending,in_progress,completed'],
+            'actions.*.value' => ['required_if:actions.*.type,set_due_date', 'string'],
             'is_active' => ['boolean'],
         ];
     }

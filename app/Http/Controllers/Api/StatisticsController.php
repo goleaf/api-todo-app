@@ -46,7 +46,7 @@ class StatisticsController extends Controller
             'total' => $query->count(),
             'completed' => $query->where('status', 'completed')->count(),
             'in_progress' => $query->where('status', 'in_progress')->count(),
-            'todo' => $query->where('status', 'todo')->count(),
+            'pending' => $query->where('status', 'pending')->count(),
             'overdue' => $query->where('status', '!=', 'completed')
                 ->where('due_date', '<', $now->format('Y-m-d'))
                 ->count(),

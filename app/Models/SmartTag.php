@@ -32,6 +32,8 @@ class SmartTag extends Model
         'category_ids',
         'filter_by_status',
         'status_completed',
+        'status_pending',
+        'status_in_progress',
     ];
     
     /**
@@ -49,6 +51,8 @@ class SmartTag extends Model
         'category_ids' => 'json',
         'filter_by_status' => 'boolean',
         'status_completed' => 'boolean',
+        'status_pending' => 'boolean',
+        'status_in_progress' => 'boolean',
     ];
     
     /**
@@ -105,13 +109,70 @@ class SmartTag extends Model
         
         // Apply status filters
         if ($this->filter_by_status) {
-            $query->where('completed', $this->status_completed);
+            $query->where(function($q) {
+                if ($this->status_pending) {
+                    $q->orWhere('status', 'pending');
+                }
+                if ($this->status_in_progress) {
+                    $q->orWhere('status', 'in_progress');
+                }
+                if ($this->status_completed) {
+                    $q->orWhere('status', 'completed');
+                }
+            });
         }
         
         // Apply any custom criteria
         if (!empty($this->criteria)) {
             // Custom complex criteria could be implemented here
             // This is where you'd handle advanced query conditions
+            $criteria = $this->criteria;
+            
+            // Search in title or description
+            if (isset($criteria['search']) && !empty($criteria['search'])) {
+                $search = $criteria['search'];
+                $query->where(function($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+            
+            // Filter by tags
+            if (isset($criteria['tags']) && !empty($criteria['tags'])) {
+                $tagIds = $criteria['tags'];
+                $query->whereHas('tags', function($q) use ($tagIds) {
+                    $q->whereIn('tags.id', $tagIds);
+                });
+            }
+            
+            // Filter by time tracking
+            if (isset($criteria['has_time_entries'])) {
+                if ($criteria['has_time_entries']) {
+                    $query->whereHas('timeEntries');
+                } else {
+                    $query->whereDoesntHave('timeEntries');
+                }
+            }
+            
+            // Filter by attachments
+            if (isset($criteria['has_attachments'])) {
+                if ($criteria['has_attachments']) {
+                    $query->whereHas('attachments');
+                } else {
+                    $query->whereDoesntHave('attachments');
+                }
+            }
+            
+            // Filter by creation date
+            if (isset($criteria['created_date']) && !empty($criteria['created_date'])) {
+                $createdDate = $criteria['created_date'];
+                if (isset($createdDate['start']) && !empty($createdDate['start'])) {
+                    $query->whereDate('created_at', '>=', $createdDate['start']);
+                }
+                if (isset($createdDate['end']) && !empty($createdDate['end'])) {
+                    $query->whereDate('created_at', '<=', $createdDate['end']);
+                }
+            }
         }
         
         return $query;
