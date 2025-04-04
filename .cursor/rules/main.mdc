@@ -1,0 +1,235 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Todo App Structure Rules
+
+## Controller Organization
+
+Controllers are organized into three main namespaces:
+
+1. `App\Http\Controllers\Frontend` - For user-facing features
+2. `App\Http\Controllers\Admin` - For admin-only features
+3. `App\Http\Controllers\Api` - For API endpoints, further divided into:
+   - `App\Http\Controllers\Api\Frontend` - API endpoints for user-facing features
+   - `App\Http\Controllers\Api\Admin` - API endpoints for admin-only features
+
+## Request Classes Organization
+
+Form requests are organized according to the controller namespace they belong to:
+
+1. `App\Http\Requests\Frontend` - For frontend controller requests
+2. `App\Http\Requests\Admin` - For admin controller requests
+3. `App\Http\Requests\Api\Frontend` - For frontend API requests
+4. `App\Http\Requests\Api\Admin` - For admin API requests
+
+## Route Organization
+
+Routes are organized into separate files:
+
+1. `routes/web.php` - Main entry point that includes other route files
+2. `routes/frontend.php` - Frontend routes with the 'frontend' middleware group
+3. `routes/admin.php` - Admin routes with the 'admin' middleware group
+4. `routes/api.php` - API routes (already separated into frontend and admin groups)
+5. `routes/auth.php` - Authentication routes
+
+## Blade Templates Organization
+
+Blade templates are organized into three main directories:
+
+1. `resources/views/frontend` - For user-facing views, divided by module:
+   - `resources/views/frontend/dashboard`
+   - `resources/views/frontend/tasks`
+   - `resources/views/frontend/categories`
+   - etc.
+
+2. `resources/views/admin` - For admin-only views, divided by module:
+   - `resources/views/admin/dashboard`
+   - `resources/views/admin/tasks`
+   - `resources/views/admin/users`
+   - etc.
+
+3. `resources/views/shared` - For shared components and layouts:
+   - `resources/views/shared/layouts` - Base layout templates
+   - `resources/views/shared/partials` - Reusable page sections
+   - `resources/views/shared/components` - Reusable UI components:
+     - `resources/views/shared/components/ui` - Basic UI elements
+     - `resources/views/shared/components/forms` - Form-related components
+     - `resources/views/shared/components/cards` - Card components
+     - `resources/views/shared/components/tasks` - Task-specific components
+     - `resources/views/shared/components/tags` - Tag-specific components
+     - etc.
+
+## Middleware Organization
+
+Middleware is organized by its purpose:
+
+1. Frontend middleware:
+   - `SetLocale` - Set application locale based on user preferences
+   - `CheckUserStatus` - Check if the user account is active
+
+2. Admin middleware:
+   - `AdminMiddleware` - Ensure the user has admin privileges
+
+3. API middleware:
+   - `SetApiHeaders` - Set appropriate headers for API responses
+
+## Service Providers
+
+Each logical part of the application has its own service provider:
+
+1. `FrontendServiceProvider` - Register frontend-specific services
+2. `AdminServiceProvider` - Register admin-specific services
+3. `ApiServiceProvider` - Register API-specific services
+
+## Services
+
+Business logic is encapsulated in service classes:
+
+1. `UserSettingsService` - Manage user settings
+2. Other service classes as needed
+
+## Naming Conventions
+
+1. Controllers:
+   - Use singular noun + "Controller" (e.g., `TaskController`)
+   - API controllers should be located in their respective namespace
+
+2. Request classes:
+   - Use descriptive names related to the action (e.g., `StoreTaskRequest`, `UpdateTaskRequest`)
+
+3. Resources:
+   - Use singular noun + "Resource" for individual resources (e.g., `TaskResource`)
+   - Use singular noun + "Collection" for collections (e.g., `TaskCollection`)
+
+4. Routes:
+   - Use kebab-case for URLs (e.g., `smart-tags/create`)
+   - Use dot notation for route names (e.g., `smart-tags.create`)
+
+5. Views:
+   - Use kebab-case organized in directories (e.g., `frontend/tasks/index.blade.php`)
+   
+6. Components:
+   - Use kebab-case for component names (e.g., `task-card.blade.php`)
+   - Group related components in subdirectories (e.g., `components/cards/task-card.blade.php`)
+
+# Todo App Template Structure
+
+## Overview
+
+The template structure has been reorganized to create a more organized and functional codebase. The new structure minimizes the number of root folders and reorganizes templates by groups and functions.
+
+## Directory Structure
+
+```
+resources/views/
+├── layouts/              # Base layouts for the application
+│   └── app.blade.php     # Main application layout
+├── pages/                # Page templates organized by feature
+│   ├── dashboard/        # Dashboard pages
+│   ├── tasks/            # Task-related pages
+│   ├── tags/             # Tag-related pages
+│   └── categories/       # Category-related pages
+└── components/           # Reusable UI components
+    ├── ui/               # Basic UI elements (buttons, inputs, etc.)
+    ├── cards/            # Card components
+    ├── forms/            # Form components
+    ├── lists/            # List components
+    ├── tags/             # Tag-related components
+    └── filters/          # Filter components
+```
+
+## Component Naming Convention
+
+All components should be namespaced by their directory structure:
+
+```php
+<x-components.ui.primary-button>
+    Button Text
+</x-components.ui.primary-button>
+```
+
+## Tag-Related Components
+
+The tag system includes several components:
+
+1. `components.tags.popular-tags` - Displays a list of popular tags
+2. `components.tags.related-tags` - Shows tags related to a selected tag
+3. `components.tags.tag-cloud` - Visualizes tags with varying sizes based on usage
+4. `components.tags.task-tags` - Displays tags associated with a task
+
+## How to Migrate Old Templates
+
+To migrate old templates to the new structure:
+
+1. Move view files to their corresponding directory in `resources/views/pages/`
+2. Update controller return statements to use the new view paths
+3. Create symbolic links for backward compatibility if needed
+
+## Migration Script
+
+You can use the following script to migrate old templates:
+
+```bash
+#!/bin/bash
+
+# Create directory structure
+mkdir -p resources/views/layouts resources/views/pages/{dashboard,tasks,tags,categories} resources/views/components/{ui,forms,lists,tags,filters,cards}
+
+# Create symbolic links for backward compatibility
+ln -sf ../pages/dashboard/index.blade.php resources/views/dashboard.blade.php
+ln -sf ../pages/tasks/index.blade.php resources/views/tasks/index.blade.php
+ln -sf ../pages/tags/index.blade.php resources/views/tags/index.blade.php
+```
+
+# Todo App Blade Organization
+
+This document defines the minimalist organization structure for blade templates in the Todo application.
+
+## Directory Structure
+
+```
+resources/
+  └── views/
+      ├── components/      # All reusable components
+      │   ├── ui/          # Core UI elements
+      │   └── shared/      # Shared feature components
+      │
+      └── controllers/     # Views organized by controllers
+          ├── frontend/    # Frontend controller views
+          │   ├── task/    # Task controller views
+          │   ├── tag/     # Tag controller views
+          │   ├── category/# Category controller views
+          │   └── ...      # Other frontend controller views
+          │
+          └── admin/       # Admin controller views
+              ├── task/    # Admin task controller views
+              ├── tag/     # Admin tag controller views
+              └── ...      # Other admin controller views
+```
+
+## Naming Conventions
+
+- View files follow controller method names: `index.blade.php`, `show.blade.php`, etc.
+- Component files use kebab-case: `data-table.blade.php`, `filter-panel.blade.php`
+- All components are referenced with namespaced syntax: `<x-ui.button>`, `<x-shared.tag-badge>`
+
+## Component Organization
+
+- `ui/`: Base UI elements (buttons, cards, inputs, modals, etc.)
+- `shared/`: Feature-specific components shared across multiple controllers
+
+## Controller-Based Views
+
+Each controller has its own directory containing views that correspond to controller methods:
+- `index.blade.php` - List view
+- `create.blade.php` - Creation form
+- `edit.blade.php` - Edit form
+- `show.blade.php` - Detail view
+
+## Style Guidelines
+
+- Use Tailwind CSS classes directly in templates
+- Avoid inline styles whenever possible
+- For complex styling needs, create dedicated CSS files 

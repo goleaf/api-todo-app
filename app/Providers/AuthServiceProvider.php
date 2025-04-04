@@ -54,10 +54,5 @@ class AuthServiceProvider extends ServiceProvider
     protected function configureGates()
     {
         // Define any custom gates here
-        Gate::define('access-admin', function ($user) {
-            return true; // Allow all authenticated users to access admin
-            // For role-based access, you would check roles here
-            // return $user->hasRole('admin');
-        });
     }
 } 

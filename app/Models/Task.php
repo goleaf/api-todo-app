@@ -21,14 +21,14 @@ class Task extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'user_id',
-        'category_id',
         'title',
         'description',
+        'category_id',
         'due_date',
         'priority',
+        'status',
         'completed',
-        'completed_at',
+        'user_id',
     ];
 
     /**
@@ -48,6 +48,25 @@ class Task extends Model
     const PRIORITY_LOW = 1;
     const PRIORITY_MEDIUM = 2;
     const PRIORITY_HIGH = 3;
+
+    /**
+     * Task statuses.
+     */
+    const STATUS_PENDING = 'pending';
+    const STATUS_IN_PROGRESS = 'in_progress';
+    const STATUS_COMPLETED = 'completed';
+
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        static::creating(function ($task) {
+            $task->status = $task->status ?? self::STATUS_PENDING;
+        });
+    }
 
     /**
      * Get the user that owns the task.
@@ -103,7 +122,7 @@ class Task extends Model
      */
     public function scopeCompleted($query)
     {
-        return $query->where('completed', true);
+        return $query->where('status', self::STATUS_COMPLETED);
     }
 
     /**
@@ -187,5 +206,35 @@ class Task extends Model
         $minutes = floor(($seconds % 3600) / 60);
         
         return sprintf('%02d:%02d', $hours, $minutes);
+    }
+
+    /**
+     * Get priority as string.
+     */
+    public function getPriorityTextAttribute(): string
+    {
+        return match ($this->priority) {
+            self::PRIORITY_LOW => 'low',
+            self::PRIORITY_MEDIUM => 'medium',
+            self::PRIORITY_HIGH => 'high',
+            default => 'medium',
+        };
+    }
+
+    /**
+     * Set priority from string.
+     */
+    public function setPriorityAttribute($value)
+    {
+        if (is_string($value)) {
+            $this->attributes['priority'] = match ($value) {
+                'low' => self::PRIORITY_LOW,
+                'medium' => self::PRIORITY_MEDIUM,
+                'high' => self::PRIORITY_HIGH,
+                default => self::PRIORITY_MEDIUM,
+            };
+        } else {
+            $this->attributes['priority'] = $value;
+        }
     }
 }

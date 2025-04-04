@@ -1,31 +1,23 @@
-/**
- * We'll load the axios HTTP library which allows us to easily issue requests
- * to our Laravel back-end. This library automatically handles sending the
- * CSRF token as a header based on the value of the "XSRF" token cookie.
- */
-
 import axios from 'axios';
 window.axios = axios;
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
-/**
- * Echo exposes an expressive API for subscribing to channels and listening
- * for events that are broadcast by Laravel. Echo and event broadcasting
- * allows your team to easily build robust real-time web applications.
- */
+// Import AlpineJS
+import Alpine from 'alpinejs';
+window.Alpine = Alpine;
+Alpine.start();
 
+// Import TomSelect CSS (if not handled globally by app.css/scss)
+// You might import this in your main app.scss/app.css instead
+// import 'tom-select/dist/css/tom-select.default.css'; 
+
+// Note: TomSelect JS itself is imported dynamically in specific page scripts
+// where needed (e.g., tasks-form.js), so no global import here is necessary
+// unless you plan to use it everywhere.
+
+// Echo, Pusher, etc. if needed
 // import Echo from 'laravel-echo';
-
 // import Pusher from 'pusher-js';
 // window.Pusher = Pusher;
-
-// window.Echo = new Echo({
-//     broadcaster: 'pusher',
-//     key: import.meta.env.VITE_PUSHER_APP_KEY,
-//     wsHost: import.meta.env.VITE_PUSHER_HOST ?? `ws-${import.meta.env.VITE_PUSHER_APP_CLUSTER}.pusher.com`,
-//     wsPort: import.meta.env.VITE_PUSHER_PORT ?? 80,
-//     wssPort: import.meta.env.VITE_PUSHER_PORT ?? 443,
-//     forceTLS: (import.meta.env.VITE_PUSHER_SCHEME ?? 'https') === 'https',
-//     enabledTransports: ['ws', 'wss'],
-// });
+// window.Echo = new Echo({ ... });

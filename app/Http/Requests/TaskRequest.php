@@ -28,8 +28,27 @@ class TaskRequest extends FormRequest
             'category_id' => ['nullable', 'exists:categories,id'],
             'due_date' => ['nullable', 'date', 'after:now'],
             'priority' => ['required', Rule::in(['low', 'medium', 'high'])],
+            'status' => ['sometimes', 'string', Rule::in(['pending', 'in_progress', 'completed'])],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['exists:tags,id'],
+        ];
+    }
+    
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array
+     */
+    public function messages(): array
+    {
+        return [
+            'title.required' => trans('validation.custom.title.required'),
+            'title.max' => trans('validation.custom.title.max'),
+            'due_date.date' => trans('validation.custom.due_date.date'),
+            'due_date.after' => trans('validation.custom.due_date.after'),
+            'priority.required' => trans('validation.custom.priority.required'),
+            'priority.in' => trans('validation.custom.priority.in'),
+            'status.in' => trans('validation.custom.status.in'),
         ];
     }
 } 

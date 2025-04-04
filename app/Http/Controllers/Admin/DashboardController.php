@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\Task;
 use App\Models\Category;
+use App\Models\Tag;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
-class DashboardController extends Controller
+class DashboardController extends BaseController
 {
     /**
      * Display the admin dashboard.
@@ -16,20 +18,70 @@ class DashboardController extends Controller
      */
     public function index()
     {
+        $stats = $this->getStats();
+        $recentUsers = $this->getRecentUsers();
+        $activityStats = $this->getActivityStats();
+        
+        return view('pages.admin.dashboard', compact('stats', 'recentUsers', 'activityStats'));
+    }
+    
+    /**
+     * Get system statistics.
+     *
+     * @return array
+     */
+    protected function getStats()
+    {
+        return [
+            'total_users' => User::count(),
+            'active_users' => User::where('is_active', true)->count(),
+            'total_tasks' => Task::count(),
+            'completed_tasks' => Task::where('completed', true)->count(),
+            'total_categories' => Category::count(),
+            'total_tags' => Tag::count(),
+        ];
+    }
+    
+    /**
+     * Get recently registered users.
+     *
+     * @param int $limit
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    protected function getRecentUsers($limit = 5)
+    {
+        return User::latest()
+            ->take($limit)
+            ->get(['id', 'name', 'email', 'created_at', 'is_active']);
+    }
+    
+    /**
+     * Get activity statistics for the chart.
+     *
+     * @param int $days
+     * @return array
+     */
+    protected function getActivityStats($days = 7)
+    {
         $stats = [
-            'total_tasks' => Task::where('user_id', auth()->id())->count(),
-            'completed_tasks' => Task::where('user_id', auth()->id())->completed()->count(),
-            'overdue_tasks' => Task::where('user_id', auth()->id())->overdue()->count(),
-            'due_today' => Task::where('user_id', auth()->id())->dueToday()->count(),
-            'categories' => Category::where('user_id', auth()->id())->count(),
+            'labels' => [],
+            'users' => [],
+            'tasks' => [],
         ];
         
-        $recent_tasks = Task::where('user_id', auth()->id())
-            ->latest()
-            ->take(5)
-            ->with('category')
-            ->get();
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $date = now()->subDays($i)->format('Y-m-d');
+            $stats['labels'][] = now()->subDays($i)->format('M d');
             
-        return view('admin.dashboard', compact('stats', 'recent_tasks'));
+            // Get user registrations for date
+            $userCount = User::whereDate('created_at', $date)->count();
+            $stats['users'][] = $userCount;
+            
+            // Get tasks created for date
+            $taskCount = Task::whereDate('created_at', $date)->count();
+            $stats['tasks'][] = $taskCount;
+        }
+        
+        return $stats;
     }
 }

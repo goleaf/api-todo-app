@@ -8,26 +8,27 @@ use App\Http\Requests\Admin\Task\UpdateTaskRequest;
 use App\Models\Task;
 use App\Models\Category;
 use App\Models\Tag;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class TaskController extends Controller
 {
     /**
      * Display a listing of the tasks.
      */
-    public function index(Request $request)
+    public function index(Request $request): View
     {
-        $query = Task::where('user_id', auth()->id())
-            ->with(['category', 'tags']);
-            
-        // Filter by category if provided
-        if ($request->has('category') && $request->category) {
-            $query->where('category_id', $request->category);
+        $query = Task::with(['category', 'tags', 'user']);
+        
+        // Filter by user if specified
+        if ($request->has('user_id')) {
+            $query->where('user_id', $request->user_id);
         }
         
         // Filter by completion status
         if ($request->has('completed')) {
-            $query->where('completed', $request->completed == 'true');
+            $query->where('completed', $request->completed);
         }
         
         // Filter by priority
@@ -35,16 +36,30 @@ class TaskController extends Controller
             $query->where('priority', $request->priority);
         }
         
-        // Sort options
-        $sort = $request->sort ?? 'created_at';
+        // Filter by category
+        if ($request->has('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+        
+        // Search by title or description
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+        
+        // Order by
+        $orderBy = $request->order_by ?? 'created_at';
         $direction = $request->direction ?? 'desc';
-        $query->orderBy($sort, $direction);
+        $query->orderBy($orderBy, $direction);
         
-        $tasks = $query->paginate(10)->withQueryString();
+        $tasks = $query->paginate(15);
+        $users = User::all(['id', 'name']);
+        $categories = Category::all(['id', 'name']);
         
-        $categories = Category::where('user_id', auth()->id())->get();
-        
-        return view('admin.tasks.index', compact('tasks', 'categories'));
+        return view('pages.admin.tasks.index', compact('tasks', 'users', 'categories'));
     }
 
     /**
@@ -52,15 +67,11 @@ class TaskController extends Controller
      */
     public function create()
     {
-        $categories = Category::where('user_id', auth()->id())->get();
-        $tags = Tag::where('user_id', auth()->id())->get();
-        $priorities = [
-            Task::PRIORITY_LOW => 'Low',
-            Task::PRIORITY_MEDIUM => 'Medium',
-            Task::PRIORITY_HIGH => 'High'
-        ];
+        $users = User::all(['id', 'name']);
+        $categories = Category::all(['id', 'name']);
+        $tags = Tag::all(['id', 'name']);
         
-        return view('admin.tasks.create', compact('categories', 'tags', 'priorities'));
+        return view('pages.admin.tasks.create', compact('users', 'categories', 'tags'));
     }
 
     /**
@@ -68,17 +79,15 @@ class TaskController extends Controller
      */
     public function store(StoreTaskRequest $request)
     {
-        $task = new Task($request->validated());
-        $task->user_id = auth()->id();
-        $task->save();
+        $task = Task::create($request->validated());
         
         // Attach tags if provided
         if ($request->has('tags')) {
             $task->tags()->attach($request->tags);
         }
-        
+
         return redirect()->route('admin.tasks.index')
-            ->with('success', 'Task created successfully');
+            ->with('success', 'Task created successfully.');
     }
 
     /**
@@ -86,11 +95,9 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-        $this->authorize('view', $task);
+        $task->load(['category', 'tags', 'user', 'timeEntries', 'attachments']);
         
-        $task->load(['category', 'tags', 'timeEntries', 'attachments']);
-        
-        return view('admin.tasks.show', compact('task'));
+        return view('pages.admin.tasks.show', compact('task'));
     }
 
     /**
@@ -98,19 +105,12 @@ class TaskController extends Controller
      */
     public function edit(Task $task)
     {
-        $this->authorize('update', $task);
-        
-        $categories = Category::where('user_id', auth()->id())->get();
-        $tags = Tag::where('user_id', auth()->id())->get();
-        $priorities = [
-            Task::PRIORITY_LOW => 'Low',
-            Task::PRIORITY_MEDIUM => 'Medium',
-            Task::PRIORITY_HIGH => 'High'
-        ];
-        
+        $users = User::all(['id', 'name']);
+        $categories = Category::all(['id', 'name']);
+        $tags = Tag::all(['id', 'name']);
         $task->load('tags');
         
-        return view('admin.tasks.edit', compact('task', 'categories', 'tags', 'priorities'));
+        return view('pages.admin.tasks.edit', compact('task', 'users', 'categories', 'tags'));
     }
 
     /**
@@ -118,19 +118,17 @@ class TaskController extends Controller
      */
     public function update(UpdateTaskRequest $request, Task $task)
     {
-        $this->authorize('update', $task);
-        
         $task->update($request->validated());
         
-        // Sync tags
+        // Sync tags if provided
         if ($request->has('tags')) {
             $task->tags()->sync($request->tags);
         } else {
             $task->tags()->detach();
         }
-        
+
         return redirect()->route('admin.tasks.index')
-            ->with('success', 'Task updated successfully');
+            ->with('success', 'Task updated successfully.');
     }
 
     /**
@@ -138,12 +136,10 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
-        $this->authorize('delete', $task);
-        
         $task->delete();
-        
+
         return redirect()->route('admin.tasks.index')
-            ->with('success', 'Task deleted successfully');
+            ->with('success', 'Task deleted successfully.');
     }
     
     /**

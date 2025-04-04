@@ -195,6 +195,43 @@ class SmartTagController extends Controller
                       ->orWhere('description', 'like', "%{$search}%");
                 });
             }
+            
+            // Filter by tags if present in criteria
+            if (isset($criteria['tags']) && !empty($criteria['tags'])) {
+                $tagIds = $criteria['tags'];
+                $query->whereHas('tags', function($q) use ($tagIds) {
+                    $q->whereIn('tags.id', $tagIds);
+                });
+            }
+            
+            // Filter by presence of time entries
+            if (isset($criteria['has_time_entries'])) {
+                if ($criteria['has_time_entries']) {
+                    $query->whereHas('timeEntries');
+                } else {
+                    $query->whereDoesntHave('timeEntries');
+                }
+            }
+            
+            // Filter by presence of attachments
+            if (isset($criteria['has_attachments'])) {
+                if ($criteria['has_attachments']) {
+                    $query->whereHas('attachments');
+                } else {
+                    $query->whereDoesntHave('attachments');
+                }
+            }
+            
+            // Filter by creation date range
+            if (isset($criteria['created_date']) && !empty($criteria['created_date'])) {
+                $createdDate = $criteria['created_date'];
+                if (isset($createdDate['start']) && !empty($createdDate['start'])) {
+                    $query->whereDate('created_at', '>=', Carbon::parse($createdDate['start']));
+                }
+                if (isset($createdDate['end']) && !empty($createdDate['end'])) {
+                    $query->whereDate('created_at', '<=', Carbon::parse($createdDate['end']));
+                }
+            }
         }
         
         // Set order
@@ -256,6 +293,38 @@ class SmartTagController extends Controller
                     case 'status':
                         $q->where('status', $condition['operator'], $condition['value']);
                         break;
+                    case 'has_tags':
+                        if ($condition['value']) {
+                            $q->whereHas('tags');
+                        } else {
+                            $q->whereDoesntHave('tags');
+                        }
+                        break;
+                    case 'has_time_entries':
+                        if ($condition['value']) {
+                            $q->whereHas('timeEntries');
+                        } else {
+                            $q->whereDoesntHave('timeEntries');
+                        }
+                        break;
+                    case 'has_attachments':
+                        if ($condition['value']) {
+                            $q->whereHas('attachments');
+                        } else {
+                            $q->whereDoesntHave('attachments');
+                        }
+                        break;
+                    case 'created_at':
+                        $q->whereDate('created_at', $condition['operator'], $condition['value']);
+                        break;
+                    case 'updated_at':
+                        $q->whereDate('updated_at', $condition['operator'], $condition['value']);
+                        break;
+                    case 'specific_tag':
+                        $q->whereHas('tags', function($tagQuery) use ($condition) {
+                            $tagQuery->where('tags.id', $condition['value']);
+                        });
+                        break;
                 }
             });
         }
@@ -282,6 +351,30 @@ class SmartTagController extends Controller
                         break;
                     case 'set_status':
                         $task->status = $action['status'];
+                        $task->save();
+                        break;
+                    case 'set_due_date':
+                        if ($action['value'] === 'today') {
+                            $task->due_date = Carbon::today();
+                        } elseif ($action['value'] === 'tomorrow') {
+                            $task->due_date = Carbon::tomorrow();
+                        } elseif ($action['value'] === 'next_week') {
+                            $task->due_date = Carbon::today()->addWeek();
+                        } elseif ($action['value'] === 'next_month') {
+                            $task->due_date = Carbon::today()->addMonth();
+                        } else {
+                            $task->due_date = Carbon::parse($action['value']);
+                        }
+                        $task->save();
+                        break;
+                    case 'mark_completed':
+                        $task->completed = true;
+                        $task->completed_at = Carbon::now();
+                        $task->save();
+                        break;
+                    case 'mark_incomplete':
+                        $task->completed = false;
+                        $task->completed_at = null;
                         $task->save();
                         break;
                 }

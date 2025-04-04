@@ -1,44 +1,12 @@
 @import 'tailwindcss';
-@import './layout.css';
-@import './modal.css';
-@import './form.css';
+@import 'tom-select/dist/css/tom-select.default.css';
 
-@source "../views";
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-
-@custom-variant dark (&:where(.dark, .dark *));
-@custom-variant aria-current (&[aria-current="page"]);
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Custom styles */
-@layer components {
-    .btn {
-        @apply inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150;
-    }
-
-    .btn-danger {
-        @apply bg-red-600 hover:bg-red-500 focus:bg-red-500 active:bg-red-700;
-    }
-
-    .btn-success {
-        @apply bg-green-600 hover:bg-green-500 focus:bg-green-500 active:bg-green-700;
-    }
-}
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-    --color-accent: var(--color-gray-800);
-    --color-accent-content: var(--color-gray-800);
-    --color-accent-foreground: var(--color-white);
-}
-
-@layer theme {
-    .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-gray-800);
-    }
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api\Task;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
@@ -11,8 +12,10 @@ class StoreTaskRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     *
+     * @return bool
      */
-    public function authorize(): bool
+    public function authorize()
     {
         return true;
     }
@@ -20,19 +23,24 @@ class StoreTaskRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, mixed>
      */
-    public function rules(): array
+    public function rules()
     {
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'due_date' => ['required', 'date', 'after_or_equal:today'],
-            'priority' => ['required', 'integer', 'in:1,2,3'],
-            'status' => ['nullable', 'string', 'in:todo,in_progress,completed'],
-            'category_id' => ['nullable', 'exists:categories,id'],
-            'tag_ids' => ['nullable', 'array'],
-            'tag_ids.*' => ['exists:tags,id'],
+            'due_date' => ['nullable', 'date', 'after_or_equal:today'],
+            'category_id' => [
+                'nullable', 
+                'integer', 
+                'exists:categories,id,user_id,' . Auth::id()
+            ],
+            'priority' => ['required', 'string', 'in:low,medium,high'],
+            'status' => ['sometimes', 'string', 'in:pending,in_progress,completed'],
+            'estimated_time' => ['nullable', 'integer', 'min:1'],
+            'tags' => ['sometimes', 'array'],
+            'tags.*' => ['exists:tags,id,user_id,' . Auth::id()],
         ];
     }
 

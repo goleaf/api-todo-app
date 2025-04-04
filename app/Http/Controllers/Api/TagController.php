@@ -154,4 +154,68 @@ class TagController extends Controller
             'message' => 'Tag deleted successfully'
         ]);
     }
+
+    /**
+     * Get tag suggestions for autocompletion.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function suggest(Request $request)
+    {
+        $query = $request->get('query', '');
+        
+        $tags = Tag::where('user_id', auth()->id())
+            ->where('name', 'like', "%{$query}%")
+            ->orderBy('name')
+            ->limit(10)
+            ->get(['id', 'name', 'color']);
+        
+        return response()->json([
+            'data' => $tags
+        ]);
+    }
+
+    /**
+     * Get tasks for a specific tag.
+     *
+     * @param Tag $tag
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function tasks(Tag $tag)
+    {
+        $this->authorize('view', $tag);
+        
+        $query = $tag->tasks()->with(['category']);
+        
+        // Apply filters
+        if (request()->has('status')) {
+            $query->where('status', request('status'));
+        }
+        
+        if (request()->has('priority')) {
+            $query->where('priority', request('priority'));
+        }
+        
+        // Apply sorting
+        $sortField = request()->get('sort_by', 'created_at');
+        $sortDirection = request()->get('sort_direction', 'desc');
+        $allowedSortFields = ['title', 'created_at', 'due_date', 'priority', 'status'];
+        
+        if (in_array($sortField, $allowedSortFields)) {
+            $query->orderBy($sortField, $sortDirection === 'desc' ? 'desc' : 'asc');
+        }
+        
+        $tasks = $query->paginate(10);
+        
+        return response()->json([
+            'data' => $tasks->items(),
+            'meta' => [
+                'current_page' => $tasks->currentPage(),
+                'last_page' => $tasks->lastPage(),
+                'per_page' => $tasks->perPage(),
+                'total' => $tasks->total()
+            ]
+        ]);
+    }
 }

@@ -1,34 +1,48 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#8b5cf6">
-    <meta name="description" content="Task management application">
-    
-    <title>{{ config('app.name', 'Task Manager') }}</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" href="{{ asset('favicon.ico') }}">
-    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}" sizes="180x180">
-    
-    <!-- Tabler Core -->
-    <link rel="stylesheet" href="{{ asset('vendor/tabler/dist/css/tabler.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/tabler/dist/css/tabler-icons.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/tabler/dist/css/tabler-vendors.min.css') }}">
 
-    <!-- Vite Assets -->
-    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    <title>{{ config('app.name', 'Laravel') }} - @yield('title', 'Todo App')</title>
 
-    <x-rich-text::styles theme="richtextlaravel" data-turbo-track="false" />
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+
+    <!-- Scripts -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
+    {{-- Removed TomSelect CDN links --}}
+    
+    {{-- Removed Alpine.js CDN link --}}
 </head>
-<body class="antialiased">
-    <div id="app">
-        @yield('content')
-    </div>
+<body class="font-sans antialiased">
+    <div class="min-h-screen bg-gray-100 flex flex-col">
+        <x-shared.navigation />
 
-    <!-- Tabler Core -->
-    <script src="{{ asset('vendor/tabler/dist/js/tabler.min.js') }}"></script>
+        <!-- Flash Messages -->
+        <x-shared.flash-messages />
+
+        <!-- Page Heading -->
+        @if (isset($header))
+            <header class="bg-white shadow">
+                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                    {{ $header }}
+                </div>
+            </header>
+        @endif
+
+        <!-- Page Content -->
+        <main class="flex-grow">
+            @yield('content')
+        </main>
+        
+        <!-- Footer -->
+        <x-shared.footer />
+    </div>
+    
+    @stack('scripts')
 </body>
 </html> 

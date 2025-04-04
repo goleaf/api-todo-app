@@ -3,13 +3,16 @@
 namespace App\Http\Requests\Admin\Category;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCategoryRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     *
+     * @return bool
      */
-    public function authorize(): bool
+    public function authorize()
     {
         return true;
     }
@@ -17,14 +20,37 @@ class StoreCategoryRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, mixed>
      */
-    public function rules(): array
+    public function rules()
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'color' => ['nullable', 'string', 'max:7', 'regex:/^#[a-fA-F0-9]{6}$/'],
+            'name' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('categories')->where(function ($query) {
+                    return $query->where('user_id', $this->user_id);
+                }),
+            ],
+            'color' => 'nullable|string|max:7',
+            'description' => 'nullable|string|max:255',
+            'user_id' => 'required|exists:users,id',
+        ];
+    }
+
+    /**
+     * Get custom error messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages()
+    {
+        return [
+            'name.required' => 'Category name is required.',
+            'name.unique' => 'This category name already exists for the selected user.',
+            'user_id.required' => 'The user must be specified.',
+            'user_id.exists' => 'The selected user does not exist.',
         ];
     }
 } 

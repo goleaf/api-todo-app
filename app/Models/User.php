@@ -23,9 +23,13 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
-        'timezone',
-        'date_format',
-        'time_format',
+        'role',
+        'avatar',
+        'bio',
+        'is_active',
+        'email_verified_at',
+        'last_login_at',
+        'last_login_ip',
     ];
 
     /**
@@ -46,7 +50,15 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'is_active' => 'boolean',
+        'last_login_at' => 'datetime',
     ];
+
+    /**
+     * User roles.
+     */
+    const ROLE_USER = 'user';
+    const ROLE_ADMIN = 'admin';
 
     /**
      * Get the tasks for the user.
@@ -97,79 +109,107 @@ class User extends Authenticatable implements MustVerifyEmail
     }
     
     /**
-     * Get the user's pending tasks.
+     * Get the settings for the user.
      */
-    public function pendingTasks(): HasMany
+    public function settings(): HasMany
     {
-        return $this->tasks()->where('completed', false);
+        return $this->hasMany(Setting::class);
     }
     
     /**
-     * Get the user's completed tasks.
+     * Check if the user is an admin.
+     *
+     * @return bool
      */
-    public function completedTasks(): HasMany
+    public function isAdmin(): bool
     {
-        return $this->tasks()->where('completed', true);
+        return (bool) $this->is_admin;
     }
     
     /**
-     * Get the user's overdue tasks.
+     * Get user's setting value.
      */
-    public function overdueTasks(): HasMany
+    public function getSetting(string $key, $default = null)
     {
-        return $this->tasks()
-            ->where('completed', false)
-            ->where('due_date', '<', now());
+        $setting = $this->settings()->where('key', $key)->first();
+        
+        return $setting ? $setting->value : $default;
     }
     
     /**
-     * Get the user's upcoming tasks.
+     * Get the avatar URL.
      */
-    public function upcomingTasks(): HasMany
+    public function getAvatarUrlAttribute(): string
     {
-        return $this->tasks()
-            ->where('completed', false)
-            ->where('due_date', '>', now());
-    }
-    
-    /**
-     * Get the user's running time entries.
-     */
-    public function runningTimeEntries(): HasMany
-    {
-        return $this->timeEntries()->whereNull('ended_at');
-    }
-    
-    /**
-     * Get the user's completed time entries.
-     */
-    public function completedTimeEntries(): HasMany
-    {
-        return $this->timeEntries()->whereNotNull('ended_at');
-    }
-    
-    /**
-     * Get total time spent on all tasks.
-     */
-    public function getTotalTimeSpentAttribute(): int
-    {
-        return $this->timeEntries()->sum('duration_seconds');
-    }
-    
-    /**
-     * Get the total time spent as a human-readable string.
-     */
-    public function getTotalTimeSpentFormattedAttribute(): string
-    {
-        $seconds = $this->total_time_spent;
-        $hours = floor($seconds / 3600);
-        $minutes = floor(($seconds % 3600) / 60);
-        $seconds = $seconds % 60;
-
-        if ($hours > 0) {
-            return sprintf('%02d:%02d:%02d', $hours, $minutes, $seconds);
+        if (!$this->avatar) {
+            // Return default avatar or generate one based on initials
+            return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
         }
+        
+        return $this->avatar;
+    }
+    
+    /**
+     * Get the user's preferred language.
+     */
+    public function getPreferredLanguageAttribute(): string
+    {
+        return $this->getSetting('language', config('app.locale'));
+    }
+    
+    /**
+     * Get the user's preferred timezone.
+     */
+    public function getPreferredTimezoneAttribute(): string
+    {
+        return $this->getSetting('timezone', config('app.timezone'));
+    }
+    
+    /**
+     * Scope a query to only include active users.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+    
+    /**
+     * Scope a query to only include admins.
+     */
+    public function scopeAdmins($query)
+    {
+        return $query->where('role', self::ROLE_ADMIN);
+    }
+    
+    /**
+     * Get task counts statistics.
+     */
+    public function getTaskCountsAttribute(): array
+    {
+        return [
+            'total' => $this->tasks()->count(),
+            'completed' => $this->tasks()->where('completed', true)->count(),
+            'pending' => $this->tasks()->where('completed', false)->count()
+        ];
+    }
 
-        return sprintf('%02d:%02d', $minutes, $seconds);
+    /**
+     * Get all user settings as a collection.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function settings()
+    {
+        return $this->hasMany(UserSetting::class);
+    }
+    
+    /**
+     * Determine if the user is an administrator.
+     *
+     * @return bool
+     */
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
     }
 }
